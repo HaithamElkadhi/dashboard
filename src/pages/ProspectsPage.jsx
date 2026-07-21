@@ -11,11 +11,11 @@ const UNKNOWN = 'Unknown';
 
 function KPICard({ label, value, loading }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+    <div className="rounded-2xl border border-border bg-surface p-3 sm:p-4">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted sm:text-xs">
         {label}
       </p>
-      <p className="mt-1.5 text-2xl font-semibold tabular-nums text-text-strong">
+      <p className="mt-1.5 text-xl font-semibold tabular-nums text-text-strong sm:text-2xl">
         {loading ? <span className="text-text-muted">—</span> : value}
       </p>
     </div>
@@ -24,18 +24,18 @@ function KPICard({ label, value, loading }) {
 
 function MoneyKPICard({ label, eur, tnd, loading }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+    <div className="rounded-2xl border border-border bg-surface p-3 sm:p-4">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted sm:text-xs">
         {label}
       </p>
       {loading ? (
-        <p className="mt-1.5 text-2xl font-semibold text-text-muted">—</p>
+        <p className="mt-1.5 text-xl font-semibold text-text-muted sm:text-2xl">—</p>
       ) : (
         <div className="mt-1.5 flex flex-col leading-tight">
-          <span className="text-2xl font-semibold tabular-nums text-text-strong">
+          <span className="text-xl font-semibold tabular-nums text-text-strong sm:text-2xl">
             {formatEUR(eur)}
           </span>
-          <span className="mt-0.5 text-2xl font-semibold tabular-nums text-text-strong">
+          <span className="mt-0.5 text-xl font-semibold tabular-nums text-text-strong sm:text-2xl">
             {formatTND(tnd)}
           </span>
         </div>
@@ -161,19 +161,20 @@ export default function ProspectsPage() {
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link
               to="/"
-              className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong"
             >
-              ← Back
+              ←<span className="hidden sm:inline"> Back</span>
             </Link>
-            <h1 className="text-base font-semibold text-text-strong">
-              JEExpert — Client Dashboard
+            <h1 className="truncate text-sm font-semibold text-text-strong sm:text-base">
+              <span className="sm:hidden">Clients</span>
+              <span className="hidden sm:inline">JEExpert — Client Dashboard</span>
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             {lastUpdated && (
               <span className="hidden text-xs text-text-muted sm:inline">
                 Mis à jour{' '}
@@ -202,8 +203,8 @@ export default function ProspectsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           <KPICard label="Total Clients" value={kpis.total} loading={kpiLoading} />
           <KPICard label="Admis" value={kpis.admis} loading={kpiLoading} />
           <MoneyKPICard
