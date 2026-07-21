@@ -177,10 +177,17 @@ export default function ProspectsPage() {
             {lastUpdated && (
               <span className="hidden text-xs text-text-muted sm:inline">
                 Mis à jour{' '}
-                {lastUpdated.toLocaleTimeString('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {lastUpdated.toDateString() === new Date().toDateString()
+                  ? lastUpdated.toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : lastUpdated.toLocaleString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
               </span>
             )}
             <button
