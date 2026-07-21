@@ -1,11 +1,11 @@
-// Vercel serverless proxy for Airtable.
-// In production the Vite dev proxy does not exist, so this function handles all
-// `/api/airtable/*` requests, forwarding them to the Airtable REST API and
-// injecting the Authorization header server-side (the token never reaches the
-// browser). Configure AIRTABLE_API_KEY in the Vercel project env variables.
+// Vercel serverless proxy for Airtable (production).
+// Requests to /api/airtable/* are rewritten (see vercel.json) to this function
+// with the Airtable path captured in the `__p` query param. All other query
+// params are the real Airtable query (fields[], pageSize, offset, ...).
+// The Authorization header is injected server-side so the token never reaches
+// the browser. Configure AIRTABLE_API_KEY in the Vercel project env variables.
 
 const AIRTABLE_BASE = 'https://api.airtable.com/v0';
-const PREFIX = '/api/airtable';
 
 export default async function handler(req, res) {
   const token = process.env.AIRTABLE_API_KEY;
@@ -16,27 +16,24 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Preserve the full path + query string (including repeated fields[] params).
-  let suffix = req.url || '';
-  const idx = suffix.indexOf(PREFIX);
-  if (idx !== -1) suffix = suffix.slice(idx + PREFIX.length);
-  if (!suffix.startsWith('/')) suffix = `/${suffix}`;
+  const url = new URL(req.url, 'http://internal');
+  const path = url.searchParams.get('__p') || '';
+  url.searchParams.delete('__p');
+  const qs = url.searchParams.toString();
 
-  const target = `${AIRTABLE_BASE}${suffix}`;
+  const target = `${AIRTABLE_BASE}/${path}${qs ? `?${qs}` : ''}`;
 
   try {
     const airtableRes = await fetch(target, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });
-
     const body = await airtableRes.text();
     res.status(airtableRes.status);
     res.setHeader(
       'content-type',
       airtableRes.headers.get('content-type') || 'application/json'
     );
-    // Small cache to soften repeated manual refreshes; adjust as needed.
     res.setHeader('cache-control', 'no-store');
     res.send(body);
   } catch (err) {
