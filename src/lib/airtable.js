@@ -5,12 +5,27 @@ import {
   PAY,
   PAID_STATUS,
   DUE_STATUS,
+  TF,
+  PICKER,
+  FIN,
 } from './config.js';
 
-// All requests go through the Vite dev proxy at /api/airtable, which injects the
-// Authorization header server-side. Fields are requested by field ID so the
-// response shape is stable regardless of field renames in Airtable.
+// All requests go through the Vite / Vercel proxy at /api/airtable, which
+// injects the Authorization header server-side.
 const PROXY_BASE = '/api/airtable';
+
+async function parseError(res) {
+  let detail = '';
+  try {
+    const body = await res.json();
+    detail = body?.error?.message || body?.error?.type || '';
+  } catch {
+    /* ignore */
+  }
+  throw new Error(
+    `Airtable ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`
+  );
+}
 
 async function fetchAll(tableId, fieldIds, offset = null, acc = []) {
   const params = new URLSearchParams();
@@ -21,23 +36,40 @@ async function fetchAll(tableId, fieldIds, offset = null, acc = []) {
 
   const url = `${PROXY_BASE}/${BASE_ID}/${tableId}?${params.toString()}`;
   const res = await fetch(url);
-
-  if (!res.ok) {
-    let detail = '';
-    try {
-      const body = await res.json();
-      detail = body?.error?.message || body?.error?.type || '';
-    } catch {
-      /* ignore */
-    }
-    throw new Error(
-      `Airtable ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`
-    );
-  }
+  if (!res.ok) await parseError(res);
 
   const data = await res.json();
   const all = [...acc, ...(data.records || [])];
   return data.offset ? fetchAll(tableId, fieldIds, data.offset, all) : all;
+}
+
+// Field-name variant (Tasks / picker tables use names from the Airtable UI).
+async function fetchAllByName(tableId, fieldNames, offset = null, acc = []) {
+  const params = new URLSearchParams();
+  fieldNames.forEach((f) => params.append('fields[]', f));
+  params.set('pageSize', '100');
+  if (offset) params.set('offset', offset);
+
+  const url = `${PROXY_BASE}/${BASE_ID}/${tableId}?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) await parseError(res);
+
+  const data = await res.json();
+  const all = [...acc, ...(data.records || [])];
+  return data.offset
+    ? fetchAllByName(tableId, fieldNames, data.offset, all)
+    : all;
+}
+
+async function airtableWrite(method, path, body) {
+  const res = await fetch(`${PROXY_BASE}/${path}`, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) await parseError(res);
+  if (res.status === 204) return null;
+  return res.json();
 }
 
 function toNumber(v) {
@@ -171,4 +203,258 @@ export async function fetchDashboardData() {
   const prospects = prospectRecords.map((r) => normalizeProspect(r, payMap));
 
   return { prospects, schema: schemaResult };
+}
+
+// ─── Tasks ───────────────────────────────────────────────────────────────────
+
+const TASK_FIELDS = [
+  TF.status,
+  TF.priority,
+  TF.type,
+  TF.assignedTo,
+  TF.ddl,
+  TF.prospectName,
+  TF.description,
+  TF.notes,
+  TF.ticketId,
+];
+
+function normalizeTask(record) {
+  const f = record.fields || {};
+  const description = f[TF.description] || '';
+  return {
+    id: record.id,
+    // App "name"/title = Airtable Description (Name field removed)
+    name: description,
+    status: f[TF.status] || 'Todo',
+    priority: f[TF.priority] || '',
+    type: f[TF.type] || '',
+    assignedTo: f[TF.assignedTo] || '',
+    ddl: f[TF.ddl] || '',
+    prospectName: f[TF.prospectName] || '',
+    description,
+    notes: f[TF.notes] || '',
+    ticketId: f[TF.ticketId] || '',
+  };
+}
+
+/** Fields safe to send on create/update — never include Ticket ID. */
+function toAirtableFields(input) {
+  const fields = {};
+  if (input.status != null) fields[TF.status] = input.status;
+  if (input.priority != null) fields[TF.priority] = input.priority;
+  if (input.type != null) fields[TF.type] = input.type;
+  if (input.assignedTo != null) fields[TF.assignedTo] = input.assignedTo;
+  if (input.ddl !== undefined) {
+    fields[TF.ddl] = input.ddl || null;
+  }
+  if (input.prospectName !== undefined) {
+    fields[TF.prospectName] = input.prospectName || '';
+  }
+  // Title from the form (`name`) is stored in Description
+  if (input.name != null || input.description !== undefined) {
+    fields[TF.description] =
+      (input.name != null ? input.name : input.description) || '';
+  }
+  if (input.notes !== undefined) {
+    fields[TF.notes] = input.notes || '';
+  }
+  return fields;
+}
+
+export async function fetchTasks() {
+  const records = await fetchAllByName(TABLES.tasks, TASK_FIELDS);
+  return records.map(normalizeTask);
+}
+
+export async function createTask(input) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.tasks}`, {
+    fields: toAirtableFields(input),
+  });
+  return normalizeTask(data);
+}
+
+export async function updateTask(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${BASE_ID}/${TABLES.tasks}/${recordId}`,
+    { fields: toAirtableFields(input) }
+  );
+  return normalizeTask(data);
+}
+
+export async function deleteTask(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.tasks}/${recordId}`);
+  return recordId;
+}
+
+export async function fetchPeopleForPicker() {
+  const [prospectRecords, leadRecords] = await Promise.all([
+    fetchAllByName(TABLES.prospects, [
+      PICKER.prospectFullName,
+      PICKER.prospectId,
+    ]),
+    fetchAllByName(TABLES.leads, [PICKER.leadFullName]),
+  ]);
+
+  const prospects = prospectRecords.map((r) => {
+    const f = r.fields || {};
+    return {
+      key: `prospect:${r.id}`,
+      recordId: r.id,
+      fullName: f[PICKER.prospectFullName] || '',
+      badgeId: f[PICKER.prospectId] || '',
+      source: 'Prospect',
+    };
+  });
+
+  const leads = leadRecords.map((r) => {
+    const f = r.fields || {};
+    return {
+      key: `lead:${r.id}`,
+      recordId: r.id,
+      fullName: f[PICKER.leadFullName] || '',
+      badgeId: r.id.slice(0, 8),
+      source: 'Lead',
+    };
+  });
+
+  return [...prospects, ...leads].filter((p) => p.fullName);
+}
+
+// ─── Finance (Paiements) ───────────────────────────────────────────────────
+
+const FIN_FIELDS = Object.values(FIN);
+
+function normalizePaiement(record) {
+  const f = record.fields || {};
+  return {
+    id: record.id,
+    reference: f[FIN.reference] || '',
+    prospectRecordIds: asArray(f[FIN.prospects]),
+    fullName: (asArray(f[FIN.fullName])[0] || '').toString(),
+    email: (asArray(f[FIN.email])[0] || '').toString(),
+    prospectId: (asArray(f[FIN.prospectId])[0] || '').toString(),
+    amount: toNumber(f[FIN.amount]),
+    currency: f[FIN.currency] || 'EUR',
+    status: f[FIN.status] || '',
+    purpose: asArray(f[FIN.purpose]),
+    dueDate: f[FIN.dueDate] || null,
+    paymentDate: f[FIN.paymentDate] || null,
+    paymentMethod: f[FIN.paymentMethod] || '',
+    comment: f[FIN.comment] || '',
+    exemptionReason: f[FIN.exemptionReason] || '',
+    billingAddress: f[FIN.billingAddress] || '',
+    taxe: f[FIN.taxe] ?? 0,
+    commCommercial: f[FIN.commCommercial] ?? 0,
+    soldeConfirme: !!f[FIN.soldeConfirme],
+    netARecevoir: toNumber(f[FIN.netARecevoir]),
+    moezType: f[FIN.moezType] || null,
+    moezValeur: f[FIN.moezValeur] ?? 0,
+    commissionMoez: toNumber(f[FIN.commissionMoez]),
+    invoice: f[FIN.invoice] || [],
+    proofOfPayment: f[FIN.proofOfPayment] || [],
+  };
+}
+
+// The Airtable `commissionMoez` formula is 0 while soldeConfirme is false (the
+// commission isn't payable yet), so the field can't show what it *would* be.
+// This mirrors that same formula without the soldeConfirme gate, so the UI
+// can display the pending amount next to a "Suspendue" label.
+export function computeMoezAmount(p) {
+  if (!p.moezType || p.moezType === 'Aucune') return 0;
+  if (p.moezType === '%') return (p.netARecevoir * (p.moezValeur || 0)) / 100;
+  if (p.moezType === 'Fixe') return p.moezValeur || 0;
+  return 0;
+}
+
+/** Fields safe to send on create/update — formula/lookup fields are never included. */
+function toPaiementFields(input) {
+  const fields = {};
+  if (input.prospectRecordIds !== undefined) {
+    fields[FIN.prospects] = input.prospectRecordIds || [];
+  }
+  if (input.amount !== undefined) fields[FIN.amount] = String(input.amount);
+  if (input.currency !== undefined) fields[FIN.currency] = input.currency;
+  if (input.status !== undefined) fields[FIN.status] = input.status;
+  if (input.purpose !== undefined) fields[FIN.purpose] = input.purpose || [];
+  if (input.dueDate !== undefined) fields[FIN.dueDate] = input.dueDate || null;
+  if (input.paymentDate !== undefined) {
+    fields[FIN.paymentDate] = input.paymentDate || null;
+  }
+  if (input.paymentMethod !== undefined) {
+    fields[FIN.paymentMethod] = input.paymentMethod || '';
+  }
+  if (input.comment !== undefined) fields[FIN.comment] = input.comment || '';
+  if (input.exemptionReason !== undefined) {
+    fields[FIN.exemptionReason] = input.exemptionReason || '';
+  }
+  if (input.billingAddress !== undefined) {
+    fields[FIN.billingAddress] = input.billingAddress || '';
+  }
+  if (input.taxe !== undefined) fields[FIN.taxe] = Number(input.taxe) || 0;
+  if (input.commCommercial !== undefined) {
+    fields[FIN.commCommercial] = Number(input.commCommercial) || 0;
+  }
+  if (input.soldeConfirme !== undefined) {
+    fields[FIN.soldeConfirme] = !!input.soldeConfirme;
+  }
+  if (input.moezType !== undefined) fields[FIN.moezType] = input.moezType || null;
+  if (input.moezValeur !== undefined) {
+    fields[FIN.moezValeur] = Number(input.moezValeur) || 0;
+  }
+  return fields;
+}
+
+export async function fetchPaiements() {
+  const records = await fetchAll(TABLES.paiements, FIN_FIELDS);
+  return records.map(normalizePaiement);
+}
+
+// Live choices for the Purpose field, read from the Airtable schema so the
+// list in the app always matches what's configured in Airtable (renaming or
+// adding a Purpose option there needs no code change). Best-effort — the
+// caller falls back to PURPOSE_CHOICES (config.js) if this fails, e.g.
+// missing `schema.bases:read` PAT scope.
+export async function fetchPurposeChoices() {
+  const res = await fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`);
+  if (!res.ok) throw new Error(`Schema ${res.status}`);
+  const data = await res.json();
+  const table = (data.tables || []).find((t) => t.id === TABLES.paiements);
+  if (!table) throw new Error('Paiements table not found in schema');
+  const field = (table.fields || []).find((f) => f.id === FIN.purpose);
+  const choices = field?.options?.choices || [];
+  return choices.map((c) => c.name);
+}
+
+// PATCH/POST responses are keyed by field NAME by default — FIN.* are field
+// IDs (to match fetchPaiements' returnFieldsByFieldId GETs), so writes must
+// request the same keying or normalizePaiement silently reads undefined for
+// every field (e.g. a checkbox flip would always normalize back to false).
+// Unlike GET, Airtable only honors this as a body param on write endpoints —
+// a `?returnFieldsByFieldId=true` query string is silently ignored there.
+// `typecast: true` is also required: without it, writing a select field by
+// field ID with a plain option-name string (e.g. Purpose) makes Airtable try
+// to CREATE a new option with that name instead of matching the existing one
+// — and fails with "Insufficient permissions to create new select option".
+export async function createPaiement(input) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.paiements}`, {
+    fields: toPaiementFields(input),
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizePaiement(data);
+}
+
+export async function updatePaiement(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${BASE_ID}/${TABLES.paiements}/${recordId}`,
+    {
+      fields: toPaiementFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  return normalizePaiement(data);
 }

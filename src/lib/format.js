@@ -17,6 +17,27 @@ export function formatTND(n) {
   return `${tndFmt.format(n || 0)} TND`;
 }
 
+const plainFmt = new Intl.NumberFormat('fr-FR', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+// Currency-aware amount formatter for the Finance section (EUR/USD/GBP use
+// Intl currency formatting; TND has no reliable Intl currency support here).
+export function formatMoney(n, currency) {
+  const amount = n || 0;
+  if (currency === 'TND') return `${plainFmt.format(amount)} TND`;
+  try {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: currency || 'EUR',
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${plainFmt.format(amount)} ${currency || ''}`.trim();
+  }
+}
+
 export function initials(first, last, fullName) {
   const a = (first || '').trim();
   const b = (last || '').trim();

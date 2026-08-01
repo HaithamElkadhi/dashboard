@@ -68,7 +68,13 @@ export default function HomePage() {
             description="View and manage all prospects"
           />
           <SectionCard
-            disabled
+            to="/tasks"
+            icon="✅"
+            title="Tasks"
+            description="Create, board and track team tasks"
+          />
+          <SectionCard
+            to="/finance"
             icon="💶"
             title="Finance"
             description="Suivi des paiements et revenus"

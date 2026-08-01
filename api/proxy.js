@@ -6,6 +6,7 @@
 // the browser. Configure AIRTABLE_API_KEY in the Vercel project env variables.
 
 const AIRTABLE_BASE = 'https://api.airtable.com/v0';
+const ALLOWED = new Set(['GET', 'POST', 'PATCH', 'DELETE']);
 
 export default async function handler(req, res) {
   const token = process.env.AIRTABLE_API_KEY;
@@ -16,6 +17,13 @@ export default async function handler(req, res) {
     return;
   }
 
+  const method = req.method || 'GET';
+  if (!ALLOWED.has(method)) {
+    res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
+    res.status(405).json({ error: { message: `Method ${method} not allowed` } });
+    return;
+  }
+
   const url = new URL(req.url, 'http://internal');
   const path = url.searchParams.get('__p') || '';
   url.searchParams.delete('__p');
@@ -23,11 +31,22 @@ export default async function handler(req, res) {
 
   const target = `${AIRTABLE_BASE}/${path}${qs ? `?${qs}` : ''}`;
 
+  const headers = { Authorization: `Bearer ${token}` };
+  const init = { method, headers };
+
+  if (method === 'POST' || method === 'PATCH') {
+    headers['Content-Type'] = 'application/json';
+    const body = req.body;
+    init.body =
+      body == null || body === ''
+        ? undefined
+        : typeof body === 'string'
+          ? body
+          : JSON.stringify(body);
+  }
+
   try {
-    const airtableRes = await fetch(target, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const airtableRes = await fetch(target, init);
     const body = await airtableRes.text();
     res.status(airtableRes.status);
     res.setHeader(
