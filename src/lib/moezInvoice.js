@@ -129,7 +129,6 @@ export function generateMoezInvoice(paiements, scope) {
     pdfMoney(p.netARecevoir, p.currency),
     p.moezType || '—',
     pdfMoney(computeMoezAmount(p), p.currency),
-    p.soldeConfirme ? 'Confirmé' : 'Suspendu',
   ]);
 
   autoTable(doc, {
@@ -144,7 +143,6 @@ export function generateMoezInvoice(paiements, scope) {
         'Net',
         'Type',
         'Commission Moez',
-        'Statut',
       ],
     ],
     body,
