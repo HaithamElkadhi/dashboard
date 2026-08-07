@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Drawer from '../Drawer.jsx';
+import Modal from '../Modal.jsx';
 import TaskForm from './TaskForm.jsx';
 import { formatShortDate, parseTicketCreatedDate } from '../../lib/taskDates.js';
 import { ARCHIVED_STATUS } from '../../lib/config.js';
@@ -23,7 +23,7 @@ function QuickAction({ icon: Icon, label, onClick, danger, disabled }) {
   );
 }
 
-export default function TaskDetailsDrawer({
+export default function TaskDetailsModal({
   task,
   people,
   onClose,
@@ -106,8 +106,17 @@ export default function TaskDetailsDrawer({
   };
 
   return (
-    <Drawer title={task.name} subtitle={task.ticketId} onClose={onClose} wide>
-      <div className="mb-4 flex flex-wrap items-center gap-1.5">
+    <Modal
+      title={task.name}
+      subtitle={
+        [task.ticketId, createdISO ? `Créée le ${formatShortDate(createdISO)}` : null]
+          .filter(Boolean)
+          .join(' · ') || undefined
+      }
+      onClose={onClose}
+      size="lg"
+    >
+      <div className="mb-5 flex flex-wrap items-center gap-1.5">
         <QuickAction
           icon={CheckIcon}
           label={done ? 'Rouvrir' : 'Marquer terminée'}
@@ -125,19 +134,16 @@ export default function TaskDetailsDrawer({
         />
       </div>
 
-      {createdISO && (
-        <p className="mb-4 text-xs text-text-muted">Créée le {formatShortDate(createdISO)}</p>
-      )}
-
       <TaskForm
         key={task.id}
         people={people}
         initial={task}
         showStatus
+        compact
         submitLabel="Enregistrer"
         onCancel={onClose}
         onSubmit={handleFormSubmit}
       />
-    </Drawer>
+    </Modal>
   );
 }

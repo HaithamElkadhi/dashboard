@@ -4,13 +4,13 @@ import AppSidebar from './AppSidebar.jsx';
 import AppHeader from './AppHeader.jsx';
 import { PAGE_TITLES } from '../../lib/navigation.js';
 import { TasksWorkspaceProvider, useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
-import TaskDrawer from '../tasks/TaskDrawer.jsx';
-import TaskDetailsDrawer from '../tasks/TaskDetailsDrawer.jsx';
+import TaskCreateModal from '../tasks/TaskCreateModal.jsx';
+import TaskDetailsModal from '../tasks/TaskDetailsModal.jsx';
 import Toast from '../Toast.jsx';
 
 const COLLAPSE_KEY = 'jeexpert:sidebar:collapsed';
 
-function GlobalTaskDrawers() {
+function GlobalTaskModals() {
   const {
     tasks,
     people,
@@ -33,7 +33,7 @@ function GlobalTaskDrawers() {
   return (
     <>
       {createOpen && (
-        <TaskDrawer
+        <TaskCreateModal
           people={people}
           initialStatus={createInitialStatus}
           onClose={closeCreate}
@@ -42,7 +42,7 @@ function GlobalTaskDrawers() {
         />
       )}
       {detailTask && (
-        <TaskDetailsDrawer
+        <TaskDetailsModal
           task={detailTask}
           people={people}
           onClose={closeDetails}
@@ -92,7 +92,7 @@ export default function AppShell() {
           </main>
         </div>
       </div>
-      <GlobalTaskDrawers />
+      <GlobalTaskModals />
     </TasksWorkspaceProvider>
   );
 }
