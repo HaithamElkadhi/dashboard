@@ -11,6 +11,9 @@ export default {
         border: 'var(--border)',
         'border-strong': 'var(--border-strong)',
         brand: 'var(--brand)',
+        navy: 'var(--navy)',
+        'navy-strong': 'var(--navy-strong)',
+        gold: 'var(--gold)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Badge from '../Badge.jsx';
+import Pagination from '../Pagination.jsx';
 import { formatMoney } from '../../lib/format.js';
 import { computeMoezAmount } from '../../lib/airtable.js';
 import {
@@ -7,6 +8,7 @@ import {
   PAYMENT_STATUSES,
   PAYMENT_STATUS_COLORS,
 } from '../../lib/config.js';
+import { usePagination } from '../../hooks/usePagination.js';
 import { SkeletonRows } from '../states.jsx';
 
 function FilterPill({ label, active, onClick }) {
@@ -148,6 +150,14 @@ export default function PaiementsTable({
     [filtered, sortKey, sortDir]
   );
 
+  const resetKey = useMemo(
+    () =>
+      `${status}|${currency}|${confirmedOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
+    [status, currency, confirmedOnly, debouncedQuery, sortKey, sortDir, sorted]
+  );
+  const pagination = usePagination(sorted, { resetKey });
+  const visible = loading ? [] : pagination.pageItems;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -244,7 +254,7 @@ export default function PaiementsTable({
                   </td>
                 </tr>
               ) : (
-                sorted.map((p) => {
+                visible.map((p) => {
                   const color = PAYMENT_STATUS_COLORS[p.status] || {
                     bg: '#F1EFE8',
                     text: '#5F5E5A',
@@ -335,6 +345,18 @@ export default function PaiementsTable({
             )}
           </table>
         </div>
+        {!loading && sorted.length > 0 && (
+          <Pagination
+            page={pagination.page}
+            pageCount={pagination.pageCount}
+            total={pagination.total}
+            from={pagination.from}
+            to={pagination.to}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
+        )}
       </div>
     </div>
   );

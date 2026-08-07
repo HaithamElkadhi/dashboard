@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import {
+  ALL_TASK_STATUSES,
   ASSIGNEES,
+  PRIORITY_COLORS,
+  STATUS_COLORS,
   TASK_PRIORITIES,
-  TASK_STATUSES,
   TASK_TYPES,
 } from '../../lib/config.js';
+import { PRIORITY_LABELS_FR, STATUS_LABELS_FR, TYPE_LABELS_FR } from '../../lib/taskLabels.js';
 import ProspectPicker from './ProspectPicker.jsx';
+import ChipSelect from './ChipSelect.jsx';
 
 function peopleFromProspectName(prospectName, people) {
   if (!prospectName) return [];
@@ -45,13 +49,13 @@ function Field({ label, required, children, asLabel = true }) {
 const inputClass =
   'w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong';
 
-function emptyForm() {
+function emptyForm(initialStatus) {
   return {
     name: '',
     type: '',
     priority: '',
     assignedTo: '',
-    status: 'Todo',
+    status: initialStatus || 'Todo',
     ddl: '',
     notes: '',
     selectedPeople: [],
@@ -61,13 +65,15 @@ function emptyForm() {
 export default function TaskForm({
   people,
   initial,
+  initialStatus,
   submitLabel = 'Créer la tâche',
   onSubmit,
   onCancel,
-  showStatus = false,
+  showStatus = true,
+  showCreateAnother = false,
 }) {
   const [form, setForm] = useState(() => {
-    if (!initial) return emptyForm();
+    if (!initial) return emptyForm(initialStatus);
     return {
       name: initial.name || '',
       type: initial.type || '',
@@ -84,8 +90,7 @@ export default function TaskForm({
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const submit = async (keepOpen) => {
     if (!form.name.trim() || !form.type || !form.priority || !form.assignedTo) {
       setError('Titre, type, priorité et assigné sont obligatoires.');
       return;
@@ -107,8 +112,8 @@ export default function TaskForm({
         notes: form.notes,
         prospectName,
       };
-      await onSubmit(payload);
-      if (!initial) setForm(emptyForm());
+      await onSubmit(payload, keepOpen);
+      if (!initial) setForm(emptyForm(initialStatus));
     } catch (err) {
       setError(err.message || 'Échec de l’enregistrement');
     } finally {
@@ -117,7 +122,13 @@ export default function TaskForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit(false);
+      }}
+      className="space-y-4"
+    >
       <Field label="Titre" required>
         <input
           className={inputClass}
@@ -127,71 +138,55 @@ export default function TaskForm({
         />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Type" required>
-          <select className={inputClass} value={form.type} onChange={set('type')}>
-            <option value="">Choisir…</option>
-            {TASK_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Priorité" required>
-          <select
-            className={inputClass}
-            value={form.priority}
-            onChange={set('priority')}
-          >
-            <option value="">Choisir…</option>
-            {TASK_PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Assigné à" required>
-          <select
-            className={inputClass}
-            value={form.assignedTo}
-            onChange={set('assignedTo')}
-          >
-            <option value="">Choisir…</option>
-            {ASSIGNEES.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Deadline">
-          <input
-            type="date"
-            className={inputClass}
-            value={form.ddl}
-            onChange={set('ddl')}
+      <Field label="Type" required asLabel={false}>
+        <ChipSelect
+          options={TASK_TYPES}
+          labels={TYPE_LABELS_FR}
+          value={form.type}
+          onChange={(v) => setForm((f) => ({ ...f, type: v }))}
+        />
+      </Field>
+
+      <Field label="Priorité" required asLabel={false}>
+        <ChipSelect
+          options={TASK_PRIORITIES}
+          labels={PRIORITY_LABELS_FR}
+          value={form.priority}
+          colors={PRIORITY_COLORS}
+          onChange={(v) => setForm((f) => ({ ...f, priority: v }))}
+        />
+      </Field>
+
+      <Field label="Responsable" required asLabel={false}>
+        <ChipSelect
+          options={ASSIGNEES}
+          value={form.assignedTo}
+          onChange={(v) => setForm((f) => ({ ...f, assignedTo: v }))}
+        />
+      </Field>
+
+      {showStatus && (
+        <Field label="Statut" asLabel={false}>
+          <ChipSelect
+            options={ALL_TASK_STATUSES}
+            labels={STATUS_LABELS_FR}
+            value={form.status}
+            colors={STATUS_COLORS}
+            onChange={(v) => setForm((f) => ({ ...f, status: v }))}
           />
         </Field>
-        {showStatus && (
-          <Field label="Statut">
-            <select
-              className={inputClass}
-              value={form.status}
-              onChange={set('status')}
-            >
-              {TASK_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </Field>
-        )}
-      </div>
+      )}
 
-      <Field label="Prospect / Lead" asLabel={false}>
+      <Field label="Date d’échéance">
+        <input
+          type="date"
+          className={`${inputClass} max-w-xs`}
+          value={form.ddl}
+          onChange={set('ddl')}
+        />
+      </Field>
+
+      <Field label="Étudiant / Prospect" asLabel={false}>
         <ProspectPicker
           people={people}
           value={form.selectedPeople}
@@ -201,7 +196,7 @@ export default function TaskForm({
         />
       </Field>
 
-      <Field label="Notes">
+      <Field label="Description / notes">
         <textarea
           rows={3}
           className={inputClass}
@@ -217,7 +212,7 @@ export default function TaskForm({
         </p>
       )}
 
-      <div className="flex items-center gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-1">
         <button
           type="submit"
           disabled={saving}
@@ -225,6 +220,16 @@ export default function TaskForm({
         >
           {saving ? 'Enregistrement…' : submitLabel}
         </button>
+        {showCreateAnother && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => submit(true)}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong disabled:opacity-60"
+          >
+            Créer et ajouter une autre
+          </button>
+        )}
         {onCancel && (
           <button
             type="button"

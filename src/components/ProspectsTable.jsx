@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import Avatar from './Avatar.jsx';
 import Badge from './Badge.jsx';
+import Pagination from './Pagination.jsx';
 import { EmptyState, SkeletonRows } from './states.jsx';
+import { usePagination } from '../hooks/usePagination.js';
 import { chipStyle, dotStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
 
@@ -242,6 +245,14 @@ export default function ProspectsTable({ rows, loading, colors }) {
     visa: colors?.visa || EMPTY,
     admission: colors?.admission || EMPTY,
   };
+
+  const resetKey = useMemo(
+    () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}`,
+    [rows]
+  );
+  const pagination = usePagination(rows, { resetKey });
+  const visible = loading ? [] : pagination.pageItems;
+
   return (
     <>
       {/* Desktop / tablet: full table */}
@@ -269,7 +280,7 @@ export default function ProspectsTable({ rows, loading, colors }) {
                 </td>
               </tr>
             ) : (
-              rows.map((p) => <ProspectRow key={p.id} p={p} colors={palette} />)
+              visible.map((p) => <ProspectRow key={p.id} p={p} colors={palette} />)
             )}
           </tbody>
         </table>
@@ -282,9 +293,22 @@ export default function ProspectsTable({ rows, loading, colors }) {
         ) : rows.length === 0 ? (
           <EmptyState />
         ) : (
-          rows.map((p) => <ProspectCard key={p.id} p={p} colors={palette} />)
+          visible.map((p) => <ProspectCard key={p.id} p={p} colors={palette} />)
         )}
       </div>
+
+      {!loading && rows.length > 0 && (
+        <Pagination
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          total={pagination.total}
+          from={pagination.from}
+          to={pagination.to}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
+      )}
     </>
   );
 }

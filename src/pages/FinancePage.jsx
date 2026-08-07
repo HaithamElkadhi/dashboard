@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useFinanceData } from '../hooks/useFinanceData.js';
 import { ErrorState } from '../components/states.jsx';
 import Badge from '../components/Badge.jsx';
@@ -9,6 +8,8 @@ import PaiementModal from '../components/finance/PaiementModal.jsx';
 import CommissionsView from '../components/finance/CommissionsView.jsx';
 import { formatMoney } from '../lib/format.js';
 import { PAYMENT_STATUS_COLORS } from '../lib/config.js';
+import { relativeTime } from '../lib/taskDates.js';
+import { CheckCircleIcon, RefreshIcon, XIcon } from '../components/icons.jsx';
 
 const TABS = [
   { id: 'overview', label: 'Vue générale' },
@@ -20,7 +21,9 @@ function Toast({ message, onClose }) {
   if (!message) return null;
   return (
     <div className="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-lg">
-      <span className="text-emerald-600">✓</span>
+      <span className="mt-0.5 text-emerald-600">
+        <CheckCircleIcon size={16} />
+      </span>
       <p className="flex-1 text-sm text-text-strong">{message}</p>
       <button
         type="button"
@@ -28,7 +31,7 @@ function Toast({ message, onClose }) {
         className="text-text-muted hover:text-text-strong"
         aria-label="Fermer"
       >
-        ×
+        <XIcon size={14} />
       </button>
     </div>
   );
@@ -214,51 +217,22 @@ export default function FinancePage() {
   };
 
   return (
-    <div className="min-h-full">
-      <header className="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Link
-              to="/"
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong"
-            >
-              ←<span className="hidden sm:inline"> Back</span>
-            </Link>
-            <h1 className="truncate text-sm font-semibold text-text-strong sm:text-base">
-              <span className="sm:hidden">Finance</span>
-              <span className="hidden sm:inline">JEExpert — Finance</span>
-            </h1>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            {lastUpdated && (
-              <span className="hidden text-xs text-text-muted sm:inline">
-                Mis à jour{' '}
-                {lastUpdated.toDateString() === new Date().toDateString()
-                  ? lastUpdated.toLocaleTimeString('fr-FR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : lastUpdated.toLocaleString('fr-FR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-              </span>
-            )}
-            <button
-              onClick={refresh}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
-            >
-              <span className={loading ? 'inline-block animate-spin' : ''}>↻</span>
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+      <div className="mb-4 flex items-center justify-end">
+        {lastUpdated && (
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-text-muted transition hover:bg-surface disabled:opacity-60"
+          >
+            <RefreshIcon size={13} className={loading ? 'animate-spin' : ''} />
+            Mis à jour {relativeTime(lastUpdated)}
+          </button>
+        )}
+      </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+      <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-xl border border-border bg-surface p-1">
             {TABS.map((t) => (
@@ -308,7 +282,7 @@ export default function FinancePage() {
             <CommissionsView paiements={paiements} onUpdateMoez={handleUpdateMoez} />
           )}
         </div>
-      </main>
+      </div>
 
       {modal && (
         <PaiementModal

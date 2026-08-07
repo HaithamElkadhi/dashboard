@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Badge from '../Badge.jsx';
+import Pagination from '../Pagination.jsx';
 import MetricCard from './MetricCard.jsx';
 import { formatMoney } from '../../lib/format.js';
 import { computeMoezAmount } from '../../lib/airtable.js';
 import { MOEZ_TYPES } from '../../lib/config.js';
 import { MOEZ_INVOICE_SCOPES, generateMoezInvoice } from '../../lib/moezInvoice.js';
+import { usePagination } from '../../hooks/usePagination.js';
 
 function MoezInvoiceButton({ paiements }) {
   const [open, setOpen] = useState(false);
@@ -164,11 +166,29 @@ export default function CommissionsView({ paiements, onUpdateMoez }) {
       ),
     [paiements]
   );
+  const moezRows = useMemo(
+    () => paiements.filter((p) => p.moezType && p.moezType !== 'Aucune'),
+    [paiements]
+  );
   const commercialRows = useMemo(
     () => paiements.filter((p) => p.commCommercial),
     [paiements]
   );
   const confirmed = useMemo(() => paiements.filter((p) => p.soldeConfirme), [paiements]);
+
+  const moezResetKey = useMemo(
+    () => `${moezRows.length}:${moezRows[0]?.id ?? ''}`,
+    [moezRows]
+  );
+  const commercialResetKey = useMemo(
+    () => `${commercialRows.length}:${commercialRows[0]?.id ?? ''}`,
+    [commercialRows]
+  );
+  const moezPagination = usePagination(moezRows, { pageSize: 10, resetKey: moezResetKey });
+  const commercialPagination = usePagination(commercialRows, {
+    pageSize: 10,
+    resetKey: commercialResetKey,
+  });
 
   return (
     <div className="space-y-6">
@@ -193,8 +213,8 @@ export default function CommissionsView({ paiements, onUpdateMoez }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
+        <section className="overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="flex items-center justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
             <h3 className="text-sm font-semibold text-text-strong">Commission Moez</h3>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold tabular-nums text-text-strong">
@@ -203,42 +223,68 @@ export default function CommissionsView({ paiements, onUpdateMoez }) {
               <MoezInvoiceButton paiements={paiements} />
             </div>
           </div>
-          {paiements.filter((p) => p.moezType && p.moezType !== 'Aucune').length === 0 ? (
-            <p className="mt-3 text-sm text-text-muted">Aucune commission Moez configurée</p>
+          {moezRows.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-text-muted sm:px-5">
+              Aucune commission Moez configurée
+            </p>
           ) : (
-            <ul className="mt-2 divide-y divide-border">
-              {paiements
-                .filter((p) => p.moezType && p.moezType !== 'Aucune')
-                .map((p) => (
+            <>
+              <ul className="mt-2 divide-y divide-border px-4 sm:px-5">
+                {moezPagination.pageItems.map((p) => (
                   <MoezRow key={p.id} p={p} onSave={onUpdateMoez} />
                 ))}
-            </ul>
+              </ul>
+              <Pagination
+                page={moezPagination.page}
+                pageCount={moezPagination.pageCount}
+                total={moezPagination.total}
+                from={moezPagination.from}
+                to={moezPagination.to}
+                pageSize={moezPagination.pageSize}
+                onPageChange={moezPagination.setPage}
+                onPageSizeChange={moezPagination.setPageSize}
+              />
+            </>
           )}
         </section>
 
-        <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
+        <section className="overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="flex items-center justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
             <h3 className="text-sm font-semibold text-text-strong">Commission Commercial</h3>
             <span className="text-sm font-semibold tabular-nums text-text-strong">
               {currencyTotalsLabel(commercialRows, (r) => r.commCommercial)}
             </span>
           </div>
           {commercialRows.length === 0 ? (
-            <p className="mt-3 text-sm text-text-muted">Aucune commission commerciale</p>
+            <p className="px-4 py-3 text-sm text-text-muted sm:px-5">
+              Aucune commission commerciale
+            </p>
           ) : (
-            <ul className="mt-2 divide-y divide-border">
-              {commercialRows.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2 py-2.5 text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium text-text-strong">{p.fullName || '—'}</p>
-                    <p className="text-xs text-text-muted">{p.reference}</p>
-                  </div>
-                  <span className="font-semibold tabular-nums text-text-strong">
-                    {formatMoney(p.commCommercial, p.currency)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="mt-2 divide-y divide-border px-4 sm:px-5">
+                {commercialPagination.pageItems.map((p) => (
+                  <li key={p.id} className="flex items-center justify-between gap-2 py-2.5 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium text-text-strong">{p.fullName || '—'}</p>
+                      <p className="text-xs text-text-muted">{p.reference}</p>
+                    </div>
+                    <span className="font-semibold tabular-nums text-text-strong">
+                      {formatMoney(p.commCommercial, p.currency)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Pagination
+                page={commercialPagination.page}
+                pageCount={commercialPagination.pageCount}
+                total={commercialPagination.total}
+                from={commercialPagination.from}
+                to={commercialPagination.to}
+                pageSize={commercialPagination.pageSize}
+                onPageChange={commercialPagination.setPage}
+                onPageSizeChange={commercialPagination.setPageSize}
+              />
+            </>
           )}
         </section>
       </div>

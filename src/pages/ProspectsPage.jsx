@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useDashboardData } from '../hooks/useDashboardData.js';
 import ProspectsTable from '../components/ProspectsTable.jsx';
 import { ErrorState } from '../components/states.jsx';
 import { SITUATION_CHOICES } from '../lib/config.js';
 import { chipStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
+import { relativeTime } from '../lib/taskDates.js';
+import { RefreshIcon, SearchIcon } from '../components/icons.jsx';
 
 const UNKNOWN = 'Unknown';
 
@@ -159,51 +160,21 @@ export default function ProspectsPage() {
   }, [filtered]);
 
   return (
-    <div className="min-h-full">
-      <header className="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Link
-              to="/"
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong"
-            >
-              ←<span className="hidden sm:inline"> Back</span>
-            </Link>
-            <h1 className="truncate text-sm font-semibold text-text-strong sm:text-base">
-              <span className="sm:hidden">Clients</span>
-              <span className="hidden sm:inline">JEExpert — Client Dashboard</span>
-            </h1>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            {lastUpdated && (
-              <span className="hidden text-xs text-text-muted sm:inline">
-                Mis à jour{' '}
-                {lastUpdated.toDateString() === new Date().toDateString()
-                  ? lastUpdated.toLocaleTimeString('fr-FR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : lastUpdated.toLocaleString('fr-FR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-              </span>
-            )}
-            <button
-              onClick={refresh}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
-            >
-              <span className={loading ? 'inline-block animate-spin' : ''}>↻</span>
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+    <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
+      <div className="mb-4 flex items-center justify-end">
+        {lastUpdated && (
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-text-muted transition hover:bg-surface disabled:opacity-60"
+          >
+            <RefreshIcon size={13} className={loading ? 'animate-spin' : ''} />
+            Mis à jour {relativeTime(lastUpdated)}
+          </button>
+        )}
+      </div>
+      <div>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           <KPICard label="Total Clients" value={kpis.total} loading={kpiLoading} />
           <KPICard label="Admis" value={kpis.admis} loading={kpiLoading} />
@@ -260,7 +231,7 @@ export default function ProspectsPage() {
         <div className="mt-4">
           <div className="relative max-w-sm">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-              🔍
+              <SearchIcon size={15} />
             </span>
             <input
               type="text"
@@ -288,16 +259,16 @@ export default function ProspectsPage() {
           </div>
           {status === 'idle' ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-              <span className="text-3xl">📭</span>
+              <RefreshIcon size={26} className="text-text-muted" />
               <p className="text-sm font-medium text-text-muted">
-                Aucune donnée chargée. Cliquez sur « Refresh » pour charger les
-                clients depuis Airtable.
+                Aucune donnée chargée. Cliquez pour charger les clients depuis
+                Airtable.
               </p>
               <button
                 onClick={refresh}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
               >
-                <span>↻</span>
+                <RefreshIcon size={14} />
                 Charger les données
               </button>
             </div>
@@ -314,7 +285,7 @@ export default function ProspectsPage() {
             />
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -135,7 +135,16 @@ export const PICKER = {
   leadFullName: 'Full Name',
 };
 
-export const TASK_STATUSES = ['Todo', 'In progress', 'Done'];
+// Board statuses (kanban columns + mobile tabs). Archived is deliberately not
+// part of this list — it's a terminal state that should disappear from the
+// active board rather than compete for space with live work.
+export const TASK_STATUSES = ['Todo', 'In progress', 'Blocked', 'Done'];
+
+export const ARCHIVED_STATUS = 'Archived';
+
+// Full set, including Archived — used where a task must be movable to/from
+// that state (the status chip picker in the edit form).
+export const ALL_TASK_STATUSES = [...TASK_STATUSES, ARCHIVED_STATUS];
 
 export const TASK_PRIORITIES = ['High', 'Medium', 'Low'];
 
@@ -154,7 +163,9 @@ export const ASSIGNEES = ['Haitham', 'Eya', 'Moez'];
 export const STATUS_COLORS = {
   Todo: { bg: '#F1EFE8', text: '#5F5E5A' },
   'In progress': { bg: '#E6F1FB', text: '#185FA5' },
+  Blocked: { bg: '#FDE4D0', text: '#B4530A' },
   Done: { bg: '#EAF3DE', text: '#3B6D11' },
+  Archived: { bg: '#EDEDED', text: '#6B6B66' },
 };
 
 export const PRIORITY_COLORS = {

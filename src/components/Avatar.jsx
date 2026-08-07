@@ -19,12 +19,17 @@ function hash(str) {
   return Math.abs(h);
 }
 
-export default function Avatar({ first, last, fullName, seed = '' }) {
+export default function Avatar({ first, last, fullName, seed = '', size = 36 }) {
   const color = PALETTE[hash(seed || fullName || '') % PALETTE.length];
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-      style={{ backgroundColor: color.bg, color: color.text }}
+      className="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+      style={{
+        backgroundColor: color.bg,
+        color: color.text,
+        width: size,
+        height: size,
+      }}
     >
       {initials(first, last, fullName)}
     </span>

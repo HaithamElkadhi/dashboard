@@ -3,13 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --canvas: #f6f7f9;
+  --canvas: #f6f8fc;
   --surface: #ffffff;
   --text-strong: #1a1d21;
   --text-muted: #6b7280;
   --border: #ececf0;
   --border-strong: #d3d5db;
   --brand: #2563eb;
+  --navy: #0d3272;
+  --navy-strong: #0a2657;
+  --gold: #f5a623;
 }
 
 * {

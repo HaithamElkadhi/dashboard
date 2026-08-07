@@ -104,6 +104,28 @@ export function useTasksData() {
     });
   }, [people]);
 
+  // Optimistic status change for drag-and-drop / one-click complete: the UI
+  // updates instantly and rolls back if the Airtable write fails.
+  const quickUpdateStatus = useCallback(async (recordId, status) => {
+    let previous;
+    setTasks((prev) => {
+      previous = prev;
+      return prev.map((t) => (t.id === recordId ? { ...t, status } : t));
+    });
+    try {
+      const updated = await updateTask(recordId, { status });
+      setTasks((prev) => {
+        const next = prev.map((t) => (t.id === recordId ? updated : t));
+        writeCache(next, people, new Date());
+        return next;
+      });
+      return updated;
+    } catch (err) {
+      setTasks(previous);
+      throw err;
+    }
+  }, [people]);
+
   return {
     tasks,
     people,
@@ -114,5 +136,6 @@ export function useTasksData() {
     create,
     update,
     remove,
+    quickUpdateStatus,
   };
 }

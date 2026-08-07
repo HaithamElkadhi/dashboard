@@ -41,58 +41,42 @@ function SectionCard({ to, icon, title, description, disabled }) {
 
 export default function HomePage() {
   return (
-    <div className="min-h-full">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">
-              J
-            </span>
-            <h1 className="text-lg font-semibold text-text-strong">
-              JEExpert Dashboard
-            </h1>
-          </div>
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" />
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-4xl px-6 py-10">
-        <p className="mb-4 text-sm font-medium uppercase tracking-wide text-text-muted">
-          Sections
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SectionCard
-            to="/prospects"
-            icon="📋"
-            title="Client Dashboard"
-            description="View and manage all prospects"
-          />
-          <SectionCard
-            to="/tasks"
-            icon="✅"
-            title="Tasks"
-            description="Create, board and track team tasks"
-          />
-          <SectionCard
-            to="/finance"
-            icon="💶"
-            title="Finance"
-            description="Suivi des paiements et revenus"
-          />
-          <SectionCard
-            disabled
-            icon="🛂"
-            title="Visa Pipeline"
-            description="Suivi des demandes de visa"
-          />
-          <SectionCard
-            disabled
-            icon="🎓"
-            title="Scholarship"
-            description="Suivi des bourses d'études"
-          />
-        </div>
-      </main>
+    <div className="mx-auto max-w-4xl px-6 py-10">
+      <p className="mb-4 text-sm font-medium uppercase tracking-wide text-text-muted">
+        Sections
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SectionCard
+          to="/prospects"
+          icon="📋"
+          title="Étudiants / Prospects"
+          description="Consulter et gérer les prospects"
+        />
+        <SectionCard
+          to="/tasks"
+          icon="✅"
+          title="Tâches"
+          description="Créer, suivre et organiser les tâches de l’équipe"
+        />
+        <SectionCard
+          to="/finance"
+          icon="💶"
+          title="Paiements"
+          description="Suivi des paiements et revenus"
+        />
+        <SectionCard
+          disabled
+          icon="🛂"
+          title="Visa"
+          description="Suivi des demandes de visa"
+        />
+        <SectionCard
+          disabled
+          icon="🎓"
+          title="Bourses"
+          description="Suivi des bourses d’études"
+        />
+      </div>
     </div>
   );
 }
