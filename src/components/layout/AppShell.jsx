@@ -10,6 +10,7 @@ import Toast from '../Toast.jsx';
 
 const COLLAPSE_KEY = 'jeexpert:sidebar:collapsed';
 
+/** Create / detail task modals + toast — shared across all routes. */
 function GlobalTaskModals() {
   const {
     tasks,

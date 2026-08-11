@@ -15,7 +15,8 @@ export function TasksWorkspaceProvider({ children }) {
   const [toast, setToast] = useState('');
 
   const openCreate = useCallback((initialStatus) => {
-    setCreateInitialStatus(initialStatus || null);
+    // Guard: onClick={openCreate} would pass the MouseEvent as the argument.
+    setCreateInitialStatus(typeof initialStatus === 'string' ? initialStatus : null);
     setCreateOpen(true);
   }, []);
   const closeCreate = useCallback(() => setCreateOpen(false), []);
