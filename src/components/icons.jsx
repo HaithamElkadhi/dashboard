@@ -290,6 +290,52 @@ export function CopyIcon(props) {
   );
 }
 
+export function KeyIcon(props) {
+  return (
+    <Svg {...props}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l8-8M16 5l2.5 2.5M19 2l2.5 2.5" />
+    </Svg>
+  );
+}
+
+export function EyeIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </Svg>
+  );
+}
+
+export function EyeOffIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a15.6 15.6 0 0 1-4.2 4.9M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.4 0 2.6-.3 3.7-.8" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </Svg>
+  );
+}
+
+export function ExternalLinkIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <path d="M15 3h6v6M10 14L21 3" />
+    </Svg>
+  );
+}
+
+export function PencilIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+    </Svg>
+  );
+}
+
 export function ClockIcon(props) {
   return (
     <Svg {...props}>

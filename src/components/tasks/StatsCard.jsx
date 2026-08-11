@@ -1,4 +1,12 @@
-export default function StatsCard({ label, value, icon: Icon, tone = 'default', hint }) {
+export default function StatsCard({
+  label,
+  value,
+  icon: Icon,
+  tone = 'default',
+  hint,
+  onClick,
+  active = false,
+}) {
   const toneClasses = {
     default: 'bg-canvas text-text-muted',
     brand: 'bg-brand/10 text-brand',
@@ -7,8 +15,14 @@ export default function StatsCard({ label, value, icon: Icon, tone = 'default', 
     green: 'bg-emerald-50 text-emerald-600',
   };
 
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3.5 py-3">
+  const className = `flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition ${
+    active
+      ? 'border-brand bg-brand/5 shadow-sm'
+      : 'border-border bg-surface'
+  } ${onClick ? 'cursor-pointer hover:border-border-strong' : ''}`;
+
+  const body = (
+    <>
       {Icon && (
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClasses[tone] || toneClasses.default}`}
@@ -25,6 +39,16 @@ export default function StatsCard({ label, value, icon: Icon, tone = 'default', 
           {hint && <span className="truncate text-xs text-text-muted">{hint}</span>}
         </div>
       </div>
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {body}
+      </button>
+    );
+  }
+
+  return <div className={className}>{body}</div>;
 }

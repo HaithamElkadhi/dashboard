@@ -5,6 +5,7 @@ export const TABLES = {
   paiements: 'tblT2XDNBcvOfA4kj',
   tasks: 'tblkmA6khmu06nmSb',
   leads: 'tblhSrpux7LntoFHA',
+  accounts: 'tblEQbtTmVkMlTbUV',
 };
 
 // Prospects table field IDs
@@ -21,6 +22,47 @@ export const PF = {
   scholarshipStatus: 'fldRU8b7hEa0FTz7D',
   visaStatus: 'fldlO31JxYb7tM9Li',
   paiementsLink: 'fldStoAPufN0Ux4JF',
+  email: 'fldWBOtlmuPIXdsep',
+  phone: 'fldx6RMeRYPWC9BV3',
+  accountsLink: 'flddNBP0jC3rYtcF0',
+};
+
+// Accounts table field IDs (student portal credentials: Universitaly,
+// Prenotami, application email, scholarship — linked to Prospects)
+export const ACC = {
+  mailUser: 'fld6GymQ8Gh6hQnwX',
+  label: 'fldU8qYxw1o9pJaoF', // multipleSelects
+  prospectLink: 'flduaQtpEJlr03ivQ',
+  prospectId: 'fldGMRgRfdIugamCi', // lookup — read-only
+  link: 'fld4kKOkH1VvqUfUk',
+  password: 'fld18yBzVSD5BtP3y',
+  delegation: 'fldWkYbkWPvTQiTNl', // singleSelect
+};
+
+// Fallback choices for Accounts.label / Accounts.delegation when the live
+// schema fetch (fetchAccountSelectChoices) fails. Prefer the schema so
+// new/renamed options in Airtable need no code change.
+export const ACCOUNT_LABELS = ['Email Candidature', 'Universitaly', 'Prenotami', 'Bourse'];
+
+export const ACCOUNT_LABEL_COLORS = {
+  'Email Candidature': { bg: '#EBF2FC', text: '#246BCE' },
+  Universitaly: { bg: '#E6FAF8', text: '#18A999' },
+  Prenotami: { bg: '#FEF5E7', text: '#B4530A' },
+  Bourse: { bg: '#F1EFE8', text: '#5F5E5A' },
+};
+
+export const DELEGATION_CHOICES = [
+  'jeexpert.service@gmail.com',
+  'jeexpert.etudiant.aa1@gmail.com',
+  'jeexpert.etudiant.aa2@gmail.com',
+];
+
+// CAM situation badge colors (Engaged / Admitted / both) — distinct accents
+// from the Tasks/Finance palettes above, per the CAM spec's design tokens.
+export const CAM_SITUATION_COLORS = {
+  Admitted: { bg: '#E6FAF8', text: '#18A999' },
+  Engaged: { bg: '#EBF2FC', text: '#246BCE' },
+  Both: { bg: '#FEF5E7', text: '#854F0B' },
 };
 
 // Paiements table field IDs

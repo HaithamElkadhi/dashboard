@@ -8,6 +8,7 @@ import {
   TF,
   PICKER,
   FIN,
+  ACC,
 } from './config.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
@@ -457,4 +458,123 @@ export async function updatePaiement(recordId, input) {
     }
   );
   return normalizePaiement(data);
+}
+
+// ─── Client Account Management (CAM) ───────────────────────────────────────
+
+// Live choices for Accounts.label (type de compte) and Accounts.delegation,
+// read from the Airtable schema so renaming/adding options in Airtable needs
+// no code change. Best-effort — the caller falls back to ACCOUNT_LABELS /
+// DELEGATION_CHOICES if this fails (e.g. missing `schema.bases:read` scope).
+export async function fetchAccountSelectChoices() {
+  const res = await fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`);
+  if (!res.ok) throw new Error(`Schema ${res.status}`);
+  const data = await res.json();
+  const table = (data.tables || []).find((t) => t.id === TABLES.accounts);
+  if (!table) throw new Error('Accounts table not found in schema');
+  const fields = table.fields || [];
+  const labelField = fields.find((f) => f.id === ACC.label);
+  const delegationField = fields.find((f) => f.id === ACC.delegation);
+  return {
+    labels: (labelField?.options?.choices || []).map((c) => c.name),
+    delegations: (delegationField?.options?.choices || []).map((c) => c.name),
+  };
+}
+
+function normalizeProspectForAccounts(record) {
+  const f = record.fields || {};
+  return {
+    id: record.id,
+    fullName: f[PF.fullName] || '',
+    prospectId: f[PF.prospectId] || '',
+    situations: asArray(f[PF.situation]),
+    email: f[PF.email] || '',
+    phone: f[PF.phone] || '',
+    accountRecordIds: asArray(f[PF.accountsLink]),
+  };
+}
+
+// Lighter than fetchDashboardData — only the fields CAM needs, so this page
+// doesn't pull in admission/university/scholarship/payment fields it never
+// uses.
+export async function fetchProspectsForAccounts() {
+  const fields = [
+    PF.fullName,
+    PF.prospectId,
+    PF.situation,
+    PF.email,
+    PF.phone,
+    PF.accountsLink,
+  ];
+  const records = await fetchAll(TABLES.prospects, fields);
+  return records.map(normalizeProspectForAccounts);
+}
+
+function normalizeAccount(record) {
+  const f = record.fields || {};
+  return {
+    id: record.id,
+    mailUser: f[ACC.mailUser] || '',
+    labels: asArray(f[ACC.label]),
+    prospectRecordIds: asArray(f[ACC.prospectLink]),
+    prospectId: (asArray(f[ACC.prospectId])[0] || '').toString(),
+    link: f[ACC.link] || '',
+    password: f[ACC.password] || '',
+    delegation: f[ACC.delegation] || '',
+  };
+}
+
+// The whole Accounts table in one fetch (it's small) — the caller joins to
+// prospects client-side via prospectRecordIds, avoiding one request per
+// prospect.
+export async function fetchAccounts() {
+  const fields = Object.values(ACC);
+  const records = await fetchAll(TABLES.accounts, fields);
+  return records.map(normalizeAccount);
+}
+
+function toAccountFields(input) {
+  const fields = {};
+  if (input.mailUser !== undefined) fields[ACC.mailUser] = input.mailUser || '';
+  if (input.label !== undefined) {
+    fields[ACC.label] = input.label ? [input.label] : [];
+  }
+  if (input.prospectRecordId !== undefined) {
+    fields[ACC.prospectLink] = input.prospectRecordId ? [input.prospectRecordId] : [];
+  }
+  if (input.link !== undefined) fields[ACC.link] = input.link || '';
+  if (input.password !== undefined) fields[ACC.password] = input.password || '';
+  if (input.delegation !== undefined) fields[ACC.delegation] = input.delegation || null;
+  return fields;
+}
+
+// Same returnFieldsByFieldId + typecast requirement as Paiements above:
+// `label`/`delegation` are select fields written by field ID, so without
+// typecast Airtable tries to create new options instead of matching existing
+// ones and fails with a permissions error.
+export async function createAccount(input) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.accounts}`, {
+    fields: toAccountFields(input),
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizeAccount(data);
+}
+
+export async function updateAccount(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${BASE_ID}/${TABLES.accounts}/${recordId}`,
+    {
+      fields: toAccountFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  return normalizeAccount(data);
+}
+
+export async function deleteAccount(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.accounts}/${recordId}`);
+  return recordId;
 }
