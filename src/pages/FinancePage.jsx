@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFinanceData } from '../hooks/useFinanceData.js';
+import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
 import Badge from '../components/Badge.jsx';
 import MetricCard from '../components/finance/MetricCard.jsx';
@@ -8,8 +9,7 @@ import PaiementModal from '../components/finance/PaiementModal.jsx';
 import CommissionsView from '../components/finance/CommissionsView.jsx';
 import { formatMoney } from '../lib/format.js';
 import { PAYMENT_STATUS_COLORS } from '../lib/config.js';
-import { relativeTime } from '../lib/taskDates.js';
-import { CheckCircleIcon, RefreshIcon, XIcon } from '../components/icons.jsx';
+import { CheckCircleIcon, XIcon } from '../components/icons.jsx';
 
 const TABS = [
   { id: 'overview', label: 'Vue générale' },
@@ -161,6 +161,7 @@ export default function FinancePage() {
     create,
     update,
   } = useFinanceData();
+  usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
 
   const [tab, setTab] = useState('overview');
   const [toast, setToast] = useState('');
@@ -218,19 +219,6 @@ export default function FinancePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
-      <div className="mb-4 flex items-center justify-end">
-        {lastUpdated && (
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-text-muted transition hover:bg-surface disabled:opacity-60"
-          >
-            <RefreshIcon size={13} className={loading ? 'animate-spin' : ''} />
-            Mis à jour {relativeTime(lastUpdated)}
-          </button>
-        )}
-      </div>
 
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">

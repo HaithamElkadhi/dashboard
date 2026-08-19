@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAccountsData } from '../hooks/useAccountsData.js';
+import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Toast from '../components/Toast.jsx';
@@ -8,10 +9,8 @@ import StatsCard from '../components/tasks/StatsCard.jsx';
 import SituationBadge from '../components/accounts/SituationBadge.jsx';
 import AccountRow from '../components/accounts/AccountRow.jsx';
 import AccountForm from '../components/accounts/AccountForm.jsx';
-import { relativeTime } from '../lib/taskDates.js';
 import {
   KeyIcon,
-  RefreshIcon,
   SearchIcon,
   UsersIcon,
 } from '../components/icons.jsx';
@@ -45,6 +44,32 @@ function FilterPill({ label, active, onClick }) {
       }`}
     >
       {label}
+    </button>
+  );
+}
+
+// Compact chip for the "Comptes par type" breakdown — same visual weight as
+// the status filter pills below it, not a full StatsCard, since it's a
+// secondary breakdown of the headline KPIs above, not a headline itself.
+function TypePill({ label, count, total, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+        active
+          ? 'border-transparent bg-brand text-white shadow-sm'
+          : 'border-border bg-surface text-text-strong hover:border-border-strong'
+      }`}
+    >
+      {label}
+      <span
+        className={`rounded-full px-1.5 text-xs tabular-nums ${
+          active ? 'bg-black/10' : 'bg-canvas text-text-muted'
+        }`}
+      >
+        {count}/{total}
+      </span>
     </button>
   );
 }
@@ -97,10 +122,12 @@ export default function AccountsPage() {
     update,
     remove,
   } = useAccountsData();
+  usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [selectedId, setSelectedId] = useState(null);
   const [toast, setToast] = useState('');
 
@@ -147,6 +174,12 @@ export default function AccountsPage() {
           return false;
         }
         if (
+          typeFilter !== 'all' &&
+          !prospectAccounts.some((a) => a.labels.includes(typeFilter))
+        ) {
+          return false;
+        }
+        if (
           q &&
           !p.fullName.toLowerCase().includes(q) &&
           !p.prospectId.toLowerCase().includes(q)
@@ -156,7 +189,7 @@ export default function AccountsPage() {
         return true;
       })
       .sort((a, b) => a.fullName.localeCompare(b.fullName, 'fr'));
-  }, [scopedProspects, accountsByProspect, statusFilter, debouncedQuery]);
+  }, [scopedProspects, accountsByProspect, statusFilter, typeFilter, debouncedQuery]);
 
   useEffect(() => {
     if (selectedId && filteredProspects.some((p) => p.id === selectedId)) return;
@@ -203,6 +236,22 @@ export default function AccountsPage() {
     };
   }, [scopedProspects, accountsByProspect]);
 
+  // Distinct students per account type — a student with two Universitaly
+  // accounts still only counts once.
+  const typeCounts = useMemo(() => {
+    const counts = Object.fromEntries(labelChoices.map((l) => [l, 0]));
+    for (const p of scopedProspects) {
+      const labelsPresent = new Set();
+      for (const account of accountsByProspect.get(p.id) || []) {
+        for (const label of account.labels) labelsPresent.add(label);
+      }
+      for (const label of labelsPresent) {
+        counts[label] = (counts[label] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [labelChoices, scopedProspects, accountsByProspect]);
+
   const handleAssign = async (formValues) => {
     if (!selectedProspect) return;
     const created = await create({
@@ -244,20 +293,6 @@ export default function AccountsPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-6">
-      <div className="mb-4 flex items-center justify-end">
-        {lastUpdated && (
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={status === 'loading'}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-text-muted transition hover:bg-surface disabled:opacity-60"
-          >
-            <RefreshIcon size={13} className={status === 'loading' ? 'animate-spin' : ''} />
-            Mis à jour {relativeTime(lastUpdated)}
-          </button>
-        )}
-      </div>
-
       {status === 'error' && (
         <div className="mb-4">
           <ErrorState message={error} onRetry={refresh} />
@@ -290,6 +325,24 @@ export default function AccountsPage() {
           }
         />
       </div>
+
+      {labelChoices.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Comptes par type
+          </span>
+          {labelChoices.map((label) => (
+            <TypePill
+              key={label}
+              label={label}
+              count={typeCounts[label] || 0}
+              total={kpis.total}
+              active={typeFilter === label}
+              onClick={() => setTypeFilter((f) => (f === label ? 'all' : label))}
+            />
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="mt-5 space-y-2 rounded-2xl border border-border bg-surface p-3">
@@ -357,7 +410,7 @@ export default function AccountsPage() {
             </div>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
             {!selectedProspect ? (
               <div className="rounded-2xl border border-border bg-surface">
                 <EmptyState
@@ -391,36 +444,39 @@ export default function AccountsPage() {
                   </div>
                 </div>
 
-                {selectedAccounts.length === 0 ? (
-                  <div className="rounded-2xl border border-border bg-surface">
+                <div className="rounded-2xl border border-border bg-surface p-4">
+                  <p className="mb-3 text-sm font-semibold text-text-strong">Comptes</p>
+                  {selectedAccounts.length === 0 ? (
                     <EmptyState
                       icon={KeyIcon}
                       title="Aucun compte pour cet étudiant."
                       description="Assignez son premier compte avec le formulaire ci-dessous."
                     />
-                  </div>
-                ) : (
-                  accountGroups.map(({ label, items }) => (
-                    <div key={label}>
-                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                        {label}
-                      </p>
-                      <div className="space-y-1.5">
-                        {items.map((account) => (
-                          <AccountRow
-                            key={account.id}
-                            account={account}
-                            labelChoices={labelChoices}
-                            delegationChoices={delegationChoices}
-                            onSave={(values) => handleUpdate(account, values)}
-                            onDelete={() => handleDelete(account)}
-                            onToast={showToast}
-                          />
-                        ))}
-                      </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {accountGroups.map(({ label, items }) => (
+                        <div key={label}>
+                          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                            {label}
+                          </p>
+                          <div className="space-y-1.5">
+                            {items.map((account) => (
+                              <AccountRow
+                                key={account.id}
+                                account={account}
+                                labelChoices={labelChoices}
+                                delegationChoices={delegationChoices}
+                                onSave={(values) => handleUpdate(account, values)}
+                                onDelete={() => handleDelete(account)}
+                                onToast={showToast}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
+                  )}
+                </div>
 
                 <AccountForm
                   onSubmit={handleAssign}

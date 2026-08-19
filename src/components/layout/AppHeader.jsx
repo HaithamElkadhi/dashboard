@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
+import { usePageRefreshInfo } from '../../contexts/PageRefreshContext.jsx';
 import { useCurrentUser } from '../../hooks/useCurrentUser.js';
 import { ARCHIVED_STATUS } from '../../lib/config.js';
 import { formatShortDate, isTaskOverdue, relativeTime, todayISO } from '../../lib/taskDates.js';
 import Avatar from '../Avatar.jsx';
-import { BellIcon, MenuIcon, PlusIcon, SearchIcon } from '../icons.jsx';
+import { BellIcon, MenuIcon, PlusIcon, RefreshIcon, SearchIcon } from '../icons.jsx';
 
 function useOutsideClose(ref, active, onClose) {
   useEffect(() => {
@@ -18,8 +19,8 @@ function useOutsideClose(ref, active, onClose) {
 }
 
 export default function AppHeader({ title, onOpenMobileSidebar }) {
-  const { tasks, status, lastUpdated, refresh, openCreate, openDetails } =
-    useTasksWorkspace();
+  const { tasks, openCreate, openDetails } = useTasksWorkspace();
+  const { lastUpdated, refresh, loading } = usePageRefreshInfo();
   const [currentUser] = useCurrentUser();
 
   const [query, setQuery] = useState('');
@@ -129,15 +130,16 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {lastUpdated && (
+          {refresh && (
             <button
               type="button"
               onClick={refresh}
-              disabled={status === 'loading'}
+              disabled={loading}
               title="Actualiser"
               className="hidden items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-text-muted transition hover:bg-canvas disabled:opacity-60 md:inline-flex"
             >
-              Mis à jour {relativeTime(lastUpdated)}
+              <RefreshIcon size={12} className={loading ? 'animate-spin' : ''} />
+              {lastUpdated ? `Mis à jour ${relativeTime(lastUpdated)}` : 'Actualiser'}
             </button>
           )}
 

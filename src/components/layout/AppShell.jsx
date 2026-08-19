@@ -4,6 +4,7 @@ import AppSidebar from './AppSidebar.jsx';
 import AppHeader from './AppHeader.jsx';
 import { PAGE_TITLES } from '../../lib/navigation.js';
 import { TasksWorkspaceProvider, useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
+import { PageRefreshProvider } from '../../contexts/PageRefreshContext.jsx';
 import TaskCreateModal from '../tasks/TaskCreateModal.jsx';
 import TaskDetailsModal from '../tasks/TaskDetailsModal.jsx';
 import Toast from '../Toast.jsx';
@@ -78,22 +79,24 @@ export default function AppShell() {
   const title = PAGE_TITLES[location.pathname] || 'JEExpert';
 
   return (
-    <TasksWorkspaceProvider>
-      <div className="flex h-screen overflow-hidden bg-canvas">
-        <AppSidebar
-          collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed((v) => !v)}
-          mobileOpen={mobileOpen}
-          onCloseMobile={() => setMobileOpen(false)}
-        />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <AppHeader title={title} onOpenMobileSidebar={() => setMobileOpen(true)} />
-          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-            <Outlet />
-          </main>
+    <PageRefreshProvider>
+      <TasksWorkspaceProvider>
+        <div className="flex h-screen overflow-hidden bg-canvas">
+          <AppSidebar
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed((v) => !v)}
+            mobileOpen={mobileOpen}
+            onCloseMobile={() => setMobileOpen(false)}
+          />
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <AppHeader title={title} onOpenMobileSidebar={() => setMobileOpen(true)} />
+            <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+              <Outlet />
+            </main>
+          </div>
         </div>
-      </div>
-      <GlobalTaskModals />
-    </TasksWorkspaceProvider>
+        <GlobalTaskModals />
+      </TasksWorkspaceProvider>
+    </PageRefreshProvider>
   );
 }

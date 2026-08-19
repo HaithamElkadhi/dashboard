@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData.js';
+import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import ProspectsTable from '../components/ProspectsTable.jsx';
+import ProspectEditModal from '../components/prospects/ProspectEditModal.jsx';
+import Toast from '../components/Toast.jsx';
 import { ErrorState } from '../components/states.jsx';
 import { SITUATION_CHOICES } from '../lib/config.js';
 import { chipStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
-import { relativeTime } from '../lib/taskDates.js';
 import { RefreshIcon, SearchIcon } from '../components/icons.jsx';
 
 const UNKNOWN = 'Unknown';
@@ -70,10 +72,31 @@ function PhasePill({ label, count, active, color, onClick }) {
 }
 
 export default function ProspectsPage() {
-  const { prospects, schema, status, error, lastUpdated, refresh } =
+  const { prospects, schema, status, error, lastUpdated, refresh, update, remove } =
     useDashboardData();
+  usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
   const [selected, setSelected] = useState([]); // empty = "Tous"
   const [query, setQuery] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [toast, setToast] = useState('');
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 4500);
+  };
+
+  const handleDelete = async (prospect) => {
+    const ok = window.confirm(
+      `Supprimer « ${prospect.fullName || prospect.prospectId} » ? Cette action est définitive.`
+    );
+    if (!ok) return;
+    try {
+      await remove(prospect.id);
+      showToast('Prospect supprimé');
+    } catch (err) {
+      showToast(err.message || 'Suppression impossible');
+    }
+  };
 
   const toggleFilter = (choice) => {
     setSelected((prev) =>
@@ -104,6 +127,17 @@ export default function ProspectsPage() {
     [schema]
   );
   const situationColors = schema?.situation?.colors || {};
+
+  const editChoices = useMemo(
+    () => ({
+      situation: situationOrder,
+      admission: schema?.admission?.order || [],
+      scholarship: schema?.scholarship?.order || [],
+      visa: schema?.visa?.order || [],
+      universitaly: schema?.universitaly?.order || [],
+    }),
+    [situationOrder, schema]
+  );
 
   const situationCounts = useMemo(() => {
     const counts = {};
@@ -161,19 +195,6 @@ export default function ProspectsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
-      <div className="mb-4 flex items-center justify-end">
-        {lastUpdated && (
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-text-muted transition hover:bg-surface disabled:opacity-60"
-          >
-            <RefreshIcon size={13} className={loading ? 'animate-spin' : ''} />
-            Mis à jour {relativeTime(lastUpdated)}
-          </button>
-        )}
-      </div>
       <div>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           <KPICard label="Total Clients" value={kpis.total} loading={kpiLoading} />
@@ -281,11 +302,28 @@ export default function ProspectsPage() {
                 scholarship: schema?.scholarship?.colors,
                 visa: schema?.visa?.colors,
                 admission: schema?.admission?.colors,
+                universitaly: schema?.universitaly?.colors,
               }}
+              onEdit={setEditing}
+              onDelete={handleDelete}
             />
           )}
         </div>
       </div>
+
+      {editing && (
+        <ProspectEditModal
+          prospect={editing}
+          choices={editChoices}
+          onClose={() => setEditing(null)}
+          onSubmit={async (payload) => {
+            await update(editing.id, payload);
+            showToast('Prospect mis à jour');
+          }}
+        />
+      )}
+
+      <Toast message={toast} onClose={() => setToast('')} />
     </div>
   );
 }

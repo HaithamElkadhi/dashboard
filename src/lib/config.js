@@ -21,6 +21,8 @@ export const PF = {
   approvedUniversity: 'fld2RAtd2zTwGx9S6',
   scholarshipStatus: 'fldRU8b7hEa0FTz7D',
   visaStatus: 'fldlO31JxYb7tM9Li',
+  visaAppointmentDate: 'fldFqV1HBszTl1XwD', // Airtable "Appointment Date"
+  universitalyValidation: 'fldU8dwNM5CHnakCq', // Airtable "Account_Universitaly"
   paiementsLink: 'fldStoAPufN0Ux4JF',
   email: 'fldWBOtlmuPIXdsep',
   phone: 'fldx6RMeRYPWC9BV3',

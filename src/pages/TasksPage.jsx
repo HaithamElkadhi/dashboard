@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTasksWorkspace } from '../contexts/TasksWorkspaceContext.jsx';
+import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
 import Pagination from '../components/Pagination.jsx';
 import StatsCard from '../components/tasks/StatsCard.jsx';
@@ -126,6 +127,8 @@ export default function TasksPage() {
     openDetails,
     showToast,
   } = useTasksWorkspace();
+
+  usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
 
   const [searchParams, setSearchParams] = useSearchParams();
   const viewFromUrl = searchParams.get('view');

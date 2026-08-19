@@ -135,6 +135,8 @@ function normalizeProspect(record, payMap) {
     university,
     scholarshipStatus: f[PF.scholarshipStatus] || '',
     visaStatus: f[PF.visaStatus] || '',
+    visaAppointmentDate: f[PF.visaAppointmentDate] || null,
+    universitalyValidation: f[PF.universitalyValidation] || '',
     pay,
   };
 }
@@ -169,7 +171,70 @@ async function fetchSchema() {
     scholarship: extract(PF.scholarshipStatus),
     visa: extract(PF.visaStatus),
     admission: extract(PF.admissionStatus),
+    universitaly: extract(PF.universitalyValidation),
   };
+}
+
+/** Fields safe to send on update — Prospect ID and the payment totals are
+ * computed elsewhere (formula/lookup or joined from Paiements), so they're
+ * never included here. Nbr Applications is intentionally not editable from
+ * the popup — it's derived from the linked Applications, not a manual count. */
+function toProspectFields(input) {
+  const fields = {};
+  if (input.name !== undefined) fields[PF.name] = input.name || '';
+  if (input.surname !== undefined) fields[PF.surname] = input.surname || '';
+  if (input.situations !== undefined) fields[PF.situation] = input.situations || [];
+  if (input.admissionStatus !== undefined) {
+    fields[PF.admissionStatus] = input.admissionStatus || [];
+  }
+  if (input.approvedUniversity !== undefined) {
+    fields[PF.approvedUniversity] = input.approvedUniversity || '';
+  }
+  if (input.scholarshipStatus !== undefined) {
+    fields[PF.scholarshipStatus] = input.scholarshipStatus || null;
+  }
+  if (input.visaStatus !== undefined) {
+    fields[PF.visaStatus] = input.visaStatus || null;
+  }
+  if (input.visaAppointmentDate !== undefined) {
+    fields[PF.visaAppointmentDate] = input.visaAppointmentDate || null;
+  }
+  if (input.universitalyValidation !== undefined) {
+    fields[PF.universitalyValidation] = input.universitalyValidation || null;
+  }
+  return fields;
+}
+
+// Same returnFieldsByFieldId + typecast requirement as the other write
+// endpoints (see updatePaiement) — select fields are written by field ID.
+export async function updateProspect(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${BASE_ID}/${TABLES.prospects}/${recordId}`,
+    {
+      fields: toProspectFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  const f = data.fields || {};
+  return {
+    fullName: f[PF.fullName] || '',
+    firstName: f[PF.name] || '',
+    lastName: f[PF.surname] || '',
+    situations: asArray(f[PF.situation]),
+    admissionStatus: asArray(f[PF.admissionStatus]),
+    approvedUniversity: f[PF.approvedUniversity] || '',
+    scholarshipStatus: f[PF.scholarshipStatus] || '',
+    visaStatus: f[PF.visaStatus] || '',
+    visaAppointmentDate: f[PF.visaAppointmentDate] || null,
+    universitalyValidation: f[PF.universitalyValidation] || '',
+  };
+}
+
+export async function deleteProspect(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.prospects}/${recordId}`);
+  return recordId;
 }
 
 export async function fetchDashboardData() {
@@ -185,6 +250,8 @@ export async function fetchDashboardData() {
     PF.approvedUniversity,
     PF.scholarshipStatus,
     PF.visaStatus,
+    PF.visaAppointmentDate,
+    PF.universitalyValidation,
   ];
   const paymentFields = [
     PAY.paymentId,

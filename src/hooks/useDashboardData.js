@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { fetchDashboardData } from '../lib/airtable.js';
+import { fetchDashboardData, updateProspect, deleteProspect } from '../lib/airtable.js';
 
 const CACHE_KEY = 'jeexpert:dashboard:v1';
 
@@ -66,5 +66,49 @@ export function useDashboardData() {
     }
   }, []);
 
-  return { prospects, schema, status, error, lastUpdated, refresh: load };
+  // Only the fields edited via the popup form are patched here — a full
+  // re-normalize would need the payment map too, and the payment totals
+  // aren't part of this edit, so the rest of the row is left untouched.
+  const update = useCallback(
+    async (recordId, input) => {
+      const patch = await updateProspect(recordId, input);
+      setProspects((prev) => {
+        const next = prev.map((p) =>
+          p.id === recordId
+            ? {
+                ...p,
+                fullName: patch.fullName || p.fullName,
+                firstName: patch.firstName,
+                lastName: patch.lastName,
+                situations: patch.situations,
+                admissionStatus: patch.admissionStatus,
+                university: patch.approvedUniversity || p.university,
+                scholarshipStatus: patch.scholarshipStatus,
+                visaStatus: patch.visaStatus,
+                visaAppointmentDate: patch.visaAppointmentDate,
+                universitalyValidation: patch.universitalyValidation,
+              }
+            : p
+        );
+        writeCache(next, schema, lastUpdated);
+        return next;
+      });
+      return patch;
+    },
+    [schema, lastUpdated]
+  );
+
+  const remove = useCallback(
+    async (recordId) => {
+      await deleteProspect(recordId);
+      setProspects((prev) => {
+        const next = prev.filter((p) => p.id !== recordId);
+        writeCache(next, schema, lastUpdated);
+        return next;
+      });
+    },
+    [schema, lastUpdated]
+  );
+
+  return { prospects, schema, status, error, lastUpdated, refresh: load, update, remove };
 }
