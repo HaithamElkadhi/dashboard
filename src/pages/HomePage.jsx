@@ -1,82 +1,50 @@
-import { Link } from 'react-router-dom';
+import { useDashboardData } from '../hooks/useDashboardData.js';
+import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
+import { prospectsWithUpcomingScholarshipDDL } from '../lib/scholarshipAlerts.js';
+import ScholarshipAlertBlock from '../components/home/ScholarshipAlertBlock.jsx';
+import { ErrorState } from '../components/states.jsx';
+import { RefreshIcon } from '../components/icons.jsx';
 
-function SectionCard({ to, icon, title, description, disabled }) {
-  const inner = (
-    <div
-      className={`group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 transition ${
-        disabled
-          ? 'cursor-not-allowed opacity-55'
-          : 'hover:border-border-strong hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]'
-      }`}
-    >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-canvas text-2xl">
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-text-strong">{title}</h3>
-          {disabled && (
-            <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-text-muted">
-              Bientôt
-            </span>
-          )}
-        </div>
-        <p className="mt-0.5 text-sm text-text-muted">{description}</p>
-      </div>
-      {!disabled && (
-        <span className="text-xl text-text-muted transition group-hover:translate-x-0.5 group-hover:text-text-strong">
-          →
-        </span>
-      )}
-    </div>
-  );
-
-  if (disabled) return inner;
+function EmptySlot() {
   return (
-    <Link to={to} className="block">
-      {inner}
-    </Link>
+    <div className="min-h-[220px] rounded-2xl border border-dashed border-border bg-surface/60" />
   );
 }
 
 export default function HomePage() {
+  const { prospects, status, error, lastUpdated, refresh } = useDashboardData();
+  usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
+
+  const loading = status === 'loading';
+  const upcoming = prospectsWithUpcomingScholarshipDDL(prospects);
+
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <p className="mb-4 text-sm font-medium uppercase tracking-wide text-text-muted">
-        Sections
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SectionCard
-          to="/prospects"
-          icon="📋"
-          title="Étudiants / Prospects"
-          description="Consulter et gérer les prospects"
-        />
-        <SectionCard
-          to="/tasks"
-          icon="✅"
-          title="Tâches"
-          description="Créer, suivre et organiser les tâches de l’équipe"
-        />
-        <SectionCard
-          to="/finance"
-          icon="💶"
-          title="Paiements"
-          description="Suivi des paiements et revenus"
-        />
-        <SectionCard
-          disabled
-          icon="🛂"
-          title="Visa"
-          description="Suivi des demandes de visa"
-        />
-        <SectionCard
-          disabled
-          icon="🎓"
-          title="Bourses"
-          description="Suivi des bourses d’études"
-        />
-      </div>
+    <div className="mx-auto h-full max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
+      {status === 'error' && <ErrorState message={error} onRetry={refresh} />}
+
+      {status === 'idle' ? (
+        <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-surface text-center">
+          <RefreshIcon size={26} className="text-text-muted" />
+          <p className="max-w-sm text-sm text-text-muted">
+            Charge les clients pour afficher les alertes.
+          </p>
+          <button
+            type="button"
+            onClick={refresh}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            <RefreshIcon size={14} />
+            Charger les données
+          </button>
+        </div>
+      ) : (
+        <div className="grid h-full min-h-[480px] grid-cols-1 gap-4 sm:grid-cols-2 sm:grid-rows-2">
+          <ScholarshipAlertBlock items={upcoming} loading={loading} />
+          <EmptySlot />
+          <EmptySlot />
+          <EmptySlot />
+        </div>
+      )}
     </div>
   );
 }

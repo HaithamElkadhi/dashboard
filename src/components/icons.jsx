@@ -213,6 +213,16 @@ export function HelpCircleIcon(props) {
   );
 }
 
+export function InfoIcon(props) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 16v-5" />
+      <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none" />
+    </Svg>
+  );
+}
+
 export function ChevronLeftIcon(props) {
   return (
     <Svg {...props}>

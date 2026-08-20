@@ -137,6 +137,12 @@ function normalizeProspect(record, payMap) {
     visaStatus: f[PF.visaStatus] || '',
     visaAppointmentDate: f[PF.visaAppointmentDate] || null,
     universitalyValidation: f[PF.universitalyValidation] || '',
+    scholarshipFolder: f[PF.scholarshipFolder] || '',
+    scholarshipType: f[PF.scholarshipType] || '',
+    scholarshipSubmissionDate: f[PF.scholarshipSubmissionDate] || null,
+    scholarshipPayment: f[PF.scholarshipPayment] || '',
+    scholarshipDDL: f[PF.scholarshipDDL] || null,
+    regionAuthority: f[PF.regionAuthority] || '',
     pay,
   };
 }
@@ -172,6 +178,9 @@ async function fetchSchema() {
     visa: extract(PF.visaStatus),
     admission: extract(PF.admissionStatus),
     universitaly: extract(PF.universitalyValidation),
+    scholarshipType: extract(PF.scholarshipType),
+    scholarshipPayment: extract(PF.scholarshipPayment),
+    regionAuthority: extract(PF.regionAuthority),
   };
 }
 
@@ -202,6 +211,24 @@ function toProspectFields(input) {
   if (input.universitalyValidation !== undefined) {
     fields[PF.universitalyValidation] = input.universitalyValidation || null;
   }
+  if (input.scholarshipFolder !== undefined) {
+    fields[PF.scholarshipFolder] = input.scholarshipFolder || '';
+  }
+  if (input.scholarshipType !== undefined) {
+    fields[PF.scholarshipType] = input.scholarshipType || null;
+  }
+  if (input.scholarshipSubmissionDate !== undefined) {
+    fields[PF.scholarshipSubmissionDate] = input.scholarshipSubmissionDate || null;
+  }
+  if (input.scholarshipPayment !== undefined) {
+    fields[PF.scholarshipPayment] = input.scholarshipPayment || null;
+  }
+  if (input.scholarshipDDL !== undefined) {
+    fields[PF.scholarshipDDL] = input.scholarshipDDL || null;
+  }
+  if (input.regionAuthority !== undefined) {
+    fields[PF.regionAuthority] = input.regionAuthority || null;
+  }
   return fields;
 }
 
@@ -229,6 +256,12 @@ export async function updateProspect(recordId, input) {
     visaStatus: f[PF.visaStatus] || '',
     visaAppointmentDate: f[PF.visaAppointmentDate] || null,
     universitalyValidation: f[PF.universitalyValidation] || '',
+    scholarshipFolder: f[PF.scholarshipFolder] || '',
+    scholarshipType: f[PF.scholarshipType] || '',
+    scholarshipSubmissionDate: f[PF.scholarshipSubmissionDate] || null,
+    scholarshipPayment: f[PF.scholarshipPayment] || '',
+    scholarshipDDL: f[PF.scholarshipDDL] || null,
+    regionAuthority: f[PF.regionAuthority] || '',
   };
 }
 
@@ -252,6 +285,12 @@ export async function fetchDashboardData() {
     PF.visaStatus,
     PF.visaAppointmentDate,
     PF.universitalyValidation,
+    PF.scholarshipFolder,
+    PF.scholarshipType,
+    PF.scholarshipSubmissionDate,
+    PF.scholarshipPayment,
+    PF.scholarshipDDL,
+    PF.regionAuthority,
   ];
   const paymentFields = [
     PAY.paymentId,

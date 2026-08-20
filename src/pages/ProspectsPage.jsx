@@ -3,6 +3,7 @@ import { useDashboardData } from '../hooks/useDashboardData.js';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import ProspectsTable from '../components/ProspectsTable.jsx';
 import ProspectEditModal from '../components/prospects/ProspectEditModal.jsx';
+import ScholarshipModal from '../components/prospects/ScholarshipModal.jsx';
 import Toast from '../components/Toast.jsx';
 import { ErrorState } from '../components/states.jsx';
 import { SITUATION_CHOICES } from '../lib/config.js';
@@ -78,6 +79,7 @@ export default function ProspectsPage() {
   const [selected, setSelected] = useState([]); // empty = "Tous"
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(null);
+  const [bourseEditing, setBourseEditing] = useState(null);
   const [toast, setToast] = useState('');
 
   const showToast = (msg) => {
@@ -135,6 +137,9 @@ export default function ProspectsPage() {
       scholarship: schema?.scholarship?.order || [],
       visa: schema?.visa?.order || [],
       universitaly: schema?.universitaly?.order || [],
+      scholarshipType: schema?.scholarshipType?.order || [],
+      scholarshipPayment: schema?.scholarshipPayment?.order || [],
+      regionAuthority: schema?.regionAuthority?.order || [],
     }),
     [situationOrder, schema]
   );
@@ -306,6 +311,7 @@ export default function ProspectsPage() {
               }}
               onEdit={setEditing}
               onDelete={handleDelete}
+              onBourse={setBourseEditing}
             />
           )}
         </div>
@@ -319,6 +325,18 @@ export default function ProspectsPage() {
           onSubmit={async (payload) => {
             await update(editing.id, payload);
             showToast('Prospect mis à jour');
+          }}
+        />
+      )}
+
+      {bourseEditing && (
+        <ScholarshipModal
+          prospect={bourseEditing}
+          choices={editChoices}
+          onClose={() => setBourseEditing(null)}
+          onSubmit={async (payload) => {
+            await update(bourseEditing.id, payload);
+            showToast('Dossier Bourse mis à jour');
           }}
         />
       )}

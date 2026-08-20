@@ -23,6 +23,12 @@ export const PF = {
   visaStatus: 'fldlO31JxYb7tM9Li',
   visaAppointmentDate: 'fldFqV1HBszTl1XwD', // Airtable "Appointment Date"
   universitalyValidation: 'fldU8dwNM5CHnakCq', // Airtable "Account_Universitaly"
+  scholarshipFolder: 'fldYWwVwHXmAXngHX',
+  scholarshipType: 'fld50RAsGJ0ceD7gH',
+  scholarshipSubmissionDate: 'fldtJkT2buefXXRrK',
+  scholarshipPayment: 'fldvaKgmQgNVwG5sF',
+  scholarshipDDL: 'fldrXRWcTK3Dve4mu',
+  regionAuthority: 'fld7692flEhPFJzz8',
   paiementsLink: 'fldStoAPufN0Ux4JF',
   email: 'fldWBOtlmuPIXdsep',
   phone: 'fldx6RMeRYPWC9BV3',

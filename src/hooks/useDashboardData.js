@@ -87,6 +87,12 @@ export function useDashboardData() {
                 visaStatus: patch.visaStatus,
                 visaAppointmentDate: patch.visaAppointmentDate,
                 universitalyValidation: patch.universitalyValidation,
+                scholarshipFolder: patch.scholarshipFolder,
+                scholarshipType: patch.scholarshipType,
+                scholarshipSubmissionDate: patch.scholarshipSubmissionDate,
+                scholarshipPayment: patch.scholarshipPayment,
+                scholarshipDDL: patch.scholarshipDDL,
+                regionAuthority: patch.regionAuthority,
               }
             : p
         );

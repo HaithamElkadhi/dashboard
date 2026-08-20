@@ -6,7 +6,7 @@ import { EmptyState, SkeletonRows } from './states.jsx';
 import { usePagination } from '../hooks/usePagination.js';
 import { chipStyle, dotStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
-import { PencilIcon, TrashIcon } from './icons.jsx';
+import { PencilIcon, TrashIcon, WalletIcon } from './icons.jsx';
 import { formatShortDate } from '../lib/taskDates.js';
 
 const COLUMNS = [
@@ -109,7 +109,7 @@ function Field({ label, children }) {
   );
 }
 
-function ProspectCard({ p, colors, onEdit, onDelete }) {
+function ProspectCard({ p, colors, onEdit, onDelete, onBourse }) {
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -141,6 +141,16 @@ function ProspectCard({ p, colors, onEdit, onDelete }) {
                   className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
                 >
                   <PencilIcon size={13} />
+                </button>
+              )}
+              {onBourse && (
+                <button
+                  type="button"
+                  onClick={() => onBourse(p)}
+                  title="Bourse"
+                  className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+                >
+                  <WalletIcon size={13} />
                 </button>
               )}
               {onDelete && (
@@ -211,7 +221,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, onEdit, onDelete }) {
+function ProspectRow({ p, colors, onEdit, onDelete, onBourse }) {
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
       <td className="px-4 py-3">
@@ -281,6 +291,16 @@ function ProspectRow({ p, colors, onEdit, onDelete }) {
               <PencilIcon size={14} />
             </button>
           )}
+          {onBourse && (
+            <button
+              type="button"
+              onClick={() => onBourse(p)}
+              title="Bourse"
+              className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+            >
+              <WalletIcon size={14} />
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"
@@ -297,7 +317,7 @@ function ProspectRow({ p, colors, onEdit, onDelete }) {
   );
 }
 
-export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete }) {
+export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete, onBourse }) {
   const palette = {
     situation: colors?.situation || EMPTY,
     scholarship: colors?.scholarship || EMPTY,
@@ -341,7 +361,14 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
               </tr>
             ) : (
               visible.map((p) => (
-                <ProspectRow key={p.id} p={p} colors={palette} onEdit={onEdit} onDelete={onDelete} />
+                <ProspectRow
+                  key={p.id}
+                  p={p}
+                  colors={palette}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onBourse={onBourse}
+                />
               ))
             )}
           </tbody>
@@ -356,7 +383,14 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
           <EmptyState />
         ) : (
           visible.map((p) => (
-            <ProspectCard key={p.id} p={p} colors={palette} onEdit={onEdit} onDelete={onDelete} />
+            <ProspectCard
+              key={p.id}
+              p={p}
+              colors={palette}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onBourse={onBourse}
+            />
           ))
         )}
       </div>
