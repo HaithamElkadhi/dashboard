@@ -23,7 +23,7 @@ export const PF = {
   visaStatus: 'fldlO31JxYb7tM9Li',
   visaAppointmentDate: 'fldFqV1HBszTl1XwD', // Airtable "Appointment Date"
   universitalyValidation: 'fldU8dwNM5CHnakCq', // Airtable "Account_Universitaly"
-  scholarshipFolder: 'fldYWwVwHXmAXngHX',
+  scholarshipFolder: 'fldkFISclahSaCBOH', // Airtable "Scholarship Document Folder"
   scholarshipType: 'fld50RAsGJ0ceD7gH',
   scholarshipSubmissionDate: 'fldtJkT2buefXXRrK',
   scholarshipPayment: 'fldvaKgmQgNVwG5sF',

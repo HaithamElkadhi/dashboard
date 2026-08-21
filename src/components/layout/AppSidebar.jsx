@@ -6,8 +6,6 @@ import Avatar from '../Avatar.jsx';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  HelpCircleIcon,
-  SettingsIcon,
   XIcon,
 } from '../icons.jsx';
 
@@ -26,11 +24,6 @@ function NavItem({ item, collapsed, active, onNavigate }) {
     >
       <Icon size={18} className="shrink-0" />
       {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-      {!collapsed && item.comingSoon && (
-        <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold">
-          Bientôt
-        </span>
-      )}
     </Link>
   );
 }
@@ -85,29 +78,7 @@ export default function AppSidebar({
       </nav>
 
       <div className="space-y-1 border-t border-white/10 px-2.5 py-3">
-        <Link
-          to="/settings"
-          onClick={onCloseMobile}
-          title={collapsed ? 'Paramètres' : undefined}
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-            location.pathname === '/settings'
-              ? 'bg-white/10 text-white'
-              : 'text-white/70 hover:bg-white/5 hover:text-white'
-          }`}
-        >
-          <SettingsIcon size={18} className="shrink-0" />
-          {!collapsed && <span>Paramètres</span>}
-        </Link>
-        <button
-          type="button"
-          title={collapsed ? 'Aide' : undefined}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
-        >
-          <HelpCircleIcon size={18} className="shrink-0" />
-          {!collapsed && <span>Aide</span>}
-        </button>
-
-        <div className="mt-2 flex items-center gap-2.5 px-2.5 py-1.5">
+        <div className="flex items-center gap-2.5 px-2.5 py-1.5">
           <Avatar fullName={currentUser} seed={currentUser} />
           {!collapsed && (
             <div className="min-w-0 flex-1">
