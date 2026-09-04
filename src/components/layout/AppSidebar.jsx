@@ -39,6 +39,7 @@ export default function AppSidebar({
   const [currentUser, setCurrentUser] = useCurrentUser();
 
   const isActive = (item) => {
+    if (item.matchPrefix) return location.pathname.startsWith(item.path);
     if (item.path !== '/tasks') return location.pathname === item.path;
     const view = searchParams.get('view') || 'list';
     return location.pathname === '/tasks' && view === item.taskView;

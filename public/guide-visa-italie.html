@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De Tunis à l'Italie — Le guide du visa d'études 2026/2027</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a6b3c;
+    --green-light: #e8f5ee;
+    --green-mid: #2d8a52;
+    --red-it: #c8102e;
+    --gold: #d4a520;
+    --text: #1a1a1a;
+    --text-muted: #5a5a5a;
+    --text-light: #888;
+    --border: #e2e2de;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --tag-blue: #e8f0fb;
+    --tag-blue-text: #1a4a8a;
+    --tag-green: #e8f5ee;
+    --tag-green-text: #1a6b3c;
+    --tag-orange: #fef3e2;
+    --tag-orange-text: #8a4a00;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,250,248,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+  }
+  .nav-inner {
+    max-width: 860px; margin: 0 auto;
+    display: flex; align-items: center; gap: 1rem;
+    height: 52px; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-inner a {
+    white-space: nowrap;
+    font-size: 13px; color: var(--text-muted);
+    text-decoration: none;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .nav-inner a:hover { color: var(--text); border-bottom-color: var(--text); }
+  .nav-lang {
+    margin-left: auto; white-space: nowrap;
+    font-size: 13px; color: var(--text-muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 860px; margin: 0 auto;
+    padding: 4rem 1.5rem 3rem;
+  }
+
+  .visa-card {
+    display: inline-flex; flex-wrap: wrap; gap: 1.5rem;
+    background: linear-gradient(135deg, #1a3a6b 0%, #0f2449 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
+  }
+  .visa-card-item { display: flex; flex-direction: column; }
+  .visa-card-item span:first-child { opacity: .65; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .visa-card-item span:last-child { font-weight: 600; font-size: 14px; margin-top: 1px; }
+
+  .hero-eyebrow {
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: .75rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--green);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    max-width: 680px;
+  }
+  h1 em { font-style: italic; }
+
+  .hero-lead {
+    font-size: 16px; color: var(--text-muted);
+    max-width: 600px; margin-bottom: 2rem;
+    line-height: 1.75;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 2.5rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .875rem 1rem;
+  }
+  .stat-value {
+    font-size: 18px; font-weight: 700;
+    color: var(--text); line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 11.5px; color: var(--text-muted);
+    margin-top: 3px; line-height: 1.4;
+  }
+
+  /* CONTENT */
+  .content { max-width: 860px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  .section { margin-bottom: 4rem; scroll-margin-top: 60px; }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: .75rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-number {
+    font-size: 11px; font-weight: 600; color: var(--text-light);
+    letter-spacing: .06em; min-width: 24px;
+  }
+  h2 {
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--text); line-height: 1.25;
+  }
+
+  /* PARCOURS */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0 1.25rem;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px; top: 44px;
+    width: 2px; bottom: 0;
+    background: var(--border);
+  }
+  .step-num {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    background: var(--surface);
+    flex-shrink: 0; z-index: 1;
+  }
+  .step-body { padding: 6px 0 2rem; }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: .5rem; }
+  .step-body p { font-size: 14.5px; color: var(--text-muted); margin-bottom: .5rem; }
+  .step-note {
+    font-size: 13px; color: var(--green);
+    font-style: italic; margin-top: .5rem;
+    padding-left: .75rem;
+    border-left: 2px solid var(--green-mid);
+  }
+  .step-tag {
+    display: inline-block; margin-top: .5rem;
+    font-size: 12px; padding: 3px 10px; border-radius: 20px;
+    background: var(--tag-orange); color: var(--tag-orange-text);
+    font-weight: 500;
+  }
+
+  /* CHECKLIST */
+  .checklist-meta {
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-translate { background: #fff3cd; color: #7a5200; }
+  .tag-x2 { background: #e8eaf6; color: #3949ab; }
+  .tag-master { background: #fce4ec; color: #ad1457; }
+  .tag-opt { background: #f3e5f5; color: #7b1fa2; }
+
+  .checklist-progress {
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .progress-bar {
+    flex: 1; height: 4px; background: var(--border);
+    border-radius: 2px; overflow: hidden; max-width: 200px;
+  }
+  .progress-fill {
+    height: 100%; background: var(--green);
+    width: 0%; transition: width .3s;
+  }
+
+  .checklist-group { margin-bottom: 1.75rem; }
+  .checklist-group-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-muted); letter-spacing: .03em;
+    margin-bottom: .75rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checklist-item {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: .625rem;
+    padding: .625rem .5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .1s;
+    align-items: start;
+  }
+  .checklist-item:hover { background: #f5f5f2; }
+  .checklist-item.checked { opacity: .55; }
+  .checklist-item.checked .item-title { text-decoration: line-through; }
+
+  .checklist-item input[type="checkbox"] {
+    width: 16px; height: 16px; margin-top: 2px;
+    accent-color: var(--green);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .item-title { font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .item-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .item-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+
+  .checklist-actions {
+    display: flex; gap: .75rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .btn {
+    font-size: 13px; padding: 7px 16px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    cursor: pointer; font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .15s, border-color .15s, color .15s;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .btn:hover { background: #f0f0ec; }
+  .btn-pdf {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  .btn-pdf:hover { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
+  .btn-pdf svg { flex-shrink: 0; }
+
+  .doc-links {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px; margin-top: 1.5rem;
+  }
+  .doc-link {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.125rem;
+    text-decoration: none; color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+    display: block;
+  }
+  .doc-link:hover { border-color: var(--green-mid); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .doc-link-eyebrow { font-size: 11px; color: var(--text-light); font-weight: 600; margin-bottom: .25rem; text-transform: uppercase; letter-spacing: .04em; }
+  .doc-link-title { font-size: 14px; font-weight: 600; margin-bottom: .25rem; }
+  .doc-link-desc { font-size: 13px; color: var(--text-muted); }
+
+  /* GARANT */
+  .tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    font-size: 14px; padding: .5rem 1.125rem;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    cursor: pointer; color: var(--text-muted); font-weight: 500;
+    transition: color .15s; margin-bottom: -1px;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .garant-note {
+    background: var(--tag-blue); border: 1px solid #c5d8f5;
+    border-radius: 10px; padding: 1rem 1.125rem;
+    font-size: 14px; margin-top: 1.5rem;
+  }
+  .garant-note p { margin-bottom: .5rem; }
+  .garant-note p:last-child { margin-bottom: 0; }
+  .garant-note strong { font-weight: 600; }
+
+  .common-docs {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .common-docs h4 { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: .75rem; }
+  .common-docs ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .common-docs li { font-size: 14px; padding-left: 1.25rem; position: relative; }
+  .common-docs li::before { content: '—'; position: absolute; left: 0; color: var(--text-light); }
+
+  /* TRADUCTION */
+  .translate-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 640px) { .translate-grid { grid-template-columns: 1fr; } }
+  .translate-col {
+    border-radius: 10px; padding: 1.25rem;
+  }
+  .translate-col.do-translate {
+    background: #fff8e1; border: 1px solid #ffe082;
+  }
+  .translate-col.no-translate {
+    background: #e8f5e9; border: 1px solid #a5d6a7;
+  }
+  .translate-col h4 { font-size: 14px; font-weight: 700; margin-bottom: .75rem; }
+  .translate-col.do-translate h4 { color: #7a5200; }
+  .translate-col.no-translate h4 { color: #2e7d32; }
+  .translate-col ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .translate-col li { font-size: 13.5px; padding-left: 1.25rem; position: relative; }
+  .translate-col li::before { position: absolute; left: 0; }
+  .do-translate li::before { content: '⇄'; }
+  .no-translate li::before { content: '✓'; color: #2e7d32; }
+  .translate-note { font-size: 13px; color: var(--text-muted); margin-top: .5rem; font-style: italic; }
+
+  /* ZOOM */
+  .zoom-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .zoom-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem;
+  }
+  .zoom-card-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: .04em; margin-bottom: .375rem; }
+  .zoom-card h4 { font-size: 15px; font-weight: 700; margin-bottom: .25rem; }
+  .zoom-card-meta { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: .75rem; }
+  .zoom-card p { font-size: 13.5px; color: var(--text-muted); margin-bottom: .5rem; }
+  .zoom-card ul { list-style: none; display: flex; flex-direction: column; gap: .375rem; }
+  .zoom-card li { font-size: 13px; color: var(--text-muted); padding-left: 1.25rem; position: relative; }
+  .zoom-card li::before { content: '·'; position: absolute; left: .375rem; color: var(--text-light); }
+
+  /* BUDGET */
+  .budget-table { width: 100%; border-collapse: collapse; }
+  .budget-table tr { border-bottom: 1px solid var(--border); }
+  .budget-table tr:last-child { border-bottom: none; }
+  .budget-table td { padding: .875rem .5rem; font-size: 14px; }
+  .budget-table td:first-child { font-weight: 600; }
+  .budget-table td:nth-child(2) { color: var(--text-muted); font-size: 13px; }
+  .budget-table td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+
+  /* TEMOIGNAGES */
+  .testimonials { display: flex; flex-direction: column; gap: 1rem; }
+  .testimonial-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .testimonial-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: .875rem;
+  }
+  .testimonial-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--green-light); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--green); flex-shrink: 0;
+  }
+  .testimonial-name { font-size: 14px; font-weight: 600; }
+  .testimonial-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+  .testimonial-status {
+    margin-left: auto;
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .status-visa { background: var(--green-light); color: var(--green); }
+  .status-rdv { background: var(--tag-blue); color: var(--tag-blue-text); }
+  .testimonial-body { padding: 1rem 1.25rem; }
+  .testimonial-body p { font-size: 13.5px; color: var(--text-muted); margin-bottom: .75rem; }
+  .testimonial-timeline {
+    border-left: 2px solid var(--border); margin-left: .5rem;
+    padding-left: 1rem; margin-top: .75rem;
+    display: flex; flex-direction: column; gap: .5rem;
+  }
+  .tl-item { display: flex; gap: .75rem; font-size: 13px; }
+  .tl-date { color: var(--text-light); min-width: 80px; font-weight: 500; }
+  .tl-event { color: var(--text-muted); }
+  .testimonial-footer {
+    padding: .625rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 1.25rem;
+  }
+  .testimonial-footer button {
+    font-size: 12.5px; color: var(--text-muted);
+    background: none; border: none; cursor: pointer; font-weight: 500;
+    transition: color .15s; font-family: 'Inter', system-ui, sans-serif;
+  }
+  .testimonial-footer button:hover { color: var(--text); }
+
+  /* ERREURS */
+  .errors-list { display: flex; flex-direction: column; gap: .75rem; }
+  .error-item {
+    display: grid; grid-template-columns: 36px 1fr;
+    gap: .875rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem;
+  }
+  .error-num {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #fff3cd; color: #7a5200;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .error-text { font-size: 14px; }
+  .error-text strong { font-weight: 600; display: block; margin-bottom: 3px; }
+  .error-text span { color: var(--text-muted); }
+
+  /* DATES */
+  .dates-list { display: flex; flex-direction: column; gap: 0; }
+  .date-item {
+    display: grid; grid-template-columns: 120px 1fr;
+    gap: 1rem; padding: .875rem 0;
+    border-bottom: 1px solid var(--border); font-size: 14px;
+    align-items: baseline;
+  }
+  .date-item:last-child { border-bottom: none; }
+  .date-when { font-weight: 600; color: var(--text); }
+  .date-what { color: var(--text-muted); }
+
+  /* REGLES */
+  .rules-list { display: flex; flex-direction: column; gap: .625rem; }
+  .rule-item {
+    display: flex; align-items: start; gap: .75rem;
+    background: #fffbf0; border: 1px solid #f0e0a0;
+    border-radius: 8px; padding: .875rem 1rem; font-size: 14px;
+  }
+  .rule-icon { color: #c8800a; font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ADRESSES */
+  .addr-section { margin-bottom: 2rem; }
+  .addr-section h3 { font-size: 15px; font-weight: 700; margin-bottom: .875rem; color: var(--text); }
+  .addr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+  .addr-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.125rem;
+  }
+  .addr-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .addr-price { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: .5rem; }
+  .addr-desc { font-size: 13px; color: var(--text-muted); margin-bottom: .625rem; }
+  .addr-link { font-size: 13px; color: var(--tag-blue-text); text-decoration: none; font-weight: 500; }
+  .addr-link:hover { text-decoration: underline; }
+
+  /* TRANSLATOR TABLE */
+  .translators-wrap { margin-top: 1rem; }
+  .filter-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+  .filter-btn {
+    font-size: 12px; padding: 4px 12px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface);
+    cursor: pointer; color: var(--text-muted); font-weight: 500;
+    transition: all .15s; font-family: 'Inter', system-ui, sans-serif;
+  }
+  .filter-btn.active, .filter-btn:hover { background: var(--text); color: white; border-color: var(--text); }
+  .tr-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .tr-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--border); font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .03em; }
+  .tr-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .tr-table tr:last-child td { border-bottom: none; }
+  .tr-table tr:nth-child(even) td { background: var(--bg); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    font-size: 13.5px; color: var(--text-muted);
+    max-width: 860px; margin: 0 auto;
+  }
+  footer p { margin-bottom: .375rem; }
+  .back-top {
+    display: inline-block; margin-top: 1rem;
+    font-size: 13px; color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 14px; border: 1px solid var(--border);
+    border-radius: 20px; transition: background .15s;
+  }
+  .back-top:hover { background: var(--surface); }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .date-item { grid-template-columns: 1fr; gap: .25rem; }
+    .date-when { font-size: 12px; }
+  }
+
+  @media print {
+    .checklist-actions, nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#parcours">Parcours</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#garant">Garant</a>
+    <a href="#traduction">Traduire ?</a>
+    <a href="#zoom">Documents clés</a>
+    <a href="#budget">Budget</a>
+    <a href="#temoignages">Témoignages</a>
+    <a href="#erreurs">Erreurs</a>
+    <a href="#dates">Dates</a>
+    <a href="#regles">Règles</a>
+    <a href="#adresses">Adresses</a>
+    <a href="#" class="nav-lang">العربية</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="visa-card">
+    <div class="visa-card-item">
+      <span>VISTO NAZIONALE</span>
+      <span>Tipo D — Studio</span>
+    </div>
+    <div class="visa-card-item">
+      <span>Anno</span>
+      <span>2026/2027</span>
+    </div>
+    <div class="visa-card-item">
+      <span>Durata</span>
+      <span>365 giorni</span>
+    </div>
+    <div class="visa-card-item">
+      <span>Ingressi</span>
+      <span>MULT</span>
+    </div>
+  </div>
+
+  <div class="hero-eyebrow">Étudiant tunisien · Année universitaire 2026/2027</div>
+
+  <h1>De Tunis à <em>l'Italie</em>.<br>Le guide du visa d'études.</h1>
+
+  <p class="hero-lead">Tout le parcours, de l'admission jusqu'au titre de séjour : les étapes dans l'ordre, la checklist complète, quoi traduire et quoi laisser tel quel, le budget réel, et les témoignages de dossiers acceptés en 2026 — y compris un visa accordé en 5 jours.</p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">10 179,85 €</div>
+      <div class="stat-label">Compte bloqué (~35k DT)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">783,06 € × 13</div>
+      <div class="stat-label">Virement mensuel</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">Niveau B2</div>
+      <div class="stat-label">Certificat de langue</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">300 €</div>
+      <div class="stat-label">CIMEA (si exigée)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">90 jours max</div>
+      <div class="stat-label">Traitement · parfois 5 j</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- 01 PARCOURS -->
+  <section class="section" id="parcours">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>Le parcours en 9 étapes</h2>
+    </div>
+    <p style="margin-bottom:1.75rem;font-size:14.5px;color:var(--text-muted);">L'ordre compte, et certaines étapes prennent des semaines. Commence tôt : les candidatures s'ouvrent dès décembre pour la rentrée suivante.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Candidatures &amp; admission</h3>
+          <p>Tu candidates auprès des universités italiennes (dès décembre pour certaines) et tu passes l'entretien d'admission selon le programme. Candidate à plusieurs facs : les refus font partie du jeu, un dossier accepté à Bologne ou Camerino a souvent essuyé plusieurs refus avant.</p>
+          <p class="step-note">Ne te décourage pas : un refus ne veut rien dire, continue à candidater. Un étudiant a essuyé plusieurs refus avant de recevoir trois acceptations dans sa spécialité.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>CIMEA ou DOV — si ta fac l'exige</h3>
+          <p>Certaines universités exigent la certification CIMEA (~300 €) ou la Dichiarazione di Valore. La CIMEA prend environ 40–45 jours de traitement : lance-la dès ton acceptation, avant même Universitaly. Ton pre-enrollment indique si elle est requise.</p>
+          <span class="step-tag">~300 € · réponse en ~43 jours</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Pré-inscription sur Universitaly</h3>
+          <p>Tu remplis ta demande sur <a href="https://www.universitaly.it" target="_blank" style="color:var(--green);">universitaly.it</a> en choisissant ton université en premier choix. Saisis bien l'e-mail que tu consultes : c'est par cet e-mail qu'ALMAVIVA te contactera.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Validation &amp; transmission par l'université</h3>
+          <p>L'université valide ta pré-inscription et la transmet à l'Ambassade via Universitaly. Le délai varie beaucoup : parfois 10 jours, parfois plus (Camerino est connue pour répondre lentement — patience). Si on te demande de corriger un document, fais-le le jour même.</p>
+          <p class="step-note">Pour ceux qui visent Camerino : l'université met parfois du temps à répondre. Un peu de patience, ça finit par arriver.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Contact ALMAVIVA → rendez-vous visa</h3>
+          <p>Une fois la pré-inscription validée, ALMAVIVA t'écrit pour fixer le rendez-vous de dépôt. Le délai peut aller jusqu'à 1 mois entre la validation Universitaly et le rendez-vous. Deux jours avant, ils t'envoient un document : imprime-le et apporte-le.</p>
+          <span class="step-tag" style="background:#fce4ec;color:#ad1457;">La date ne peut pas être modifiée</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h3>Constitution du dossier</h3>
+          <p>Traductions assermentées, apostilles (~35 DT/document), légalisation de la prise en charge (à faire ~une semaine avant le rendez-vous), compte bloqué, assurance, réservations. C'est l'étape la plus longue — la checklist ci-dessous couvre tout.</p>
+          <p class="step-note">Anticipe : traductions + apostilles prennent du temps.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <h3>Dépôt du dossier au centre</h3>
+          <p>Tu te présentes avec le dossier original complet, le document envoyé par ALMAVIVA, et du cash (frais sur place). Le formulaire de visa se remplit sur place, comme le personnel te le montre.</p>
+          <p class="step-note">Prends de la monnaie le jour du rendez-vous, tu en auras besoin. Le personnel d'ALMAVIVA est accueillant et t'aide volontiers — pas de stress.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <h3>Traitement de la demande</h3>
+          <p>Le délai légal est de 90 jours maximum, mais en pratique ça peut aller très vite : un dossier déposé le 26 juin a reçu son visa le 1ᵉʳ juillet. Un dossier complet ne garantit pas le visa, mais un dossier béton accélère tout.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <h3>Arrivée en Italie → Questura</h3>
+          <p>Dès ton arrivée, tu as 8 jours pour demander ton titre de séjour à la Questura. Tu dois être inscrit sur Universitaly avant le 31 janvier 2027, sinon le visa est révoqué.</p>
+          <span class="step-tag" style="background:#fce4ec;color:#ad1457;">Ne quitte pas l'Italie avant ton titre de séjour</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 CHECKLIST -->
+  <section class="section" id="checklist">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>Checklist — dossier étudiant</h2>
+    </div>
+    <p style="margin-bottom:1rem;font-size:14.5px;color:var(--text-muted);">Coche au fur et à mesure — ta progression est sauvegardée sur cet appareil.</p>
+    <div class="checklist-meta">
+      <span class="tag tag-translate">à traduire traduction italienne + apostille</span>
+      <span class="tag tag-x2">×2 deux exemplaires</span>
+      <span class="tag tag-master">master si tu postules en master</span>
+      <span class="tag tag-opt">optionnel selon le cas</span>
+    </div>
+    <div class="checklist-progress">
+      <span id="progress-text">0 / 24</span>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <button class="btn" onclick="uncheckAll()" style="margin-left:auto;">Tout décocher</button>
+      <button class="btn btn-pdf" onclick="downloadChecklistPdf()" type="button" title="Télécharger la checklist en PDF">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger PDF
+      </button>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Identité &amp; admission — 0/7</div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Formulaire de demande de visa</div><div class="item-sub">À remplir sur place, comme on te le montre. Apporte un bon stylo.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Document envoyé par ALMAVIVA avant le RDV</div><div class="item-sub">Reçu ~2 jours avant le rendez-vous. Imprime-le et apporte-le.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Passeport + copie <span style="font-size:12px;color:var(--text-light);font-weight:400;">15 mois +</span></div><div class="item-sub">Validité &gt; 15 mois (visa D). Copie de la 2ᵉ page + copies des anciens visas Schengen uniquement.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Photo d'identité récente pour le visa</div><div class="item-sub">Norme ICAO, moins de ~6 mois. Une photo trop ancienne est refusée sur place.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Lettre de pré-inscription Universitaly signée <span class="tag tag-x2" style="font-size:11px;padding:2px 7px;">×2</span></div><div class="item-sub">Validée et transmise par l'université. Deux copies signées.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Lettre de motivation</div><div class="item-sub">En anglais si ton programme est en anglais.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">2 lettres de recommandation <span class="tag tag-master" style="font-size:11px;padding:2px 7px;">master</span></div><div class="item-sub">De tes enseignants ou encadrants. Présentes dans les dossiers master acceptés.</div></div>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Diplômes &amp; langue — 0/6</div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Diplôme du BAC + relevé <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Copie conforme apostillée + traduction italienne. Au dépôt : remets la copie conforme traduite + l'original de la traduction.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Diplôme de licence + relevés (3 ans) <span class="tag tag-master" style="font-size:11px;padding:2px 7px;">master</span> <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Même règle : copie conforme apostillée + traduction originale.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">CIMEA ou DOV + reçu <span class="tag tag-opt" style="font-size:11px;padding:2px 7px;">si exigée</span></div><div class="item-sub">~300 €, ~43 jours de traitement. Vérifie ton pre-enrollment : si ta fac ne la demande pas, la ligne est barrée au dépôt.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Certificat de langue — copie</div><div class="item-sub">Anglais : IELTS / TOEFL (copie simple). Italien : PLIDA, CELI, CILS — niveau B2 minimum.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Attestation de langue italienne <span class="tag tag-opt" style="font-size:11px;padding:2px 7px;">conseillé</span></div><div class="item-sub">Même pour un programme en anglais : une attestation d'une année d'italien renforce le dossier.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Résultat test d'aptitude (ex. CISIA) <span class="tag tag-opt" style="font-size:11px;padding:2px 7px;">si requis</span></div><div class="item-sub">Lorsque l'université le prévoit.</div></div>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Finances — 0/3</div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Attestation de compte bloqué — original</div><div class="item-sub">10 179,85 € (~34–35 000 DT), bloqués de manière irrévocable. Peut être au nom d'un parent avec ton nom inclus.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Identité bancaire (RIB) — original</div><div class="item-sub">Accompagne l'attestation de blocage, du même compte.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Extraits de compte 6 mois — originaux, sans traduction</div><div class="item-sub">Compte courant (et épargne si utile) du garant, avec du mouvement et un solde sain.</div></div>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">Voyage, logement &amp; santé — 0/3</div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Billet d'avion aller-retour + facture — copie</div><div class="item-sub">Réservation (pas besoin d'acheter le vrai billet) via agence de voyage, ~50 DT avec l'hôtel.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Réservation d'hôtel + facture — copie</div><div class="item-sub">Ou résidence universitaire, ou invitation « Ospitalità » + carte de séjour de l'hôte + contrat de location.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Assurance voyage 365 jours — copie</div><div class="item-sub">Deux options : la souscrire toi-même avant (~103 DT) ou la prendre sur place à ALMAVIVA (~300 DT). Sans limitation pour l'hospitalisation d'urgence.</div></div>
+      </div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">État civil &amp; situation socio-économique — 0/5</div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Extrait de naissance — le tien <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction italienne.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Extraits de naissance des parents <span class="tag tag-opt" style="font-size:11px;padding:2px 7px;">optionnel</span> <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Pas obligatoires, mais certains les ajoutent pour blinder le dossier.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Vie collective (certificat de famille) <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction. Une version « feha enti barka » suffit.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Attestation socio-économique <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Délivrée par le ministère tunisien compétent.</div></div>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <div><div class="item-title">Avis d'information AVS + reçu de paiement</div><div class="item-sub">Les deux documents d'avis du centre + la copie du reçu de paiement AVS.</div></div>
+      </div>
+    </div>
+
+    <div class="doc-links">
+      <a href="classement.html" class="doc-link">
+        <div class="doc-link-eyebrow">PDF · A4</div>
+        <div class="doc-link-title">Classement officiel des 18 documents</div>
+        <div class="doc-link-desc">L'ordre exact du dossier au dépôt, avec cases à cocher pour suivre ce qui manque.</div>
+      </a>
+      <a href="modeles.html" class="doc-link">
+        <div class="doc-link-eyebrow">3 documents</div>
+        <div class="doc-link-title">3 modèles prêts à remplir</div>
+        <div class="doc-link-desc">Prise en charge (texte officiel), attestation bancaire de blocage, lettre de motivation.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 03 GARANT -->
+  <section class="section" id="garant">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>Dossier du garant</h2>
+    </div>
+    <p style="margin-bottom:1.25rem;font-size:14.5px;color:var(--text-muted);">La personne qui te prend en charge (parent ou famille jusqu'au 4ᵉ degré) joint son dossier financier. Un ou deux garants (père + mère) — les deux configurations passent.</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'garant-salarie')">Salarié</button>
+      <button class="tab-btn" onclick="switchTab(this,'garant-retraite')">Retraité</button>
+      <button class="tab-btn" onclick="switchTab(this,'garant-patente')">Patente / Commerçant</button>
+    </div>
+    <div id="garant-salarie" class="tab-content active">
+      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem;">Documents du garant — Salarié</div>
+      <div class="checklist-group" style="margin-bottom:.5rem;">
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Attestation de travail</div><div class="item-sub">Établie par l'employeur.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Attestation de salaire</div><div class="item-sub">En complément de l'attestation de travail.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">3 fiches de paie (6 si possible)</div><div class="item-sub">Certaines années, 6 sont demandées ; des dossiers passent avec 3.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">CNSS / CNRPS <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Certificat d'affiliation, traduit en italien.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Extrait bancaire — 6 mois (original)</div><div class="item-sub">Sans traduction, avec du mouvement.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Déclaration annuelle des revenus 2025 <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction.</div></div></div>
+      </div>
+    </div>
+    <div id="garant-retraite" class="tab-content">
+      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem;">Documents du garant — Retraité</div>
+      <div class="checklist-group" style="margin-bottom:.5rem;">
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Attestation de pension de retraite</div><div class="item-sub">Délivrée par la caisse de retraite (CNRPS / CNSS).</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">CNRPS / CNSS — certificat d'affiliation <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction italienne.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Extrait bancaire — 6 mois (original)</div><div class="item-sub">Sans traduction, avec du mouvement.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Déclaration annuelle des revenus 2025 <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction.</div></div></div>
+      </div>
+    </div>
+    <div id="garant-patente" class="tab-content">
+      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem;">Documents du garant — Patente / Commerçant</div>
+      <div class="checklist-group" style="margin-bottom:.5rem;">
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Patente / Registre de commerce</div><div class="item-sub">Preuve de l'activité commerciale.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Extrait bancaire — 6 mois (original)</div><div class="item-sub">Sans traduction, avec du mouvement.</div></div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="item-title">Déclaration annuelle des revenus 2025 <span class="tag tag-translate" style="font-size:11px;padding:2px 7px;">à traduire</span></div><div class="item-sub">Original apostillé + traduction.</div></div></div>
+      </div>
+    </div>
+    <div class="common-docs">
+      <h4>Commun à tous les profils</h4>
+      <ul>
+        <li>Prise en charge — original légalisé (~1 semaine avant le RDV) + apostille + traduction. Peut être signée par les deux parents.</li>
+        <li>Déclaration annuelle d'impôts 2025 (da5l sanawi) — original apostillé + traduction.</li>
+        <li>Preuve de propriété — chhadet melkia apostillée + traduction. Pas de melkia ? Des contrats d'achat traduits font l'affaire (dossier accepté avec 2 contrats d'achat).</li>
+        <li>Extraits de compte 6 mois — originaux, pas de traduction, avec du mouvement.</li>
+      </ul>
+    </div>
+    <div class="garant-note" style="margin-top:1rem;">
+      <p><strong>Famille jusqu'au 4ᵉ degré</strong> : père, mère, frères et sœurs, grands-parents, oncles et tantes, cousins germains. Lien prouvé par actes d'état civil originaux, traduits, légalisés et apostillés.</p>
+      <p><strong>Fiches de paie</strong> : officiellement 6 sont parfois demandées ; des dossiers sont passés avec 3. Prends 6 si tu peux, par sécurité.</p>
+    </div>
+  </section>
+
+  <!-- 04 TRADUCTION -->
+  <section class="section" id="traduction">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>Traduire, apostiller… ou laisser tel quel ?</h2>
+    </div>
+    <p style="margin-bottom:1.25rem;font-size:14.5px;color:var(--text-muted);">La question qui coûte le plus cher quand on se trompe. Règle générale : les documents d'état civil, fiscaux et de propriété se traduisent en italien ; les documents bancaires, les réservations et les certificats internationaux restent tels quels. Traduction chez un traducteur assermenté ; apostille ~35 DT par document.</p>
+    <div class="translate-grid">
+      <div class="translate-col do-translate">
+        <h4>⇄ À traduire en italien</h4>
+        <p style="font-size:12px;color:#7a5200;margin-bottom:.75rem;">+ apostille (et légalisation quand indiqué)</p>
+        <ul>
+          <li>Diplôme du BAC + relevé</li>
+          <li>Diplôme de licence + relevés (si master)</li>
+          <li>Extrait de naissance (le tien)</li>
+          <li>Vie collective / certificat de famille</li>
+          <li>Prise en charge (légalisée d'abord)</li>
+          <li>Déclaration d'impôts 2025 du garant</li>
+          <li>Affiliation CNSS / CNRPS du garant</li>
+          <li>Chhadet melkia ou contrats d'achat</li>
+          <li>Attestation socio-économique</li>
+        </ul>
+      </div>
+      <div class="translate-col no-translate">
+        <h4>✓ À laisser tel quel</h4>
+        <p style="font-size:12px;color:#2e7d32;margin-bottom:.75rem;">original ou simple copie, aucune traduction</p>
+        <ul>
+          <li>Extraits de compte courant / épargne 6 mois</li>
+          <li>Attestation de compte bloqué + RIB</li>
+          <li>IELTS / TOEFL (copie simple)</li>
+          <li>Certificats italiens (PLIDA, CELI, CILS…)</li>
+          <li>CIMEA + reçu</li>
+          <li>Réservation billet d'avion + facture</li>
+          <li>Réservation hôtel + facture</li>
+          <li>Assurance voyage (copie)</li>
+          <li>Pré-inscription Universitaly (2 copies)</li>
+          <li>Passeport + copies</li>
+          <li>Lettres de motivation / recommandation</li>
+        </ul>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-top:1rem;font-style:italic;">La règle simple : les documents administratifs tunisiens se traduisent. Les documents bancaires et les réservations restent tels quels.</p>
+  </section>
+
+  <!-- 05 ZOOM -->
+  <section class="section" id="zoom">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>Zoom sur les documents clés</h2>
+    </div>
+    <p style="margin-bottom:1.5rem;font-size:14.5px;color:var(--text-muted);">Les pièces qui posent le plus de questions, expliquées en clair, avec les astuces des dossiers acceptés.</p>
+    <div class="zoom-grid">
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Finances</div>
+        <h4>Le compte bloqué</h4>
+        <div class="zoom-card-meta">10 179,85 € ≈ 34–35k DT</div>
+        <p>783,06 € × 13 mois, bloqués de manière irrévocable un an, versés en Italie chaque mois. Tu ne « perds » pas cet argent : tu le récupères mensuellement là-bas.</p>
+        <ul>
+          <li>Astuce validée : le compte peut être au nom d'un parent avec ton nom inclus.</li>
+          <li>Bourse du gouvernement italien ≥ ce montant → blocage non requis.</li>
+          <li>Cursus &lt; 12 mois → montant réduit proportionnellement.</li>
+        </ul>
+      </div>
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Reconnaissance du diplôme</div>
+        <h4>CIMEA / DOV</h4>
+        <div class="zoom-card-meta">~300 € · ~43 jours</div>
+        <p>Exigée par certaines universités seulement — c'est écrit dans ton pre-enrollment.</p>
+        <ul>
+          <li>Lance-la dès l'acceptation : c'est le document le plus lent du dossier.</li>
+          <li>Garde le reçu de paiement, il se dépose avec.</li>
+          <li>Non exigée par ta fac ? La ligne est simplement barrée au dépôt.</li>
+        </ul>
+      </div>
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Santé</div>
+        <h4>Assurance — 2 options</h4>
+        <div class="zoom-card-meta">Couverture 365 jours</div>
+        <p>Sans limitation pour l'hospitalisation d'urgence.</p>
+        <ul>
+          <li>Option 1 : souscrire toi-même avant, auprès d'un assureur tunisien (~103 DT le contrat annuel étudiant).</li>
+          <li>Option 2 : la prendre sur place à ALMAVIVA le jour du dépôt (~300 DT).</li>
+          <li>Elle resservira pour le titre de séjour en Italie.</li>
+        </ul>
+      </div>
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Voyage</div>
+        <h4>Billet + hôtel : la réservation</h4>
+        <div class="zoom-card-meta">~50 DT les deux</div>
+        <p>Pas besoin d'acheter un vrai billet : une réservation avec facture suffit.</p>
+        <ul>
+          <li>Passe par une agence de voyage : réservation avion A/R + hôtel avec factures.</li>
+          <li>Date de départ cohérente avec ta rentrée (ex. à partir de mi-août).</li>
+          <li>Dépose des copies, pas d'originaux.</li>
+        </ul>
+      </div>
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Garant</div>
+        <h4>Prise en charge</h4>
+        <div class="zoom-card-meta">Déclaration officielle</div>
+        <p>Déclaration du garant qui couvre séjour et installation pendant toute la durée des études.</p>
+        <ul>
+          <li>Peut être signée par les deux parents.</li>
+          <li>Légalisation (signature) ~1 semaine avant le rendez-vous.</li>
+          <li>Puis apostille + traduction italienne, avec les justificatifs de revenus.</li>
+        </ul>
+      </div>
+      <div class="zoom-card">
+        <div class="zoom-card-eyebrow">Traductions</div>
+        <h4>Traducteur assermenté</h4>
+        <div class="zoom-card-meta">~35–50 DT par document</div>
+        <p>Toutes les traductions du dossier passent par un traducteur assermenté reconnu.</p>
+        <ul>
+          <li>Apostille souvent prise en charge par le traducteur.</li>
+          <li>Demande les recommandations dans les groupes d'étudiants.</li>
+          <li>Pour les diplômes : la traduction se fait sur la copie conforme apostillée.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 BUDGET -->
+  <section class="section" id="budget">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2>Le budget réel du dossier</h2>
+    </div>
+    <p style="margin-bottom:1.25rem;font-size:14.5px;color:var(--text-muted);">Prix indicatifs 2026, relevés sur des dossiers réels. Ils varient selon le traducteur, l'assureur et le taux de change — prévois une marge.</p>
+    <table class="budget-table">
+      <tr><td>CIMEA</td><td>si exigée par ton université</td><td>~300 €</td></tr>
+      <tr><td>Apostille</td><td>par document, souvent gérée par le traducteur</td><td>~35–50 DT</td></tr>
+      <tr><td>Traductions assermentées</td><td>le traducteur prend en charge l'apostille</td><td>variable</td></tr>
+      <tr><td>Assurance voyage 365 j</td><td>soi-même ~103 DT · sur place à ALMAVIVA ~300 DT</td><td>103–300 DT</td></tr>
+      <tr><td>Réservation avion A/R + hôtel</td><td>avec factures, via agence de voyage</td><td>~50 DT</td></tr>
+      <tr><td>Frais AVS / services au centre</td><td>à payer sur place — apporte du cash</td><td>en espèces</td></tr>
+      <tr><td>Compte bloqué</td><td>bloqué, pas dépensé : tu le récupères en Italie chaque mois</td><td>10 179,85 € ≈ 35k DT</td></tr>
+    </table>
+  </section>
+
+  <!-- 08 ERREURS -->
+  <section class="section" id="erreurs">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2>Erreurs à éviter au dépôt</h2>
+    </div>
+    <div class="errors-list">
+      <div class="error-item"><div class="error-num">1</div><div class="error-text"><strong>Ne remplis pas le formulaire de visa à l'avance.</strong><span>Il y a une table à remplir sur place, de la façon qu'on te montre. Apporte simplement un bon stylo.</span></div></div>
+      <div class="error-item"><div class="error-num">2</div><div class="error-text"><strong>Photo récente uniquement.</strong><span>Une photo trop ancienne te fait ressortir refaire des photos. Refais-la si elle date.</span></div></div>
+      <div class="error-item"><div class="error-num">3</div><div class="error-text"><strong>Copies de passeport : pas les vieux visas hors-Schengen.</strong><span>Un ancien visa USA, par exemple, ne sera pas pris — ne le copie pas.</span></div></div>
+      <div class="error-item"><div class="error-num">4</div><div class="error-text"><strong>Imprime la pré-inscription en double.</strong><span>Deux copies signées de la lettre Universitaly.</span></div></div>
+      <div class="error-item"><div class="error-num">5</div><div class="error-text"><strong>Vérifie si la CIMEA/DOV est vraiment requise — et lance-la tôt.</strong><span>C'est écrit dans ton pre-enrollment. Si elle est requise, compte ~43 jours : ne la découvre pas au dernier moment.</span></div></div>
+      <div class="error-item"><div class="error-num">6</div><div class="error-text"><strong>Corrige vite tout document signalé.</strong><span>Une correction faite le jour même = acceptation le jour même. La suite peut s'enchaîner en une semaine.</span></div></div>
+      <div class="error-item"><div class="error-num">7</div><div class="error-text"><strong>N'oublie pas le cash et le document ALMAVIVA.</strong><span>Le papier reçu 2 jours avant le RDV s'apporte imprimé, et plusieurs frais se paient en espèces sur place.</span></div></div>
+      <div class="error-item"><div class="error-num">8</div><div class="error-text"><strong>La légalisation de la prise en charge se fait juste avant.</strong><span>~Une semaine avant le rendez-vous, pas des mois avant.</span></div></div>
+      <div class="error-item"><div class="error-num">9</div><div class="error-text"><strong>Ne traduis pas ce qui ne se traduit pas.</strong><span>Extraits de compte, réservations, IELTS, assurance : tels quels. Tu économises des dizaines de dinars de traduction inutile.</span></div></div>
+    </div>
+  </section>
+
+  <!-- 09 DATES -->
+  <section class="section" id="dates">
+    <div class="section-header">
+      <span class="section-number">09</span>
+      <h2>Dates &amp; délais à ne pas rater</h2>
+    </div>
+    <div class="dates-list">
+      <div class="date-item"><span class="date-when">déc. → print.</span><span class="date-what">Candidatures universités — commence tôt, les refus prennent du temps aussi.</span></div>
+      <div class="date-item"><span class="date-when">~43 jours</span><span class="date-what">Traitement CIMEA — à lancer dès l'acceptation.</span></div>
+      <div class="date-item"><span class="date-when">30 nov. 2026</span><span class="date-what">Date limite pour la prise de rendez-vous de dépôt du visa 2026/2027.</span></div>
+      <div class="date-item"><span class="date-when">90 jours max</span><span class="date-what">Délai de traitement du visa (des dossiers sont sortis en 5 jours).</span></div>
+      <div class="date-item"><span class="date-when">8 jours</span><span class="date-what">Après l'arrivée en Italie, pour demander ton titre de séjour à la Questura.</span></div>
+      <div class="date-item"><span class="date-when">31 jan. 2027</span><span class="date-what">Tu dois être inscrit sur Universitaly, sinon le visa est révoqué.</span></div>
+      <div class="date-item"><span class="date-when">15 mois +</span><span class="date-what">Validité minimale du passeport pour un visa D.</span></div>
+    </div>
+  </section>
+
+  <!-- 10 REGLES -->
+  <section class="section" id="regles">
+    <div class="section-header">
+      <span class="section-number">10</span>
+      <h2>Les règles de l'Ambassade</h2>
+    </div>
+    <p style="margin-bottom:1.25rem;font-size:14.5px;color:var(--text-muted);">À garder en tête : aucune de ces étapes ne donne automatiquement droit au visa.</p>
+    <div class="rules-list">
+      <div class="rule-item"><span class="rule-icon">!</span><span>La pré-inscription et l'admission par l'université italienne ne donnent pas droit à la délivrance du visa.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Un dossier complet ne garantit pas non plus l'obtention automatique du visa.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Documents : en français, traduits en italien et apostillés. L'Ambassade peut demander des pièces supplémentaires.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Demandes autonomes refusées : seul le contact d'ALMAVIVA par e-mail fixe le rendez-vous. La date n'est pas modifiable.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Ne change pas de cours après le visa. T'inscrire à un autre cursus que celui visé t'oblige à rentrer en Tunisie et redemander un visa.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Ne quitte pas l'Italie avant d'avoir obtenu ton premier titre de séjour.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>Consulte toujours Universitaly pour vérifier les documents réellement exigés par ton université.</span></div>
+      <div class="rule-item"><span class="rule-icon">!</span><span>L'Ambassade peut te convoquer pour un bref entretien, notamment pour vérifier la langue.</span></div>
+    </div>
+  </section>
+
+  <!-- 11 ADRESSES -->
+  <section class="section" id="adresses">
+    <div class="section-header">
+      <span class="section-number">11</span>
+      <h2>Adresses utiles</h2>
+    </div>
+    <p style="margin-bottom:1.75rem;font-size:14.5px;color:var(--text-muted);">Recommandations non sponsorisées, issues des dossiers acceptés et des listes officielles.</p>
+
+    <div class="addr-section">
+      <h3>Assurance voyage — où la prendre ?</h3>
+      <div class="addr-grid">
+        <div class="addr-card">
+          <div class="addr-name">Lloyd Assurances</div>
+          <div class="addr-price">~103 DT/an</div>
+          <div class="addr-desc">Assistance voyage « études », devis en ligne. C'est ce type de contrat annuel étudiant qui a été pris à ~103 DT dans un dossier accepté en 2026.</div>
+          <a href="https://www.lloyd.com.tn/particulier/assurance-voyage/" class="addr-link" target="_blank">lloyd.com.tn ↗</a>
+        </div>
+        <div class="addr-card">
+          <div class="addr-name">BH Assurance</div>
+          <div class="addr-price">sur devis</div>
+          <div class="addr-desc">« Plan étudiant » dédié aux études à l'étranger, version étendue disponible.</div>
+          <a href="https://bh-assurance.com/assurance-voyage" class="addr-link" target="_blank">bh-assurance.com ↗</a>
+        </div>
+        <div class="addr-card">
+          <div class="addr-name">STAR Assurances</div>
+          <div class="addr-price">sur devis</div>
+          <div class="addr-desc">Assistance voyage, large réseau d'agences dans tout le pays.</div>
+          <a href="https://www.star.com.tn/produits/assistance-voyage" class="addr-link" target="_blank">star.com.tn ↗</a>
+        </div>
+        <div class="addr-card">
+          <div class="addr-name">ALMAVIVA — sur place</div>
+          <div class="addr-price">~300 DT</div>
+          <div class="addr-desc">Le jour du dépôt, sans aucune démarche préalable. L'option la plus simple, mais la plus chère.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="addr-section">
+      <h3>Billet + hôtel — où réserver ?</h3>
+      <div class="addr-grid">
+        <div class="addr-card">
+          <div class="addr-name">Dima Voyages (Sousse)</div>
+          <div class="addr-price">~50 DT les deux</div>
+          <div class="addr-desc">Agence catégorie A : billetterie et réservations d'hôtel. Demande une « réservation avion A/R + hôtel avec factures pour dossier visa ».</div>
+          <a href="https://www.dimavoyage.com/" class="addr-link" target="_blank">dimavoyage.com ↗</a>
+        </div>
+        <div class="addr-card">
+          <div class="addr-name">Toute agence catégorie A</div>
+          <div class="addr-price">~50 DT</div>
+          <div class="addr-desc">Le service « réservation + facture pour visa » est standard — demande-le tel quel (Traveltodo, agences de quartier…).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="addr-section">
+      <h3>Traducteurs assermentés — italien</h3>
+      <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:1rem;">Liste officielle du ministère de la Justice (langue italienne), classée par gouvernorat. Appelle avant de te déplacer : disponibilité, tarif et délai varient.</p>
+      <div class="translators-wrap">
+        <div class="filter-tabs" id="filter-tabs">
+          <button class="filter-btn active" onclick="filterTr(this,'')">Tous (49)</button>
+          <button class="filter-btn" onclick="filterTr(this,'Tunis')">Tunis</button>
+          <button class="filter-btn" onclick="filterTr(this,'Ariana')">Ariana</button>
+          <button class="filter-btn" onclick="filterTr(this,'Ben Arous')">Ben Arous</button>
+          <button class="filter-btn" onclick="filterTr(this,'Sousse')">Sousse</button>
+          <button class="filter-btn" onclick="filterTr(this,'Sfax')">Sfax</button>
+          <button class="filter-btn" onclick="filterTr(this,'Monastir')">Monastir</button>
+        </div>
+        <table class="tr-table" id="tr-table">
+          <thead><tr><th>Nom</th><th>Gouvernorat</th></tr></thead>
+          <tbody id="tr-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>Guide visa étudiant Italie 2026/2027 — fait par des étudiants tunisiens, pour des étudiants tunisiens.</p>
+  <p style="font-size:12.5px;margin-top:.375rem;color:var(--text-light);">Recommandations non sponsorisées, à titre indicatif (juillet 2026). Les prix, offres et listes évoluent — vérifie toujours avant de payer.</p>
+  <a href="#top" class="back-top">↑ Revenir en haut</a>
+</footer>
+
+<script>
+const translators = [
+  ["Hamza Marouani","Tunis"],["Abdallah Chaïkh","Tunis"],["Abdjelil Cheïb","Tunis"],
+  ["Adel Karrah","Tunis"],["Ahlem Kabka","Tunis"],["Aïcha Rafik","Tunis"],
+  ["Ammar Selmi","Tunis"],["Asma Chinguiti","Tunis"],["Besma Mohamed","Tunis"],
+  ["Fathi Nakka","Tunis"],["Hend Bouali","Tunis"],["Issam Harjani","Tunis"],
+  ["Ithaç Lbib","Tunis"],["Khira Zouabi","Tunis"],["Lotfi Belhassen","Tunis"],
+  ["Lotfi Rahmani","Tunis"],["Makrem Gharkaoui","Tunis"],["Meriem Menoufi","Tunis"],
+  ["Mofida Ayess","Tunis"],["Radhia Gdairia","Tunis"],["Saoussen Bourayou","Tunis"],
+  ["Wajih Slimene","Tunis"],["Yosra Hadfi","Tunis"],
+  ["Nouha Abbes","Ariana"],["Sahnoun Saïd","Ariana"],
+  ["Mohamed Hajdi","Ben Arous"],["Mohamed Fakhreddine Mansouri","Manouba"],
+  ["Ahmed Ben Ghribal","Nabeul"],["Fayçal Abri","Nabeul"],["Rami Zarrouk","Nabeul"],
+  ["Asma Skander","Béja"],["Faten Saadi","Le Kef"],
+  ["Fahmi Maaref","Sousse"],["Ghazi Eddaly","Sousse"],["Ismaïl Kemala","Sousse"],["Issam Zarjani","Sousse"],
+  ["Hanen Tallouli","Monastir"],["Oumayma Maraoui","Monastir"],
+  ["Abdessalem Bannour","Mahdia"],["Ali Choumti","Mahdia"],
+  ["Mariem Abboud","Sfax"],["Nazia Touch","Sfax"],["Thouraya Allouche","Sfax"],
+  ["Samia Manai","Kasserine"],["Nabiha Arrami","Gabès"],
+  ["Ahmed Oujatani","Autre"],["Amna Nakzi","Autre"],["Chama Hfaiedh","Autre"],["Islam Ben Farhat","Autre"]
+];
+
+let currentFilter = '';
+function renderTr() {
+  const tbody = document.getElementById('tr-body');
+  const rows = translators
+    .filter(t => !currentFilter || t[1] === currentFilter)
+    .map(t => `<tr><td>${t[0]}</td><td>${t[1]}</td></tr>`)
+    .join('');
+  tbody.innerHTML = rows;
+}
+function filterTr(btn, gov) {
+  currentFilter = gov;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTr();
+}
+renderTr();
+
+let totalChecked = 0;
+const totalItems = 24;
+function toggleCheck(item) {
+  const cb = item.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+  updateProgress();
+  saveState();
+}
+function updateProgress() {
+  const checks = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+  let checked = 0;
+  checks.forEach(c => { if(c.checked) checked++; });
+  document.getElementById('progress-text').textContent = checked + ' / ' + checks.length;
+  document.getElementById('progress-fill').style.width = (checked / checks.length * 100) + '%';
+}
+function uncheckAll() {
+  document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(c => {
+    c.checked = false;
+    c.closest('.checklist-item').classList.remove('checked');
+  });
+  updateProgress();
+  localStorage.removeItem('checklist');
+}
+function saveState() {
+  const state = [];
+  document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach((c,i) => state.push(c.checked));
+  try { localStorage.setItem('checklist', JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const state = JSON.parse(localStorage.getItem('checklist') || '[]');
+    const checks = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+    state.forEach((v,i) => {
+      if(checks[i]) {
+        checks[i].checked = v;
+        if(v) checks[i].closest('.checklist-item').classList.add('checked');
+      }
+    });
+    updateProgress();
+  } catch(e) {}
+}
+loadState();
+
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function downloadChecklistPdf() {
+  const section = document.getElementById('checklist');
+  if (!section) return;
+
+  const groups = section.querySelectorAll('.checklist-group');
+  let done = 0;
+  let total = 0;
+  let bodyHtml = '';
+
+  groups.forEach(group => {
+    const items = group.querySelectorAll('.checklist-item');
+    let groupDone = 0;
+    let itemsHtml = '';
+
+    items.forEach(item => {
+      const checked = item.querySelector('input[type="checkbox"]')?.checked;
+      const title = item.querySelector('.item-title')?.innerHTML || '';
+      const sub = item.querySelector('.item-sub')?.textContent?.trim() || '';
+      if (checked) groupDone++;
+      total++;
+      if (checked) done++;
+      itemsHtml += `
+        <div class="row${checked ? ' done' : ''}">
+          <div class="box">${checked ? '✓' : ''}</div>
+          <div>
+            <div class="title">${title}</div>
+            ${sub ? `<div class="sub">${sub}</div>` : ''}
+          </div>
+        </div>`;
+    });
+
+    const titleText = (group.querySelector('.checklist-group-title')?.textContent || '')
+      .replace(/\s*—\s*\d+\/\d+\s*$/, '')
+      .trim();
+
+    bodyHtml += `
+      <section class="group">
+        <h2>${titleText} <span>${groupDone}/${items.length}</span></h2>
+        ${itemsHtml}
+      </section>`;
+  });
+
+  const today = new Date().toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Checklist visa étudiant Italie — ${done}/${total}</title>
+<style>
+  @page { size: A4; margin: 14mm 16mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1a1a1a;
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid #1a6b3c; padding-bottom: 10px; margin-bottom: 18px;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; line-height: 1.25; }
+  .header h1 span { color: #1a6b3c; }
+  .meta { text-align: right; font-size: 11px; color: #666; }
+  .meta strong { display: block; color: #1a1a1a; font-size: 13px; margin-bottom: 2px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+  }
+  .pill {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500;
+  }
+  .pill-tr { background: #fff3cd; color: #7a5200; }
+  .pill-x2 { background: #e8eaf6; color: #3949ab; }
+  .pill-ma { background: #fce4ec; color: #ad1457; }
+  .pill-op { background: #f3e5f5; color: #7b1fa2; }
+  .group { margin-bottom: 14px; break-inside: avoid; }
+  .group h2 {
+    font-size: 11px; font-weight: 700; color: #5a5a5a;
+    text-transform: uppercase; letter-spacing: .04em;
+    border-bottom: 1px solid #e2e2de; padding-bottom: 5px; margin-bottom: 6px;
+  }
+  .group h2 span { font-weight: 500; color: #888; text-transform: none; letter-spacing: 0; }
+  .row {
+    display: grid; grid-template-columns: 14px 1fr; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid #f0f0ec;
+    align-items: start;
+  }
+  .row:last-child { border-bottom: none; }
+  .box {
+    width: 12px; height: 12px; margin-top: 2px;
+    border: 1.5px solid #1a6b3c; border-radius: 2px;
+    font-size: 9px; line-height: 10px; text-align: center; color: #1a6b3c;
+  }
+  .row.done .title { text-decoration: line-through; color: #888; }
+  .row.done { opacity: .7; }
+  .title { font-size: 11.5px; font-weight: 600; line-height: 1.35; }
+  .title .tag {
+    display: inline-block; font-size: 9px; padding: 1px 6px;
+    border-radius: 999px; font-weight: 500; margin-left: 4px;
+    vertical-align: middle;
+  }
+  .title .tag-translate { background: #fff3cd; color: #7a5200; }
+  .title .tag-x2 { background: #e8eaf6; color: #3949ab; }
+  .title .tag-master { background: #fce4ec; color: #ad1457; }
+  .title .tag-opt { background: #f3e5f5; color: #7b1fa2; }
+  .sub { font-size: 10px; color: #666; margin-top: 1px; }
+  .footer {
+    margin-top: 18px; padding-top: 8px; border-top: 1px solid #e2e2de;
+    font-size: 9.5px; color: #888;
+  }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Checklist — dossier <span>visa étudiant</span></h1>
+      <div style="font-size:11px;color:#666;margin-top:3px;">Italie · 2026/2027 · Tunisie</div>
+    </div>
+    <div class="meta">
+      <strong>${done} / ${total} documents</strong>
+      ${today}
+    </div>
+  </div>
+  <div class="legend">
+    <span class="pill pill-tr">à traduire + apostille</span>
+    <span class="pill pill-x2">×2 exemplaires</span>
+    <span class="pill pill-ma">master</span>
+    <span class="pill pill-op">optionnel</span>
+  </div>
+  ${bodyHtml}
+  <div class="footer">Guide visa étudiant Italie — à titre indicatif. Vérifie toujours les exigences officielles avant le dépôt.</div>
+  <script>
+    window.onload = function () {
+      window.focus();
+      window.print();
+    };
+  <\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) {
+    alert('Autorise les pop-ups pour télécharger le PDF.');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+</script>
+</body>
+</html>

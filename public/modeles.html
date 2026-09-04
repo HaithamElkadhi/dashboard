@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modèles de documents — visa études Italie 2026/2027</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a6b3c; --green-light: #e8f5ee;
+    --text: #1a1a1a; --text-muted: #5a5a5a; --text-light: #888;
+    --border: #e2e2de; --bg: #fafaf8; --surface: #ffffff;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.7; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,250,248,0.95); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border); padding: 0 1.5rem;
+  }
+  .topbar-inner {
+    max-width: 720px; margin: 0 auto;
+    display: flex; align-items: center; height: 52px;
+  }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 2rem; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.15; margin-bottom: 1rem; }
+  .hero-lead { font-size: 15px; color: var(--text-muted); max-width: 580px; line-height: 1.75; margin-bottom: 1.25rem; }
+
+  .ref-links {
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    margin-bottom: 0;
+  }
+  .ref-link {
+    font-size: 13px; color: var(--text-muted);
+    text-decoration: none; padding: 4px 12px;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); transition: border-color .15s;
+  }
+  .ref-link:hover { border-color: #aaa; color: var(--text); }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .modele-section { margin-bottom: 3.5rem; scroll-margin-top: 60px; }
+
+  .modele-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .modele-note { font-size: 13px; color: var(--text-muted); font-style: italic; flex: 1; min-width: 200px; }
+  .print-btn {
+    font-size: 13px; padding: 6px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); cursor: pointer; font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    white-space: nowrap; transition: background .15s;
+  }
+  .print-btn:hover { background: #f0f0ec; }
+
+  h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem; line-height: 1.3; }
+
+  /* DOCUMENT CARD */
+  .doc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem;
+    font-size: 14px; line-height: 1.9;
+  }
+
+  /* PRISE EN CHARGE */
+  .pc-field {
+    display: grid; grid-template-columns: 200px 1fr;
+    gap: .25rem 1rem; margin-bottom: .25rem;
+    align-items: baseline;
+  }
+  .pc-label { font-size: 13px; color: var(--text-muted); }
+  .pc-value {
+    border-bottom: 1px solid var(--border);
+    min-width: 0; padding-bottom: 1px;
+    font-size: 14px; color: var(--text-light);
+    font-style: italic;
+  }
+  .pc-separator {
+    font-size: 13px; color: var(--text-muted);
+    margin: 1rem 0 .75rem; font-style: italic;
+  }
+  .pc-body { font-size: 14px; margin: 1.25rem 0; line-height: 1.85; }
+  .pc-sign { margin-top: 2rem; display: flex; gap: 3rem; flex-wrap: wrap; }
+  .pc-sign-item { display: flex; flex-direction: column; gap: .5rem; }
+  .pc-sign-label { font-size: 13px; color: var(--text-muted); }
+  .pc-sign-line { width: 180px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+  .pc-checkbox { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: .5rem 0; font-size: 14px; }
+  .pc-checkbox label { display: flex; align-items: center; gap: .4rem; }
+
+  /* BLOCAGE */
+  .bloc-header {
+    text-align: center; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); letter-spacing: .08em; text-transform: uppercase;
+    border: 1px solid var(--border); padding: .625rem;
+    margin-bottom: 1.5rem; border-radius: 4px;
+  }
+  .bloc-body { font-size: 14px; line-height: 2; }
+  .bloc-blank {
+    display: inline-block;
+    border-bottom: 1px solid var(--text); min-width: 160px;
+    margin: 0 4px;
+  }
+  .bloc-blank.lg { min-width: 220px; }
+  .bloc-blank.sm { min-width: 80px; }
+  .bloc-amount { font-weight: 700; }
+  .bloc-note {
+    margin-top: 1.5rem; padding: .875rem 1rem;
+    background: var(--green-light); border-radius: 8px;
+    font-size: 13px; color: #1a4a2a; line-height: 1.6;
+  }
+  .bloc-note strong { font-weight: 600; }
+
+  /* LETTRE MOTIVATION */
+  .lm-header { margin-bottom: 1.5rem; font-size: 14px; line-height: 1.8; }
+  .lm-header p { margin-bottom: .25rem; }
+  .lm-object { font-weight: 600; margin: 1rem 0 .5rem; font-size: 14px; }
+  .lm-blank {
+    display: inline-block; border-bottom: 1px solid var(--text);
+    min-width: 140px; margin: 0 2px; color: var(--text-light); font-style: italic; font-size: 13px;
+  }
+  .lm-blank.lg { min-width: 200px; }
+  .lm-para { font-size: 14px; line-height: 1.85; margin-bottom: 1rem; }
+  .lm-sign { margin-top: 2.5rem; }
+  .lm-sign-line { width: 200px; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-top: .75rem; }
+
+  .source-note {
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text-light); line-height: 1.6;
+  }
+  .source-note a { color: var(--text-muted); }
+
+  @media (max-width: 600px) {
+    .pc-field { grid-template-columns: 1fr; }
+    .doc-card { padding: 1.25rem; }
+  }
+  @media print {
+    .topbar, .print-btn { display: none; }
+    .modele-section { break-inside: avoid; page-break-after: always; }
+    .doc-card { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="guide-visa-italie.html#checklist" class="back-link">← Revenir au guide</a>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>Modèles de documents</h1>
+  <p class="hero-lead">Trois modèles prêts à imprimer, fidèles aux formats utilisés par les dossiers acceptés et aux fac-similés officiels. <strong>Modèles indicatifs</strong> : ta banque ou l'Ambassade peuvent exiger leur propre format — l'essentiel est que les mentions clés y figurent.</p>
+  <div class="ref-links">
+    <a href="https://ambtunisi.esteri.it" target="_blank" class="ref-link">ambtunisi.esteri.it ↗</a>
+    <a href="https://www.universitaly.it" target="_blank" class="ref-link">universitaly.it ↗</a>
+    <a href="https://www.cimea.it" target="_blank" class="ref-link">cimea.it ↗</a>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- MODELE 1 : PRISE EN CHARGE -->
+  <div class="modele-section" id="prise-en-charge">
+    <div class="modele-header">
+      <span class="modele-note">À signer par le garant, légaliser (~1 semaine avant le RDV), apostiller puis traduire en italien.</span>
+      <button class="print-btn" onclick="printSection('prise-en-charge')">Imprimer ce modèle</button>
+    </div>
+    <h2>Engagement pour la prise en charge d'étudiant<br><span style="font-size:.85em;font-weight:400;color:var(--text-muted);">(pour visa d'études en Italie)</span></h2>
+    <div class="doc-card" id="print-prise-en-charge">
+      <p style="font-size:13px;font-weight:600;text-align:center;margin-bottom:1.5rem;letter-spacing:.03em;">ENGAGEMENT POUR LA PRISE EN CHARGE D'ÉTUDIANT<br><span style="font-weight:400;font-size:12px;">(pour visa d'études en Italie)</span></p>
+      <p style="font-size:13px;margin-bottom:1rem;">Je soussigné/e :</p>
+
+      <div class="pc-field"><span class="pc-label">NOM :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Prénoms :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Lieu et date de naissance :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Nationalité :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Adresse :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">N° tél. :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Profession :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Date d'embauche / début d'activité :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Nom de l'entreprise :</span><span class="pc-value"></span></div>
+
+      <div style="margin:.75rem 0;">
+        <div class="pc-checkbox">
+          <label><input type="checkbox" disabled> Salarié</label>
+          <label><input type="checkbox" disabled> À son compte</label>
+          <label><input type="checkbox" disabled> Retraité</label>
+        </div>
+      </div>
+
+      <div class="pc-field"><span class="pc-label">Adresse de l'employeur :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">En qualité de (père / mère / autre) :</span><span class="pc-value"></span></div>
+
+      <p class="pc-separator">de l'étudiant/e bénéficiaire sous-indiqué/e :</p>
+
+      <div class="pc-field"><span class="pc-label">NOM :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Prénoms :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Lieu et date de naissance :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Nationalité :</span><span class="pc-value"></span></div>
+      <div class="pc-field"><span class="pc-label">Université en Italie :</span><span class="pc-value"></span></div>
+
+      <p class="pc-body">Je m'engage à payer tous les frais relatifs à l'étudiant/e susmentionné/e pendant toute la durée de ses études en Italie (hébergement, taxes et livres universitaires, frais divers, soins médicaux, éventuel rapatriement, et tout autre frais qui devrait se révéler nécessaire et non expressément mentionné) et pour toute la durée de sa permanence en Italie.</p>
+
+      <div class="pc-sign">
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">Fait à</span>
+          <div class="pc-sign-line"></div>
+        </div>
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">le</span>
+          <div class="pc-sign-line" style="width:120px;"></div>
+        </div>
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">Signature du déclarant (légalisée)</span>
+          <div class="pc-sign-line" style="width:200px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODELE 2 : BLOCAGE -->
+  <div class="modele-section" id="blocage">
+    <div class="modele-header">
+      <span class="modele-note">À remettre à ta banque comme référence — elle l'établit sur son propre papier à en-tête. Original, sans traduction.</span>
+      <button class="print-btn" onclick="printSection('blocage')">Imprimer ce modèle</button>
+    </div>
+    <h2>Attestation bancaire de blocage <span style="font-size:.8em;font-weight:400;color:var(--text-muted);">(fac-similé)</span></h2>
+    <div class="doc-card" id="print-blocage">
+      <div class="bloc-header">— Papier à en-tête de la banque —</div>
+      <div class="bloc-body">
+        <p>Nous soussignés, <span class="bloc-blank lg"></span> (banque et agence), attestons que M./Mme <span class="bloc-blank lg"></span>, titulaire du compte n° <span class="bloc-blank sm"></span>, a constitué auprès de nos caisses un dépôt bloqué <strong>DE MANIÈRE IRRÉVOCABLE</strong> d'un montant de <span class="bloc-amount">10 179,85 euros</span> <span style="font-size:13px;color:var(--text-muted);">(dix mille cent soixante-dix-neuf euros et quatre-vingt-cinq centimes)</span>, destiné à couvrir les frais de séjour pour études en Italie de l'étudiant/e <span class="bloc-blank lg"></span>, pour une période de treize (13) mois.</p>
+        <br>
+        <p>Nous attestons en outre l'existence d'un ordre <strong>IRRÉVOCABLE</strong> de virement mensuel de <span class="bloc-amount">783,06 euros</span> en faveur de l'étudiant/e susmentionné/e en Italie, pendant toute la durée précitée.</p>
+      </div>
+      <div class="pc-sign" style="margin-top:2.5rem;">
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">Fait à</span>
+          <div class="pc-sign-line"></div>
+        </div>
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">le</span>
+          <div class="pc-sign-line" style="width:120px;"></div>
+        </div>
+        <div class="pc-sign-item">
+          <span class="pc-sign-label">Cachet et signature de la banque</span>
+          <div class="pc-sign-line" style="width:200px;"></div>
+        </div>
+      </div>
+      <div class="bloc-note">
+        <strong>Points essentiels vérifiés au dépôt :</strong> la mention « irrévocable », le montant total (10 179,85 €), le virement mensuel (783,06 € × 13) et l'identité de l'étudiant. Le compte peut être au nom d'un parent <strong>avec le nom de l'étudiant inclus</strong>. Joins l'original du RIB du même compte.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODELE 3 : LETTRE DE MOTIVATION -->
+  <div class="modele-section" id="motivation">
+    <div class="modele-header">
+      <span class="modele-note">Une page maximum. À rédiger en anglais si ton programme est en anglais — adapte, ne recopie pas mot à mot.</span>
+      <button class="print-btn" onclick="printSection('motivation')">Imprimer ce modèle</button>
+    </div>
+    <h2>Lettre de motivation <span style="font-size:.8em;font-weight:400;color:var(--text-muted);">(modèle à adapter)</span></h2>
+    <div class="doc-card" id="print-motivation">
+      <div class="lm-header">
+        <p>[Prénom NOM]</p>
+        <p>[Adresse — Ville, Tunisie] · [e-mail] · [téléphone]</p>
+        <p style="margin-top:.75rem;">À l'attention de l'Ambassade d'Italie à Tunis</p>
+        <p class="lm-object">Objet : Demande de visa d'études — inscription en <span class="lm-blank lg">[nom du programme]</span>, <span class="lm-blank">[Université]</span>, année universitaire 2026/2027</p>
+        <p>Madame, Monsieur,</p>
+      </div>
+
+      <p class="lm-para">Titulaire d'un <span class="lm-blank">[baccalauréat / diplôme de licence en …]</span> obtenu en <span class="lm-blank sm" style="min-width:60px;">[année]</span> avec <span class="lm-blank">[mention / moyenne]</span>, j'ai été admis/e au programme <span class="lm-blank lg">[nom du programme]</span> de l'<span class="lm-blank lg">[Université]</span>, comme l'atteste ma lettre de pré-inscription Universitaly. Ce cursus s'inscrit dans la continuité directe de mon parcours : <span class="lm-blank lg" style="min-width:280px;">[1–2 phrases — ce que tu as étudié, ce qui te motive dans ce programme précis, pourquoi cette université]</span>.</p>
+
+      <p class="lm-para">Mon séjour est entièrement financé : un compte bloqué de 10 179,85 € a été constitué <span class="lm-blank lg">[à mon nom / au nom de mon garant, mon nom y étant inclus]</span>, avec un virement mensuel irrévocable de 783,06 € pendant 13 mois, et <span class="lm-blank">[mon père / ma mère / mon garant]</span> s'est engagé/e par une prise en charge légalisée à couvrir l'ensemble de mes frais. Je dispose également d'une assurance couvrant 365 jours et d'un logement pour la période initiale.</p>
+
+      <p class="lm-para">À l'issue de ma formation, mon objectif est de <span class="lm-blank lg" style="min-width:240px;">[projet professionnel — 1 phrase]</span>. Je m'engage à respecter la réglementation italienne relative au séjour des étudiants, notamment la demande de titre de séjour dans les huit jours suivant mon arrivée.</p>
+
+      <p class="lm-para">Je vous remercie de l'attention portée à ma demande et vous prie d'agréer, Madame, Monsieur, l'expression de ma considération distinguée.</p>
+
+      <div class="lm-sign">
+        <p style="font-size:14px;">Fait à <span class="lm-blank sm" style="min-width:100px;"></span>, le <span class="lm-blank sm" style="min-width:80px;"></span></p>
+        <div class="lm-sign-line"></div>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:.375rem;">Signature</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="source-note">
+    Modèles indicatifs — juillet 2026. Références officielles : <a href="https://ambtunisi.esteri.it" target="_blank">ambtunisi.esteri.it</a> (circulaire et fac-similé bancaire) · <a href="https://www.universitaly.it" target="_blank">universitaly.it</a> · <a href="https://www.cimea.it" target="_blank">cimea.it</a>. En cas de divergence, les documents officiels de l'Ambassade font foi.
+  </div>
+
+</div>
+
+<script>
+function printSection(id) {
+  const el = document.getElementById('print-' + id);
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.8; color: #1a1a1a; padding: 2cm; }
+      * { box-sizing: border-box; }
+      .pc-field { display: grid; grid-template-columns: 200px 1fr; gap: .25rem 1rem; margin-bottom: .25rem; }
+      .pc-label { font-size: 12px; color: #666; }
+      .pc-value { border-bottom: 1px solid #ccc; min-width: 0; padding-bottom: 1px; color: #aaa; font-style: italic; }
+      .pc-body { margin: 1.25rem 0; line-height: 1.85; }
+      .pc-sign { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
+      .pc-sign-item { display: flex; flex-direction: column; gap: .5rem; }
+      .pc-sign-label { font-size: 12px; color: #666; }
+      .pc-sign-line { width: 160px; border-bottom: 1px solid #ccc; padding-bottom: 28px; }
+      .pc-checkbox { display: flex; gap: 1.5rem; margin: .5rem 0; }
+      .bloc-header { text-align: center; font-size: 11px; font-weight: 600; color: #666; letter-spacing: .08em; text-transform: uppercase; border: 1px solid #ccc; padding: .5rem; margin-bottom: 1.25rem; }
+      .bloc-blank { display: inline-block; border-bottom: 1px solid #333; min-width: 140px; margin: 0 3px; }
+      .bloc-blank.lg { min-width: 200px; }
+      .bloc-blank.sm { min-width: 70px; }
+      .bloc-amount { font-weight: 700; }
+      .bloc-note { margin-top: 1.5rem; padding: .75rem; background: #eaf5ee; border-radius: 4px; font-size: 12px; line-height: 1.6; }
+      .lm-blank { display: inline-block; border-bottom: 1px solid #333; min-width: 120px; margin: 0 2px; color: #aaa; font-style: italic; font-size: 12px; }
+      .lm-blank.lg { min-width: 180px; }
+      .lm-blank.sm { min-width: 60px; }
+      .lm-para { margin-bottom: .875rem; }
+      .lm-sign-line { width: 180px; border-bottom: 1px solid #ccc; padding-bottom: 24px; margin-top: .75rem; }
+      input[type=checkbox] { display: inline; }
+    </style>
+  </head><body>`);
+  w.document.write(el.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 500);
+}
+</script>
+</body>
+</html>

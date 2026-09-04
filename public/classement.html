@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classement des documents — dossier visa études Italie 2026/2027</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a6b3c; --green-light: #e8f5ee; --green-mid: #2d8a52;
+    --text: #1a1a1a; --text-muted: #5a5a5a; --text-light: #888;
+    --border: #e2e2de; --bg: #fafaf8; --surface: #ffffff;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.7; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,250,248,0.95); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+  }
+  .topbar-inner {
+    max-width: 720px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+  }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 5px; }
+  .back-link:hover { color: var(--text); }
+  .print-btn {
+    font-size: 13px; padding: 6px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); cursor: pointer; font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    transition: background .15s;
+  }
+  .print-btn:hover { background: #f0f0ec; }
+
+  .hero { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 2rem; }
+  .hero-eyebrow { font-size: 13px; color: var(--text-muted); margin-bottom: .75rem; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.15; margin-bottom: 1rem; }
+  .hero-lead { font-size: 15px; color: var(--text-muted); max-width: 560px; line-height: 1.75; }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 1.75rem; font-size: 13px; color: var(--text-muted);
+  }
+  .pbar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; max-width: 180px; }
+  .pfill { height: 100%; background: var(--green); width: 0%; transition: width .3s; }
+
+  .doc-list { display: flex; flex-direction: column; gap: 0; }
+
+  .doc-item {
+    display: grid; grid-template-columns: 48px 20px 1fr;
+    gap: .75rem; align-items: start;
+    padding: 1rem .5rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .1s;
+    border-radius: 4px;
+  }
+  .doc-item:hover { background: #f5f5f2; }
+  .doc-item.checked { opacity: .5; }
+  .doc-item.checked .doc-title { text-decoration: line-through; }
+
+  .doc-num {
+    font-size: 22px; font-weight: 700;
+    color: var(--border); line-height: 1.3;
+    text-align: right; padding-right: 4px;
+    font-variant-numeric: tabular-nums;
+    transition: color .2s;
+  }
+  .doc-item.checked .doc-num { color: var(--green); }
+
+  .doc-item input[type="checkbox"] {
+    width: 16px; height: 16px; margin-top: 4px;
+    accent-color: var(--green); cursor: pointer; flex-shrink: 0;
+  }
+  .doc-title { font-size: 14.5px; font-weight: 600; line-height: 1.4; margin-bottom: 3px; }
+  .doc-sub { font-size: 13px; color: var(--text-muted); }
+
+  .doc-extra {
+    margin-top: 1.5rem; padding: 1rem 1.25rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 14px;
+  }
+  .doc-extra-title { font-weight: 600; margin-bottom: .375rem; }
+  .doc-extra p { color: var(--text-muted); font-size: 13.5px; }
+
+  .source-note {
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text-light);
+  }
+
+  @media print {
+    .topbar { display: none; }
+    .doc-item { break-inside: avoid; }
+    body { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="guide-visa-italie.html#checklist" class="back-link">← Revenir au guide</a>
+    <button class="print-btn" onclick="window.print()">Imprimer / Enregistrer en PDF</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">Ambassade d'Italie à Tunis · dépôt ALMAVIVA / AVS</div>
+  <h1>Classement des documents</h1>
+  <p class="hero-lead">« Studio Immatricolazione » — année universitaire 2026/2027. Le dossier original se présente <strong>dans cet ordre exact</strong>. Coche chaque pièce une fois prête : la progression est sauvegardée sur cet appareil et visible à l'impression.</p>
+</div>
+
+<div class="content">
+  <div class="progress-bar-wrap">
+    <span id="prog-text">0 / 18</span>
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <button class="print-btn" onclick="uncheckAll()" style="margin-left:auto;">Tout décocher</button>
+  </div>
+
+  <div class="doc-list" id="doc-list">
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">1</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Les deux documents « Avis d'information AVS »</div>
+        <div class="doc-sub">Remis par le centre — le reçu de paiement se place en n° 18.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">2</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie de la deuxième page du passeport</div>
+        <div class="doc-sub">Validité du passeport : 15 mois ou plus.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">3</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie des visas Schengen</div>
+        <div class="doc-sub">Anciens visas Schengen uniquement — pas les visas hors-Schengen.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">4</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Deux exemplaires de la lettre de pré-inscription, signés</div>
+        <div class="doc-sub">Lettre Universitaly validée par l'université italienne.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">5</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">La lettre de motivation</div>
+        <div class="doc-sub">En anglais si le programme est en anglais. Un modèle est disponible sur la page « Modèles ».</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">6</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie de la DICHIARAZIONE DI VALORE (DOV) ou CIMEA + copie conforme du diplôme du BAC traduite en italien</div>
+        <div class="doc-sub">La même chose pour les autres diplômes (licence…). Si la DOV/CIMEA n'est pas exigée par ta fac, la ligne est barrée au dépôt.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">7</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie du certificat linguistique B2</div>
+        <div class="doc-sub">PLIDA, TOEFL, IELTS, DANTE… copie simple, sans traduction.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">8</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Éventuelle copie du résultat du test d'évaluation en ligne</div>
+        <div class="doc-sub">Exemple : CISIA — si l'université le prévoit.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">9</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Original du document de l'argent bloqué à la banque (irrévocable) + original de la déclaration d'identité bancaire (RIB)</div>
+        <div class="doc-sub">Boursiers : une copie du document d'acceptation de la bourse du Gouvernement italien.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">10</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Original du relevé du compte bancaire ou postal</div>
+        <div class="doc-sub">Les six derniers mois, sans traduction.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">11</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Une réservation d'avion ou de bateau aller-retour</div>
+        <div class="doc-sub">Réservation avec facture — pas besoin d'acheter le vrai billet.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">12</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Une réservation d'hôtel</div>
+        <div class="doc-sub">Ou séjour dans une résidence universitaire, ou invitation « Ospitalità » avec carte de séjour de l'invitant et contrat de location.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">13</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie de l'assurance de voyage — validité 365 jours</div>
+        <div class="doc-sub">Sans limitation pour l'hospitalisation d'urgence.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">14</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Document original de la prise en charge légalisé + traduction italienne + documents professionnels du garant</div>
+        <div class="doc-sub">Selon le profil : salarié / commerçant / retraité. Documents de propriété : copie de la traduction italienne et copie de l'original.</div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">15</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Original de l'extrait de naissance apostillé avec traduction italienne</div>
+        <div class="doc-sub"></div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">16</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Original du document de vie collective apostillé avec traduction italienne</div>
+        <div class="doc-sub"></div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">17</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie du document socio-économique avec traduction italienne</div>
+        <div class="doc-sub"></div>
+      </div>
+    </div>
+
+    <div class="doc-item" onclick="toggle(this)">
+      <div class="doc-num">18</div>
+      <input type="checkbox">
+      <div>
+        <div class="doc-title">Copie du reçu du paiement AVS</div>
+        <div class="doc-sub"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="doc-extra">
+    <div class="doc-extra-title">+ Une photo d'identité récente</div>
+    <p>Norme ICAO, moins de ~6 mois. Une photo trop ancienne est refusée sur place.</p>
+  </div>
+
+  <div class="source-note">
+    Source : classement affiché au centre de dépôt, campagne 2026/2027. En cas de divergence, l'affichage du centre et l'Ambassade font foi.
+  </div>
+</div>
+
+<script>
+function toggle(item) {
+  const cb = item.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+  updateProgress();
+  save();
+}
+function updateProgress() {
+  const all = document.querySelectorAll('.doc-item input[type="checkbox"]');
+  let n = 0; all.forEach(c => { if(c.checked) n++; });
+  document.getElementById('prog-text').textContent = n + ' / ' + all.length;
+  document.getElementById('pfill').style.width = (n / all.length * 100) + '%';
+}
+function uncheckAll() {
+  document.querySelectorAll('.doc-item').forEach(item => {
+    item.querySelector('input').checked = false;
+    item.classList.remove('checked');
+  });
+  updateProgress();
+  localStorage.removeItem('classement');
+}
+function save() {
+  const state = [];
+  document.querySelectorAll('.doc-item input').forEach(c => state.push(c.checked));
+  try { localStorage.setItem('classement', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const state = JSON.parse(localStorage.getItem('classement') || '[]');
+    const items = document.querySelectorAll('.doc-item');
+    state.forEach((v,i) => {
+      if(items[i]) {
+        items[i].querySelector('input').checked = v;
+        if(v) items[i].classList.add('checked');
+      }
+    });
+    updateProgress();
+  } catch(e) {}
+}
+load();
+</script>
+</body>
+</html>
