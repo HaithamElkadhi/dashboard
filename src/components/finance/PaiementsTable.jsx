@@ -117,6 +117,7 @@ export default function PaiementsTable({
   const [status, setStatus] = useState('All');
   const [currency, setCurrency] = useState('All');
   const [confirmedOnly, setConfirmedOnly] = useState('All');
+  const [moezOnly, setMoezOnly] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [sortKey, setSortKey] = useState('none');
@@ -134,6 +135,7 @@ export default function PaiementsTable({
       if (currency !== 'All' && p.currency !== currency) return false;
       if (confirmedOnly === 'Confirmé' && !p.soldeConfirme) return false;
       if (confirmedOnly === 'Non confirmé' && p.soldeConfirme) return false;
+      if (moezOnly && (!p.moezType || p.moezType === 'Aucune')) return false;
       if (
         q &&
         !p.fullName.toLowerCase().includes(q) &&
@@ -143,7 +145,7 @@ export default function PaiementsTable({
       }
       return true;
     });
-  }, [paiements, status, currency, confirmedOnly, debouncedQuery]);
+  }, [paiements, status, currency, confirmedOnly, moezOnly, debouncedQuery]);
 
   const sorted = useMemo(
     () => sortRows(filtered, sortKey, sortDir),
@@ -152,8 +154,8 @@ export default function PaiementsTable({
 
   const resetKey = useMemo(
     () =>
-      `${status}|${currency}|${confirmedOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
-    [status, currency, confirmedOnly, debouncedQuery, sortKey, sortDir, sorted]
+      `${status}|${currency}|${confirmedOnly}|${moezOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
+    [status, currency, confirmedOnly, moezOnly, debouncedQuery, sortKey, sortDir, sorted]
   );
   const pagination = usePagination(sorted, { resetKey });
   const visible = loading ? [] : pagination.pageItems;
@@ -181,6 +183,16 @@ export default function PaiementsTable({
           active={confirmedOnly === 'Non confirmé'}
           onClick={() => setConfirmedOnly(confirmedOnly === 'Non confirmé' ? 'All' : 'Non confirmé')}
         />
+        <span className="mx-1 h-4 w-px bg-border" />
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong">
+          <input
+            type="checkbox"
+            checked={moezOnly}
+            onChange={(e) => setMoezOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-border-strong accent-current"
+          />
+          Commission Moez
+        </label>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
