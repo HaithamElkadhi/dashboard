@@ -1,11 +1,15 @@
 export const BASE_ID = 'appkqvTuc8F0AhWPp';
 
+// Expenses live in a separate Airtable base from the rest of the dashboard.
+export const EXPENSES_BASE_ID = 'app1DQrDYl29uN2OR';
+
 export const TABLES = {
   prospects: 'tblQPh56AAmCe1bTj',
   paiements: 'tblT2XDNBcvOfA4kj',
   tasks: 'tblkmA6khmu06nmSb',
   leads: 'tblhSrpux7LntoFHA',
   accounts: 'tblEQbtTmVkMlTbUV',
+  expenses: 'tblrpf0nxZNlNftME',
 };
 
 // Prospects table field IDs
@@ -222,4 +226,62 @@ export const PRIORITY_COLORS = {
   High: { bg: '#FCEBEB', text: '#A32D2D' },
   Medium: { bg: '#FAEEDA', text: '#854F0B' },
   Low: { bg: '#EAF3DE', text: '#3B6D11' },
+};
+
+// Expenses table field IDs (separate base — see EXPENSES_BASE_ID)
+export const EXP = {
+  description: 'fldlvufb9b8cuNOXs',
+  amount: 'fldeWcFXyZP5uSfh5',
+  currency: 'fldlc1aXTIDC4X7hU',
+  date: 'fldTZ8Ny08g2ffOel',
+  category: 'fld8FoRLshgTHpKGO',
+  paymentMethod: 'fldi5wv7fPEoB5AOn',
+  status: 'fldjp9iAnGRHq2ovb',
+  paidBy: 'fldzpaJ6a4yk8Rx9c',
+  notes: 'fld5VHvtyKPOmjfQV',
+  invoice: 'fldUSVJ0wwNyRLLe8', // multipleAttachments
+};
+
+export const EXPENSE_CURRENCIES = ['EUR', 'USD', 'TND', 'GBP', 'CHF'];
+
+export const EXPENSE_CATEGORIES = [
+  'Salary',
+  'Comission',
+  'Application Fees',
+  'Subscription',
+  'Fourniture',
+  'Marketing',
+  'Management',
+  'Comission Moez',
+];
+
+export const EXPENSE_PAYMENT_METHODS = [
+  'Cash',
+  'Bank Transfer',
+  'Wise',
+  'Revolut',
+  'PayPal',
+  'Tunisian Post Transaction',
+  'Western Transaction',
+  'Transaction from Anastasia bank account',
+  'Transaction from Haitham bank account',
+];
+
+export const EXPENSE_STATUSES = ['Paid', 'Pending', 'Refunded'];
+
+export const EXPENSE_STATUS_COLORS = {
+  Paid: { bg: '#EAF3DE', text: '#3B6D11' },
+  Pending: { bg: '#FAEEDA', text: '#854F0B' },
+  Refunded: { bg: '#EBF2FC', text: '#185FA5' },
+};
+
+export const EXPENSE_CATEGORY_COLORS = {
+  Salary: { bg: '#EBF2FC', text: '#246BCE' },
+  Comission: { bg: '#EDE2FE', text: '#6B1CB0' },
+  'Application Fees': { bg: '#FEF5E7', text: '#B4530A' },
+  Subscription: { bg: '#E6FAF8', text: '#18A999' },
+  Fourniture: { bg: '#F1EFE8', text: '#5F5E5A' },
+  Marketing: { bg: '#FCEBEB', text: '#A32D2D' },
+  Management: { bg: '#E6F1FB', text: '#185FA5' },
+  'Comission Moez': { bg: '#FAEEDA', text: '#854F0B' },
 };

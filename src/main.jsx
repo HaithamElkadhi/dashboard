@@ -9,6 +9,7 @@ import ProspectsPage from './pages/ProspectsPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FinancePage from './pages/FinancePage.jsx';
 import AccountsPage from './pages/AccountsPage.jsx';
+import ExpensesPage from './pages/ExpensesPage.jsx';
 import VisaGuidePage from './pages/visa/VisaGuidePage.jsx';
 import VisaClassementPage from './pages/visa/VisaClassementPage.jsx';
 import VisaModelesPage from './pages/visa/VisaModelesPage.jsx';
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/visa" element={<VisaGuidePage />} />
           <Route path="/visa/classement" element={<VisaClassementPage />} />
           <Route path="/visa/modeles" element={<VisaModelesPage />} />

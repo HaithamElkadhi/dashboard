@@ -2,10 +2,13 @@
 // Requests to /api/airtable/* are rewritten (see vercel.json) to this function
 // with the Airtable path captured in the `__p` query param. All other query
 // params are the real Airtable query (fields[], pageSize, offset, ...).
+// Use `__host=content` (set by the /api/airtable-content rewrite) for the
+// attachment upload host at content.airtable.com.
 // The Authorization header is injected server-side so the token never reaches
 // the browser. Configure AIRTABLE_API_KEY in the Vercel project env variables.
 
-const AIRTABLE_BASE = 'https://api.airtable.com/v0';
+const AIRTABLE_API = 'https://api.airtable.com/v0';
+const AIRTABLE_CONTENT = 'https://content.airtable.com/v0';
 const ALLOWED = new Set(['GET', 'POST', 'PATCH', 'DELETE']);
 
 export default async function handler(req, res) {
@@ -26,10 +29,13 @@ export default async function handler(req, res) {
 
   const url = new URL(req.url, 'http://internal');
   const path = url.searchParams.get('__p') || '';
+  const host = url.searchParams.get('__host');
   url.searchParams.delete('__p');
+  url.searchParams.delete('__host');
   const qs = url.searchParams.toString();
 
-  const target = `${AIRTABLE_BASE}/${path}${qs ? `?${qs}` : ''}`;
+  const base = host === 'content' ? AIRTABLE_CONTENT : AIRTABLE_API;
+  const target = `${base}/${path}${qs ? `?${qs}` : ''}`;
 
   const headers = { Authorization: `Bearer ${token}` };
   const init = { method, headers };

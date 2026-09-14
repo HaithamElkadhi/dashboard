@@ -1,5 +1,6 @@
 import {
   BASE_ID,
+  EXPENSES_BASE_ID,
   TABLES,
   PF,
   PAY,
@@ -9,11 +10,14 @@ import {
   PICKER,
   FIN,
   ACC,
+  EXP,
 } from './config.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
-// injects the Authorization header server-side.
+// injects the Authorization header server-side. Attachment uploads use
+// /api/airtable-content → content.airtable.com (required by Airtable).
 const PROXY_BASE = '/api/airtable';
+const CONTENT_PROXY_BASE = '/api/at-content';
 
 async function parseError(res) {
   let detail = '';
@@ -62,8 +66,9 @@ async function fetchAllByName(tableId, fieldNames, offset = null, acc = []) {
     : all;
 }
 
-async function airtableWrite(method, path, body) {
-  const res = await fetch(`${PROXY_BASE}/${path}`, {
+async function airtableWrite(method, path, body, { contentHost = false } = {}) {
+  const base = contentHost ? CONTENT_PROXY_BASE : PROXY_BASE;
+  const res = await fetch(`${base}/${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
@@ -682,5 +687,167 @@ export async function updateAccount(recordId, input) {
 
 export async function deleteAccount(recordId) {
   await airtableWrite('DELETE', `${BASE_ID}/${TABLES.accounts}/${recordId}`);
+  return recordId;
+}
+
+// ─── Expenses (separate Airtable base) ─────────────────────────────────────
+
+const EXP_FIELDS = [
+  EXP.description,
+  EXP.amount,
+  EXP.currency,
+  EXP.date,
+  EXP.category,
+  EXP.paymentMethod,
+  EXP.status,
+  EXP.paidBy,
+  EXP.notes,
+  EXP.invoice,
+];
+
+async function fetchAllInBase(baseId, tableId, fieldIds, offset = null, acc = []) {
+  const params = new URLSearchParams();
+  fieldIds.forEach((f) => params.append('fields[]', f));
+  params.set('pageSize', '100');
+  params.set('returnFieldsByFieldId', 'true');
+  if (offset) params.set('offset', offset);
+
+  const url = `${PROXY_BASE}/${baseId}/${tableId}?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) await parseError(res);
+
+  const data = await res.json();
+  const all = [...acc, ...(data.records || [])];
+  return data.offset
+    ? fetchAllInBase(baseId, tableId, fieldIds, data.offset, all)
+    : all;
+}
+
+function normalizeExpense(record) {
+  const f = record.fields || {};
+  const invoices = asArray(f[EXP.invoice]).map((att) => ({
+    id: att.id || '',
+    url: att.url || '',
+    filename: att.filename || 'Invoice',
+    type: att.type || '',
+    size: att.size || 0,
+  }));
+  return {
+    id: record.id,
+    description: f[EXP.description] || '',
+    amount: toNumber(f[EXP.amount]),
+    currency: f[EXP.currency] || 'EUR',
+    date: f[EXP.date] || null,
+    categories: asArray(f[EXP.category]),
+    paymentMethod: f[EXP.paymentMethod] || '',
+    status: f[EXP.status] || 'Paid',
+    paidBy: f[EXP.paidBy] || '',
+    notes: f[EXP.notes] || '',
+    invoices,
+  };
+}
+
+function toExpenseFields(input) {
+  const fields = {};
+  if (input.description !== undefined) {
+    fields[EXP.description] = (input.description || '').trim();
+  }
+  if (input.amount !== undefined) fields[EXP.amount] = Number(input.amount);
+  if (input.currency !== undefined) fields[EXP.currency] = input.currency || 'EUR';
+  if (input.date !== undefined) fields[EXP.date] = input.date || null;
+  if (input.category !== undefined) {
+    // Form uses a single choice; Airtable field is multipleSelects.
+    const cats = Array.isArray(input.category)
+      ? input.category
+      : input.category
+        ? [input.category]
+        : [];
+    fields[EXP.category] = cats;
+  }
+  if (input.paymentMethod !== undefined) {
+    fields[EXP.paymentMethod] = input.paymentMethod || null;
+  }
+  if (input.status !== undefined) fields[EXP.status] = input.status || 'Paid';
+  if (input.paidBy !== undefined) fields[EXP.paidBy] = (input.paidBy || '').trim();
+  if (input.notes !== undefined) fields[EXP.notes] = input.notes || '';
+  return fields;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+const MAX_INVOICE_BYTES = 5 * 1024 * 1024;
+
+/** Append a file to the Invoice / Bill attachment field (max 5 MB). */
+export async function uploadExpenseInvoice(recordId, file) {
+  if (!file) throw new Error('No file selected');
+  if (file.size > MAX_INVOICE_BYTES) {
+    throw new Error(`“${file.name}” is over 5 MB. Compress it or upload a smaller file.`);
+  }
+  const base64 = await fileToBase64(file);
+  // Airtable's uploadAttachment lives on content.airtable.com (not api.airtable.com).
+  const data = await airtableWrite(
+    'POST',
+    `${EXPENSES_BASE_ID}/${recordId}/${EXP.invoice}/uploadAttachment`,
+    {
+      contentType: file.type || 'application/octet-stream',
+      file: base64,
+      filename: file.name || 'invoice',
+    },
+    { contentHost: true }
+  );
+  return normalizeExpense(data);
+}
+
+export async function fetchExpenses() {
+  const records = await fetchAllInBase(
+    EXPENSES_BASE_ID,
+    TABLES.expenses,
+    EXP_FIELDS
+  );
+  return records.map(normalizeExpense);
+}
+
+export async function createExpense(input) {
+  const data = await airtableWrite(
+    'POST',
+    `${EXPENSES_BASE_ID}/${TABLES.expenses}`,
+    {
+      fields: toExpenseFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  return normalizeExpense(data);
+}
+
+export async function updateExpense(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${EXPENSES_BASE_ID}/${TABLES.expenses}/${recordId}`,
+    {
+      fields: toExpenseFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  return normalizeExpense(data);
+}
+
+export async function deleteExpense(recordId) {
+  await airtableWrite(
+    'DELETE',
+    `${EXPENSES_BASE_ID}/${TABLES.expenses}/${recordId}`
+  );
   return recordId;
 }

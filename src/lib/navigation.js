@@ -1,6 +1,7 @@
 // Single source of truth for the sidebar's nav items and the header's page
 // titles, so both stay in sync as pages are added.
 import {
+  ChartBarIcon,
   FolderIcon,
   HomeIcon,
   KanbanIcon,
@@ -17,6 +18,7 @@ export const NAV_ITEMS = [
   { path: '/prospects', label: 'Étudiants / Prospects', icon: UsersIcon },
   { path: '/accounts', label: 'Comptes clients', icon: KeyIcon },
   { path: '/finance', label: 'Paiements', icon: WalletIcon },
+  { path: '/expenses', label: 'Expenses', icon: ChartBarIcon },
   { path: '/visa', label: 'Visa', icon: FolderIcon, matchPrefix: true },
 ];
 
@@ -26,6 +28,7 @@ export const PAGE_TITLES = {
   '/prospects': 'Étudiants / Prospects',
   '/accounts': 'Comptes clients',
   '/finance': 'Paiements',
+  '/expenses': 'Expenses',
   '/visa': 'Visa',
   '/visa/classement': 'Visa',
   '/visa/modeles': 'Visa',

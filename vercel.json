@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
+    {
+      "source": "/api/at-content/:path*",
+      "destination": "/api/proxy?__p=:path*&__host=content"
+    },
     { "source": "/api/airtable/:path*", "destination": "/api/proxy?__p=:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
