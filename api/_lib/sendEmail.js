@@ -22,7 +22,10 @@ function buildHtml(rawBody) {
 }
 
 // Returns { status, body } — caller just writes both to its response.
-export async function sendProposalEmail({ toName, toEmail, cc, subject, body }, env = process.env) {
+export async function sendProposalEmail(
+  { toName, toEmail, cc, subject, body, fromKey },
+  env = process.env
+) {
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
     return { status: 500, body: { error: 'RESEND_API_KEY is not configured' } };
@@ -32,7 +35,12 @@ export async function sendProposalEmail({ toName, toEmail, cc, subject, body }, 
   }
 
   const resend = new Resend(apiKey);
-  const from = env.RESEND_FROM || 'onboarding@resend.dev';
+  // `fromKey: 'contact'` uses RESEND_FROM_CONTACT (booking emails);
+  // otherwise RESEND_FROM (proposals / default).
+  const from =
+    fromKey === 'contact'
+      ? env.RESEND_FROM_CONTACT || env.RESEND_FROM || 'onboarding@resend.dev'
+      : env.RESEND_FROM || 'onboarding@resend.dev';
 
   try {
     const { data, error } = await resend.emails.send({

@@ -11,6 +11,7 @@ import {
   FIN,
   ACC,
   EXP,
+  BK,
 } from './config.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
@@ -866,5 +867,101 @@ export async function deleteExpense(recordId) {
     'DELETE',
     `${EXPENSES_BASE_ID}/${TABLES.expenses}/${recordId}`
   );
+  return recordId;
+}
+
+// ─── Bookings ──────────────────────────────────────────────────────────────
+
+const BK_FIELDS = Object.values(BK);
+
+function normalizeBooking(record) {
+  const f = record.fields || {};
+  return {
+    id: record.id,
+    name: f[BK.name] || '',
+    studentName: f[BK.studentName] || '',
+    email: f[BK.email] || '',
+    phone: f[BK.phone] || '',
+    dateTime: f[BK.dateTime] || null,
+    duration: f[BK.duration] ?? null,
+    meetingType: f[BK.meetingType] || '',
+    bookingStatus: f[BK.bookingStatus] || '',
+    prospectRecordIds: asArray(f[BK.linkedProspect]),
+    meetingLink: f[BK.meetingLink] || '',
+    notes: f[BK.notes] || '',
+  };
+}
+
+/** Fields safe to send on create/update. */
+function toBookingFields(input) {
+  const fields = {};
+  if (input.name !== undefined) fields[BK.name] = input.name || '';
+  if (input.studentName !== undefined) fields[BK.studentName] = input.studentName || '';
+  if (input.email !== undefined) fields[BK.email] = input.email || '';
+  if (input.phone !== undefined) fields[BK.phone] = input.phone || '';
+  if (input.dateTime !== undefined) fields[BK.dateTime] = input.dateTime || null;
+  if (input.duration !== undefined) {
+    fields[BK.duration] =
+      input.duration === '' || input.duration === null
+        ? null
+        : Number(input.duration);
+  }
+  if (input.meetingType !== undefined) fields[BK.meetingType] = input.meetingType || null;
+  if (input.bookingStatus !== undefined) {
+    fields[BK.bookingStatus] = input.bookingStatus || null;
+  }
+  if (input.prospectRecordIds !== undefined) {
+    fields[BK.linkedProspect] = input.prospectRecordIds || [];
+  }
+  if (input.meetingLink !== undefined) fields[BK.meetingLink] = input.meetingLink || '';
+  if (input.notes !== undefined) fields[BK.notes] = input.notes || '';
+  return fields;
+}
+
+export async function fetchBookings() {
+  const records = await fetchAll(TABLES.bookings, BK_FIELDS);
+  return records.map(normalizeBooking);
+}
+
+// Live Meeting Type / Booking Status choices from the Airtable schema.
+export async function fetchBookingSelectChoices() {
+  const res = await fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`);
+  if (!res.ok) throw new Error(`Schema ${res.status}`);
+  const data = await res.json();
+  const table = (data.tables || []).find((t) => t.id === TABLES.bookings);
+  if (!table) throw new Error('Bookings table not found in schema');
+  const fields = table.fields || [];
+  const statusField = fields.find((f) => f.id === BK.bookingStatus);
+  const typeField = fields.find((f) => f.id === BK.meetingType);
+  return {
+    statuses: (statusField?.options?.choices || []).map((c) => c.name),
+    meetingTypes: (typeField?.options?.choices || []).map((c) => c.name),
+  };
+}
+
+export async function createBooking(input) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.bookings}`, {
+    fields: toBookingFields(input),
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizeBooking(data);
+}
+
+export async function updateBooking(recordId, input) {
+  const data = await airtableWrite(
+    'PATCH',
+    `${BASE_ID}/${TABLES.bookings}/${recordId}`,
+    {
+      fields: toBookingFields(input),
+      returnFieldsByFieldId: true,
+      typecast: true,
+    }
+  );
+  return normalizeBooking(data);
+}
+
+export async function deleteBooking(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.bookings}/${recordId}`);
   return recordId;
 }

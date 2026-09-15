@@ -57,3 +57,33 @@ export function titleCase(str) {
     .map((w) => w[0].toUpperCase() + w.slice(1))
     .join(' ');
 }
+
+const dateTimeFmt = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+/** Format an Airtable dateTime ISO string for display. */
+export function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return dateTimeFmt.format(d);
+}
+
+/** Convert ISO → value for `<input type="datetime-local">`. */
+export function toDatetimeLocalValue(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Convert datetime-local value → ISO for Airtable. */
+export function fromDatetimeLocalValue(local) {
+  if (!local) return null;
+  const d = new Date(local);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useDashboardData } from '../hooks/useDashboardData.js';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import ProspectsTable from '../components/ProspectsTable.jsx';
@@ -76,6 +77,7 @@ export default function ProspectsPage() {
   const { prospects, schema, status, error, lastUpdated, refresh, update, remove } =
     useDashboardData();
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState([]); // empty = "Tous"
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(null);
@@ -86,6 +88,27 @@ export default function ProspectsPage() {
     setToast(msg);
     setTimeout(() => setToast(''), 4500);
   };
+
+  // Deep-link from Booking (and elsewhere): /prospects?open=<recordId>
+  useEffect(() => {
+    const openId = searchParams.get('open');
+    if (!openId) return;
+
+    if (status === 'idle') {
+      refresh();
+      return;
+    }
+    if (status === 'loading') return;
+
+    const match = prospects.find((p) => p.id === openId);
+    if (match) setEditing(match);
+    else if (status === 'ready') showToast('Prospect introuvable');
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('open');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, prospects, status]);
 
   const handleDelete = async (prospect) => {
     const ok = window.confirm(

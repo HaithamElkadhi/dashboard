@@ -10,6 +10,7 @@ export const TABLES = {
   leads: 'tblhSrpux7LntoFHA',
   accounts: 'tblEQbtTmVkMlTbUV',
   expenses: 'tblrpf0nxZNlNftME',
+  bookings: 'tblYHIcXwoMupWnaC',
 };
 
 // Prospects table field IDs
@@ -285,3 +286,51 @@ export const EXPENSE_CATEGORY_COLORS = {
   Management: { bg: '#E6F1FB', text: '#185FA5' },
   'Comission Moez': { bg: '#FAEEDA', text: '#854F0B' },
 };
+
+// Booking table field IDs
+export const BK = {
+  name: 'fldSo7qi0ykq9hNRD',
+  studentName: 'fldQVz4tlNW58I6Ip',
+  email: 'fldasDMrcwqX9tVNp',
+  phone: 'flduPE1kyhAPfjqTr',
+  dateTime: 'fld3ZWw07FlWQz6xj',
+  duration: 'fldT7aeHeWXrno7ya',
+  meetingType: 'fldrAHy70gOEIVmH5',
+  bookingStatus: 'fldZHQnFb6uOQ3pNg',
+  linkedProspect: 'fldhR4N2XROZGK7Ha',
+  meetingLink: 'fldQKPTf88j2oaQW2',
+  notes: 'fldUHN2ZyV4xKUihD',
+};
+
+// Fallbacks when the live schema fetch fails — prefer schema-driven choices.
+export const BOOKING_STATUSES = ['Scheduled', 'Completed', 'Cancelled', 'No-show'];
+
+export const MEETING_TYPES = [
+  'Consultation',
+  'Follow-up',
+  'Visa',
+  'Application',
+  'Other',
+];
+
+export const BOOKING_STATUS_COLORS = {
+  // Bleu — rendez-vous planifié
+  Scheduled: { bg: '#B8D4FF', text: '#0D47A1' },
+  // Vert — consultation effectuée
+  Completed: { bg: '#D1F7C4', text: '#1B5E20' },
+  // Rouge — annulé
+  Cancelled: { bg: '#FFC9D1', text: '#8B1538' },
+  // Orange — absence / no-show
+  'No-show': { bg: '#FFD6A8', text: '#8A3B00' },
+};
+
+/** Resolve badge colors for a booking status (case-insensitive). */
+export function bookingStatusColor(status) {
+  if (!status) return { bg: '#EEEEEE', text: '#5F5E5A' };
+  const key = Object.keys(BOOKING_STATUS_COLORS).find(
+    (k) => k.toLowerCase() === String(status).toLowerCase()
+  );
+  return key
+    ? BOOKING_STATUS_COLORS[key]
+    : { bg: '#EEEEEE', text: '#5F5E5A' };
+}
