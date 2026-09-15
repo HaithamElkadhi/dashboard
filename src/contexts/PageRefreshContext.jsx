@@ -8,6 +8,8 @@ const PageRefreshContext = createContext(null);
 
 const EMPTY = { lastUpdated: null, refresh: null, loading: false };
 
+const AUTO_REFRESH_MS = 60 * 60 * 1000; // 1 hour
+
 export function PageRefreshProvider({ children }) {
   const [info, setInfo] = useState(EMPTY);
   // Memoized so the context value's identity only changes when `info`
@@ -30,6 +32,16 @@ export function usePageRefreshRegistration({ lastUpdated, refresh, loading }) {
     // re-runs when the page's own data actually changes — not on every
     // provider render.
   }, [setInfo, lastUpdated, refresh, loading]);
+
+  // Silent auto-refresh every hour while this page is mounted. The header
+  // "Mis à jour" / Actualiser button stays available for a manual pull.
+  useEffect(() => {
+    if (!refresh) return undefined;
+    const id = setInterval(() => {
+      refresh();
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [refresh]);
 }
 
 export function usePageRefreshInfo() {

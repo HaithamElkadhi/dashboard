@@ -5,7 +5,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser.js';
 import { ARCHIVED_STATUS } from '../../lib/config.js';
 import { formatShortDate, isTaskOverdue, relativeTime, todayISO } from '../../lib/taskDates.js';
 import Avatar from '../Avatar.jsx';
-import { BellIcon, MenuIcon, PlusIcon, RefreshIcon, SearchIcon } from '../icons.jsx';
+import { BellIcon, MenuIcon, PlusIcon, RefreshIcon } from '../icons.jsx';
 
 function useOutsideClose(ref, active, onClose) {
   useEffect(() => {
@@ -23,27 +23,9 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const { lastUpdated, refresh, loading } = usePageRefreshInfo();
   const [currentUser] = useCurrentUser();
 
-  const [query, setQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef(null);
-  useOutsideClose(searchRef, searchOpen, () => setSearchOpen(false));
-
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
   useOutsideClose(notifRef, notifOpen, () => setNotifOpen(false));
-
-  const searchResults = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return tasks
-      .filter(
-        (t) =>
-          t.status !== ARCHIVED_STATUS &&
-          (t.name.toLowerCase().includes(q) ||
-            t.prospectName.toLowerCase().includes(q))
-      )
-      .slice(0, 6);
-  }, [tasks, query]);
 
   const today = todayISO();
   const notifications = useMemo(
@@ -62,8 +44,6 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
 
   const openResult = (task) => {
     openDetails(task.id);
-    setQuery('');
-    setSearchOpen(false);
     setNotifOpen(false);
   };
 
@@ -79,55 +59,9 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
           <MenuIcon size={18} />
         </button>
 
-        <h1 className="shrink-0 truncate text-sm font-semibold text-text-strong sm:text-base">
+        <h1 className="min-w-0 shrink truncate text-sm font-semibold text-text-strong sm:text-base">
           {title}
         </h1>
-
-        <div ref={searchRef} className="relative ml-2 hidden max-w-xs flex-1 sm:block">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-            <SearchIcon size={14} />
-          </span>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSearchOpen(true);
-            }}
-            onFocus={() => setSearchOpen(true)}
-            placeholder="Rechercher une tâche…"
-            aria-label="Rechercher une tâche"
-            className="w-full rounded-lg border border-border bg-canvas py-1.5 pl-8 pr-3 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong focus:bg-surface"
-          />
-          {searchOpen && query.trim() && (
-            <div className="absolute left-0 top-full z-30 mt-1.5 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
-              {searchResults.length === 0 ? (
-                <p className="px-3 py-3 text-sm text-text-muted">
-                  Aucune tâche ne correspond à « {query} ».
-                </p>
-              ) : (
-                <ul className="max-h-72 divide-y divide-border overflow-y-auto scroll-thin">
-                  {searchResults.map((t) => (
-                    <li key={t.id}>
-                      <button
-                        type="button"
-                        onClick={() => openResult(t)}
-                        className="flex w-full flex-col gap-0.5 px-3 py-2 text-left hover:bg-canvas"
-                      >
-                        <span className="truncate text-sm font-medium text-text-strong">
-                          {t.name}
-                        </span>
-                        <span className="truncate text-xs text-text-muted">
-                          {t.prospectName || '—'} · {t.assignedTo || '—'}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           {refresh && (
