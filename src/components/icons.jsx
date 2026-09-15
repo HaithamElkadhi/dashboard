@@ -367,3 +367,153 @@ export function GripIcon(props) {
     </Svg>
   );
 }
+
+export function WrenchIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2 2.8-2.8z" />
+    </Svg>
+  );
+}
+
+export function MailIcon(props) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </Svg>
+  );
+}
+
+export function DownloadIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 21h16" />
+    </Svg>
+  );
+}
+
+export function SaveIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+      <path d="M8 3v6h8V3" />
+      <path d="M7 21v-7h10v7" />
+    </Svg>
+  );
+}
+
+export function HistoryIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M3 12a9 9 0 1 0 2.6-6.36" />
+      <path d="M3 4v5h5" />
+      <path d="M12 7v5l4 2.5" />
+    </Svg>
+  );
+}
+
+export function ArrowLeftIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M19 12H5" />
+      <path d="M11 18l-6-6 6-6" />
+    </Svg>
+  );
+}
+
+export function GraduationCapIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M2 9l10-5 10 5-10 5-10-5z" />
+      <path d="M6 11.5V17c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" />
+      <path d="M22 9v6" />
+    </Svg>
+  );
+}
+
+export function BookOpenIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v17H4.5A2.5 2.5 0 0 0 2 22.5V5.5z" />
+      <path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v17h6.5a2.5 2.5 0 0 1 2.5 2.5V5.5z" />
+    </Svg>
+  );
+}
+
+export function LayersIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M12 2l9 5-9 5-9-5 9-5z" />
+      <path d="M3 12l9 5 9-5" />
+      <path d="M3 17l9 5 9-5" />
+    </Svg>
+  );
+}
+
+export function UserIcon(props) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    </Svg>
+  );
+}
+
+export function StarIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.6l-5.8 3 1.1-6.5-4.8-4.6 6.6-.9L12 2.5z" />
+    </Svg>
+  );
+}
+
+export function AwardIcon(props) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="8" r="6" />
+      <path d="M8.5 13.5L6 22l6-3 6 3-2.5-8.5" />
+    </Svg>
+  );
+}
+
+export function GlobeIcon(props) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z" />
+    </Svg>
+  );
+}
+
+export function PackageIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+      <path d="M3 8v8l9 5 9-5V8" />
+      <path d="M12 13v8" />
+    </Svg>
+  );
+}
+
+export function SparklesIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" />
+      <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z" />
+    </Svg>
+  );
+}
+
+export function FileCheckIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 15l2 2 4-4" />
+    </Svg>
+  );
+}

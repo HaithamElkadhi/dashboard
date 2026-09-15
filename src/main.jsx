@@ -13,6 +13,8 @@ import ExpensesPage from './pages/ExpensesPage.jsx';
 import VisaGuidePage from './pages/visa/VisaGuidePage.jsx';
 import VisaClassementPage from './pages/visa/VisaClassementPage.jsx';
 import VisaModelesPage from './pages/visa/VisaModelesPage.jsx';
+import OperationsPage from './pages/OperationsPage.jsx';
+import ProposalItalyPage from './pages/operations/ProposalItalyPage.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -28,6 +30,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/visa" element={<VisaGuidePage />} />
           <Route path="/visa/classement" element={<VisaClassementPage />} />
           <Route path="/visa/modeles" element={<VisaModelesPage />} />
+          <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/operations/proposal-italy" element={<ProposalItalyPage />} />
           <Route path="*" element={<ComingSoonPage title="Page introuvable" />} />
         </Route>
       </Routes>

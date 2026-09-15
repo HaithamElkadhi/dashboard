@@ -434,6 +434,23 @@ export async function fetchPeopleForPicker() {
   return [...prospects, ...leads].filter((p) => p.fullName);
 }
 
+// Prospects only (with contact fields) — used by the Operations tools'
+// "Search Airtable" pickers to auto-fill a student's name/email/phone.
+export async function fetchProspectsForSearch() {
+  const records = await fetchAll(TABLES.prospects, [PF.fullName, PF.email, PF.phone]);
+  return records
+    .map((r) => {
+      const f = r.fields || {};
+      return {
+        id: r.id,
+        fullName: f[PF.fullName] || '',
+        email: f[PF.email] || '',
+        phone: f[PF.phone] || '',
+      };
+    })
+    .filter((p) => p.fullName);
+}
+
 // ─── Finance (Paiements) ───────────────────────────────────────────────────
 
 const FIN_FIELDS = Object.values(FIN);

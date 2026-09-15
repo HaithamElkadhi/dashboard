@@ -67,15 +67,27 @@ export default function AppSidebar({
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-2.5 py-2 scroll-thin">
-        {NAV_ITEMS.map((item) => (
-          <NavItem
-            key={item.label}
-            item={item}
-            collapsed={collapsed}
-            active={isActive(item)}
-            onNavigate={onCloseMobile}
-          />
-        ))}
+        {NAV_ITEMS.map((item, index) => {
+          const prevSection = NAV_ITEMS[index - 1]?.section;
+          const showSectionHeader = item.section && item.section !== prevSection;
+          return (
+            <div key={item.label}>
+              {showSectionHeader && (
+                <div
+                  className={`px-3 pb-1.5 ${index === 0 ? 'pt-0' : 'pt-3'} text-[10px] font-semibold uppercase tracking-wider text-white/40`}
+                >
+                  {!collapsed && item.section}
+                </div>
+              )}
+              <NavItem
+                item={item}
+                collapsed={collapsed}
+                active={isActive(item)}
+                onNavigate={onCloseMobile}
+              />
+            </div>
+          );
+        })}
       </nav>
 
       <div className="space-y-1 border-t border-white/10 px-2.5 py-3">
