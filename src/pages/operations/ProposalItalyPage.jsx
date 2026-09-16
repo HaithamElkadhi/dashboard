@@ -10,6 +10,7 @@ import ServicesSection from '../../components/operations/proposalItaly/ServicesS
 import { emptyProposalData } from '../../lib/proposalItaly/initialData.js';
 import { generateProposalItalyPDF } from '../../lib/proposalItaly/pdf.js';
 import { buildProposalEmailBody } from '../../lib/proposalItaly/emailBody.js';
+import { saveProposalToAirtable } from '../../lib/airtable.js';
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -59,6 +60,7 @@ export default function ProposalItalyPage() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const [history, setHistory] = useState([]);
+  const [savingAirtable, setSavingAirtable] = useState(false);
   const [emailForm, setEmailForm] = useState({
     fullName: '',
     email: '',
@@ -82,12 +84,41 @@ export default function ProposalItalyPage() {
   ];
   const completedSections = completionChecks.filter(Boolean).length;
 
-  const handleSave = () => {
+  const handleSaveLocal = () => {
     const item = { id: `${Date.now()}`, savedAt: new Date().toISOString(), data };
     const next = [item, ...history].slice(0, 100);
     setHistory(next);
     saveHistory(next);
     window.alert('Proposal saved locally.');
+  };
+
+  const handleSaveAirtable = async () => {
+    if (!data.studentName?.trim() || !data.email?.trim()) {
+      window.alert('Please fill in Student Name and Email first.');
+      return;
+    }
+    setSavingAirtable(true);
+    try {
+      const result = await saveProposalToAirtable(data);
+      setData((prev) => ({ ...prev, prospectRecordId: result.prospectRecordId }));
+      const item = {
+        id: `${Date.now()}`,
+        savedAt: new Date().toISOString(),
+        data: { ...data, prospectRecordId: result.prospectRecordId },
+      };
+      const next = [item, ...history].slice(0, 100);
+      setHistory(next);
+      saveHistory(next);
+      window.alert(
+        result.created
+          ? 'Prospect created in Airtable and proposal saved.'
+          : 'Prospect updated in Airtable and proposal saved.'
+      );
+    } catch (err) {
+      window.alert(err.message || 'Failed to save to Airtable.');
+    } finally {
+      setSavingAirtable(false);
+    }
   };
 
   const handleLoad = (item) => {
@@ -175,11 +206,19 @@ export default function ProposalItalyPage() {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={handleSave}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong"
+            onClick={handleSaveAirtable}
+            disabled={savingAirtable}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
           >
             <SaveIcon size={14} />
-            Save
+            {savingAirtable ? 'Saving…' : 'Save to Airtable'}
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveLocal}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong"
+          >
+            Save locally
           </button>
           <button
             type="button"
@@ -209,7 +248,7 @@ export default function ProposalItalyPage() {
             type="button"
             onClick={handleGeneratePdf}
             disabled={generating}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong disabled:opacity-60"
           >
             <DownloadIcon size={14} />
             {generating ? 'Generating…' : 'Generate PDF'}

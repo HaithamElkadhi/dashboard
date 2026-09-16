@@ -29,7 +29,12 @@ export default function StudentInfo({ data, onChange }) {
   }, [prospects, query]);
 
   const selectProspect = (p) => {
-    onChange({ studentName: p.fullName, email: p.email, phone: p.phone });
+    onChange({
+      prospectRecordId: p.id,
+      studentName: p.fullName,
+      email: p.email,
+      phone: p.phone,
+    });
     setAutoFilled(true);
     setSearchOpen(false);
     setQuery('');

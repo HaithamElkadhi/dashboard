@@ -49,36 +49,13 @@ function MoneyKPICard({ label, eur, tnd, loading }) {
   );
 }
 
-function PhasePill({ label, count, active, color, onClick }) {
-  const style = active && color ? { backgroundColor: color.bg, color: color.text } : undefined;
-  return (
-    <button
-      onClick={onClick}
-      style={style}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-        active
-          ? 'border-transparent shadow-sm'
-          : 'border-border bg-surface text-text-strong hover:border-border-strong'
-      } ${active && !color ? 'bg-brand text-white' : ''}`}
-    >
-      {label}
-      <span
-        className={`rounded-full px-1.5 text-xs tabular-nums ${
-          active ? 'bg-black/10' : 'bg-canvas text-text-muted'
-        }`}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
-
 export default function ProspectsPage() {
   const { prospects, schema, status, error, lastUpdated, refresh, update, remove } =
     useDashboardData();
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selected, setSelected] = useState([]); // empty = "Tous"
+  // Active situation tab — 'all' shows everyone; otherwise filter by that situation.
+  const [activeTab, setActiveTab] = useState('all');
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(null);
   const [bourseEditing, setBourseEditing] = useState(null);
@@ -121,14 +98,6 @@ export default function ProspectsPage() {
     } catch (err) {
       showToast(err.message || 'Suppression impossible');
     }
-  };
-
-  const toggleFilter = (choice) => {
-    setSelected((prev) =>
-      prev.includes(choice)
-        ? prev.filter((c) => c !== choice)
-        : [...prev, choice]
-    );
   };
 
   const loading = status === 'loading';
@@ -180,31 +149,52 @@ export default function ProspectsPage() {
     return counts;
   }, [prospects]);
 
-  // Show pills in schema order, then any values present in data but not in the
-  // schema, keeping everything driven by the live data. Only non-empty ones.
-  const activeChoices = useMemo(() => {
-    const ordered = situationOrder.filter((c) => situationCounts[c] > 0);
+  // Tabs: schema order, then any extra situations present in data, then Unknown.
+  const situationTabs = useMemo(() => {
+    const ordered = situationOrder.slice();
     const extras = Object.keys(situationCounts).filter(
       (c) => c !== UNKNOWN && !situationOrder.includes(c) && situationCounts[c] > 0
     );
-    return [...ordered, ...extras];
-  }, [situationOrder, situationCounts]);
+    const tabs = [...ordered, ...extras].map((name) => ({
+      id: name,
+      label: name,
+      count: situationCounts[name] || 0,
+      color: chipStyle(situationColors[name]),
+    }));
+    if (situationCounts[UNKNOWN] > 0) {
+      tabs.push({
+        id: UNKNOWN,
+        label: 'Unknown',
+        count: situationCounts[UNKNOWN],
+        color: { bg: '#F1EFE8', text: '#5F5E5A' },
+      });
+    }
+    return tabs;
+  }, [situationOrder, situationCounts, situationColors]);
+
+  // Keep active tab valid if situations change after a refresh.
+  useEffect(() => {
+    if (activeTab === 'all') return;
+    if (!situationTabs.some((t) => t.id === activeTab)) setActiveTab('all');
+  }, [activeTab, situationTabs]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return prospects.filter((p) => {
-      const matchesFilter =
-        selected.length === 0 ||
-        p.situations.some((s) => selected.includes(s)) ||
-        (selected.includes(UNKNOWN) && p.situations.length === 0);
-      if (!matchesFilter) return false;
+      let matchesTab = true;
+      if (activeTab === UNKNOWN) {
+        matchesTab = p.situations.length === 0;
+      } else if (activeTab !== 'all') {
+        matchesTab = p.situations.includes(activeTab);
+      }
+      if (!matchesTab) return false;
       if (!q) return true;
       return (
         p.fullName.toLowerCase().includes(q) ||
         p.prospectId.toLowerCase().includes(q)
       );
     });
-  }, [prospects, selected, query]);
+  }, [prospects, activeTab, query]);
 
   // Payé / Restant follow the current filters + search, not the whole dataset.
   const moneyKpis = useMemo(() => {
@@ -241,44 +231,60 @@ export default function ProspectsPage() {
           />
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <PhasePill
-            label="Tous"
-            count={prospects.length}
-            active={selected.length === 0}
-            onClick={() => setSelected([])}
-          />
-          {activeChoices.map((choice) => (
-            <PhasePill
-              key={choice}
-              label={choice}
-              count={situationCounts[choice]}
-              active={selected.includes(choice)}
-              color={chipStyle(situationColors[choice])}
-              onClick={() => toggleFilter(choice)}
-            />
-          ))}
-          {situationCounts[UNKNOWN] > 0 && (
-            <PhasePill
-              label="Unknown"
-              count={situationCounts[UNKNOWN]}
-              active={selected.includes(UNKNOWN)}
-              color={{ bg: '#F1EFE8', text: '#5F5E5A' }}
-              onClick={() => toggleFilter(UNKNOWN)}
-            />
-          )}
-          {selected.length > 0 && (
-            <button
-              onClick={() => setSelected([])}
-              className="ml-1 text-sm font-medium text-text-muted underline-offset-2 transition hover:text-text-strong hover:underline"
-            >
-              Effacer ({selected.length})
-            </button>
-          )}
-        </div>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-full overflow-x-auto scroll-thin">
+            <div className="inline-flex min-w-min gap-1 rounded-xl border border-border bg-surface p-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  activeTab === 'all'
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-text-muted hover:text-text-strong'
+                }`}
+              >
+                Tous
+                <span
+                  className={`rounded-full px-1.5 text-xs tabular-nums ${
+                    activeTab === 'all' ? 'bg-black/15' : 'bg-canvas text-text-muted'
+                  }`}
+                >
+                  {prospects.length}
+                </span>
+              </button>
+              {situationTabs.map((tab) => {
+                const active = activeTab === tab.id;
+                const style =
+                  active && tab.color
+                    ? { backgroundColor: tab.color.bg, color: tab.color.text }
+                    : undefined;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    style={style}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                      active
+                        ? 'shadow-sm'
+                        : 'text-text-muted hover:text-text-strong'
+                    }`}
+                  >
+                    {tab.label}
+                    <span
+                      className={`rounded-full px-1.5 text-xs tabular-nums ${
+                        active ? 'bg-black/10' : 'bg-canvas text-text-muted'
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-        <div className="mt-4">
-          <div className="relative max-w-sm">
+          <div className="relative w-full max-w-sm shrink-0">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
               <SearchIcon size={15} />
             </span>
@@ -325,6 +331,7 @@ export default function ProspectsPage() {
             <ProspectsTable
               rows={filtered}
               loading={loading}
+              showSituation={activeTab === 'all'}
               colors={{
                 situation: schema?.situation?.colors,
                 scholarship: schema?.scholarship?.colors,

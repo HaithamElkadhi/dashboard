@@ -11,6 +11,8 @@ export const TABLES = {
   accounts: 'tblEQbtTmVkMlTbUV',
   expenses: 'tblrpf0nxZNlNftME',
   bookings: 'tblYHIcXwoMupWnaC',
+  academicRecords: 'tblCtnGCzWizzBaJM',
+  languageRecords: 'tbl42QCqaRliEW3CN',
 };
 
 // Prospects table field IDs
@@ -38,6 +40,58 @@ export const PF = {
   email: 'fldWBOtlmuPIXdsep',
   phone: 'fldx6RMeRYPWC9BV3',
   accountsLink: 'flddNBP0jC3rYtcF0',
+  // Proposal — Italy (persisted on Prospects)
+  nationality: 'fldmG4KgxlZIWe5yC', // Nationality (multipleSelects)
+  proposalDate: 'fld2ZlqIvPPC8oG5j',
+  validUntil: 'fldnJkPg1xCT10Xqm',
+  currentStatus: 'fldvzq0VUdgCELdRf',
+  lastAcademicLevel: 'fldGeykWH8oKFr03M',
+  obtainedDiplomas: 'fld1P0dI80wYuEXe1',
+  background: 'fldlr2jdQRHs74t9r', // Field of Previous Studies
+  yearOfGraduation: 'fldsot30LGlll8oss',
+  currentOccupation: 'fldqTBJ1GLInyIHws',
+  languages: 'fld2HHy6pgpQJmUNv',
+  studentRequestNote: 'fldDSjd53LKbUsv1z',
+  entryLevel: 'fldC85ZK7TfLJc6N2', // Degree Level (multipleSelects)
+  intendedIntake: 'fldWgAo9MCS0PQ0Qb',
+  primaryFieldOfStudy: 'fldIYBuTapsL6oHnz',
+  alternativeField: 'fldW1lu6RJLB6cUT1',
+  programLanguages: 'fldGVRtZ7aFnr5KM0',
+  cityPreferenceType: 'fldUitTkCZNanMcID',
+  preferredCityUniversity: 'fldFXkXX9HgLVI1bm',
+  financingPlan: 'fldLPAvvz286zcxz2',
+  financialGuarantor: 'fldKXmKZb2TVgDfNE',
+  blockedAccount: 'fldjhqSyAPCnznYAs',
+  supportFromAbroad: 'fldqst8OaoMhb9xTJ',
+  abroadSupportDetails: 'fld0i1plGROk8Dq1X',
+  applicationFeesPreference: 'fldqVPDvlVxc3tBrh',
+  availableBudget: 'fldLQp9TJZTDadP6L',
+  selectedServices: 'fld6WnYXTMlgzsQl3',
+  servicesNote: 'fldpvCWSHQtq5dzaF',
+  academicRecordsLink: 'fld0mWoMtx4Z6u1Vh',
+  languageRecordsLink: 'fldbPlVxTxmeV4dDY',
+};
+
+// Academic Records linked table (GPA is formula — never write)
+export const AR = {
+  diplomaLabel: 'fldm4wyfXtBOIwQiJ',
+  diplomaType: 'fldwE9TO6sCj51ENw',
+  fieldOfStudy: 'fldqU3whEyVtXaxqr',
+  institution: 'fldt7xm17wHTw2ItW',
+  year: 'fldenXwRz7pVm2XA5',
+  score: 'fldIKkTOrFsJ62QFP',
+  maxScore: 'flds4nRBOkGmuFzk9',
+  gpa: 'fldtDiVPlmmwiXYE3', // formula — read-only
+  prospect: 'fldnJFKbSy1R2ek9b',
+};
+
+// Language Records linked table
+export const LR = {
+  language: 'fldvKQTXGw7j43NVY',
+  level: 'fldGwllymFyoHr1Cq',
+  certificate: 'fldKHX4Qml0SpCoF3',
+  score: 'fldREJB1GpUzx5dP2',
+  prospect: 'fldT2FDuPBPQowYOF',
 };
 
 // Accounts table field IDs (student portal credentials: Universitaly,

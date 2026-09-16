@@ -9,7 +9,20 @@ import { formatEUR, formatTND } from '../lib/format.js';
 import { PencilIcon, TrashIcon, WalletIcon } from './icons.jsx';
 import { formatShortDate } from '../lib/taskDates.js';
 
-const COLUMNS = [
+const BASE_COLUMNS = [
+  'Étudiant',
+  'Appli.',
+  'Admission',
+  'Université',
+  'Payé',
+  'Restant',
+  'Scholarship',
+  'Visa',
+  'Universitaly Validation',
+  '',
+];
+
+const ALL_COLUMNS = [
   'Étudiant',
   'Prospect Situation',
   'Appli.',
@@ -109,7 +122,7 @@ function Field({ label, children }) {
   );
 }
 
-function ProspectCard({ p, colors, onEdit, onDelete, onBourse }) {
+function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -165,9 +178,11 @@ function ProspectCard({ p, colors, onEdit, onDelete, onBourse }) {
               )}
             </div>
           </div>
-          <div className="mt-2">
-            <SituationBadges values={p.situations} colorMap={colors.situation} />
-          </div>
+          {showSituation && (
+            <div className="mt-2">
+              <SituationBadges values={p.situations} colorMap={colors.situation} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -221,7 +236,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, onEdit, onDelete, onBourse }) {
+function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
       <td className="px-4 py-3">
@@ -242,9 +257,11 @@ function ProspectRow({ p, colors, onEdit, onDelete, onBourse }) {
           </div>
         </div>
       </td>
-      <td className="px-4 py-3">
-        <SituationBadges values={p.situations} colorMap={colors.situation} />
-      </td>
+      {showSituation && (
+        <td className="px-4 py-3">
+          <SituationBadges values={p.situations} colorMap={colors.situation} />
+        </td>
+      )}
       <td className="px-4 py-3">
         <span className="text-sm tabular-nums text-text-strong">
           {p.nbrApplications || 0}
@@ -317,7 +334,15 @@ function ProspectRow({ p, colors, onEdit, onDelete, onBourse }) {
   );
 }
 
-export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete, onBourse }) {
+export default function ProspectsTable({
+  rows,
+  loading,
+  colors,
+  showSituation = true,
+  onEdit,
+  onDelete,
+  onBourse,
+}) {
   const palette = {
     situation: colors?.situation || EMPTY,
     scholarship: colors?.scholarship || EMPTY,
@@ -326,9 +351,11 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
     universitaly: colors?.universitaly || EMPTY,
   };
 
+  const columns = showSituation ? ALL_COLUMNS : BASE_COLUMNS;
+
   const resetKey = useMemo(
-    () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}`,
-    [rows]
+    () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}:${showSituation}`,
+    [rows, showSituation]
   );
   const pagination = usePagination(rows, { resetKey });
   const visible = loading ? [] : pagination.pageItems;
@@ -340,9 +367,9 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
         <table className="w-full min-w-[960px] border-collapse text-left">
           <thead>
             <tr className="border-b border-border">
-              {COLUMNS.map((col) => (
+              {columns.map((col) => (
                 <th
-                  key={col}
+                  key={col || 'actions'}
                   className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted"
                 >
                   {col}
@@ -352,10 +379,10 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
           </thead>
           <tbody>
             {loading ? (
-              <SkeletonRows rows={8} cols={COLUMNS.length} />
+              <SkeletonRows rows={8} cols={columns.length} />
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={COLUMNS.length}>
+                <td colSpan={columns.length}>
                   <EmptyState />
                 </td>
               </tr>
@@ -365,6 +392,7 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
                   key={p.id}
                   p={p}
                   colors={palette}
+                  showSituation={showSituation}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onBourse={onBourse}
@@ -387,6 +415,7 @@ export default function ProspectsTable({ rows, loading, colors, onEdit, onDelete
               key={p.id}
               p={p}
               colors={palette}
+              showSituation={showSituation}
               onEdit={onEdit}
               onDelete={onDelete}
               onBourse={onBourse}

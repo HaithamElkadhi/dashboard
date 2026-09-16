@@ -1,5 +1,6 @@
 export function emptyProposalData() {
   return {
+    prospectRecordId: null,
     proposalDate: new Date().toISOString().split('T')[0],
     validUntil: '',
     studentName: '',

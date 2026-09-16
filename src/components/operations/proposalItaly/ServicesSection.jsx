@@ -8,6 +8,8 @@ export const PHASE_OPTIONS = [
     badgeClass: 'bg-[#0B1F3A] text-white',
     name: 'Admission',
     price: '1 300 DT',
+    // Must match Airtable Selected Services option exactly
+    airtableValue: 'Phase 1 — Admission (1 300 DT)',
     subtitle: 'Accès complet',
     steps: [
       { amount: '700 DT', label: 'à la signature', done: true },
@@ -20,6 +22,7 @@ export const PHASE_OPTIONS = [
     badgeClass: 'bg-[#185FA5] text-white',
     name: 'Bourse',
     price: '1 200 DT',
+    airtableValue: 'Phase 2 — Bourse (1 200 DT)',
     subtitle: 'Si continuation',
     steps: [
       { amount: '600 DT', label: 'à la décision', done: true },
@@ -32,6 +35,7 @@ export const PHASE_OPTIONS = [
     badgeClass: 'bg-[#3B6D11] text-white',
     name: 'Visa + Intégration',
     price: '500 DT',
+    airtableValue: 'Phase 3 — Visa + Intégration (500 DT)',
     subtitle: 'Si continuation',
     steps: [
       { amount: '200 DT', label: 'avant visa', done: true },
@@ -45,12 +49,13 @@ export const PACK_OPTION = {
   badge: 'Pack tout inclus',
   name: 'Admission + Bourse + Visa + Intégration',
   price: '2 300 DT',
+  airtableValue: 'Pack tout inclus (2 300 DT)',
   tags: ['Admission', 'Bourse', 'Visa', 'Intégration'],
   note: 'Paiement global — toutes les étapes couvertes dès le départ',
 };
 
-function selectionLabel(option) {
-  return `${option.name} (${option.price})`;
+function selectionValue(option) {
+  return option.airtableValue;
 }
 
 function StepDot({ done, step }) {
@@ -70,23 +75,23 @@ function StepDot({ done, step }) {
 
 export default function ServicesSection({ data, onChange }) {
   const selected = data.selected || [];
-  const packLabel = selectionLabel(PACK_OPTION);
-  const packSelected = selected.includes(packLabel);
+  const packValue = selectionValue(PACK_OPTION);
+  const packSelected = selected.includes(packValue);
 
   const togglePhase = (phase) => {
-    const label = selectionLabel(phase);
-    const withoutPack = selected.filter((s) => s !== packLabel);
-    const next = withoutPack.includes(label)
-      ? withoutPack.filter((s) => s !== label)
-      : [...withoutPack, label];
+    const value = selectionValue(phase);
+    const withoutPack = selected.filter((s) => s !== packValue);
+    const next = withoutPack.includes(value)
+      ? withoutPack.filter((s) => s !== value)
+      : [...withoutPack, value];
     onChange({ ...data, selected: next });
   };
 
   const togglePack = () => {
     if (packSelected) {
-      onChange({ ...data, selected: selected.filter((s) => s !== packLabel) });
+      onChange({ ...data, selected: selected.filter((s) => s !== packValue) });
     } else {
-      onChange({ ...data, selected: [packLabel] });
+      onChange({ ...data, selected: [packValue] });
     }
   };
 
@@ -117,8 +122,8 @@ export default function ServicesSection({ data, onChange }) {
           <SectionTitle>Phases (sélection multiple)</SectionTitle>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             {PHASE_OPTIONS.map((phase) => {
-              const label = selectionLabel(phase);
-              const isOn = selected.includes(label);
+              const value = selectionValue(phase);
+              const isOn = selected.includes(value);
               return (
                 <button
                   key={phase.id}

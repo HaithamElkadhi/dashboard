@@ -12,6 +12,8 @@ import {
   ACC,
   EXP,
   BK,
+  AR,
+  LR,
 } from './config.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
@@ -24,7 +26,13 @@ async function parseError(res) {
   let detail = '';
   try {
     const body = await res.json();
-    detail = body?.error?.message || body?.error?.type || '';
+    detail =
+      body?.error?.message ||
+      body?.error?.type ||
+      (Array.isArray(body?.error?.errors)
+        ? body.error.errors.map((e) => e.message || JSON.stringify(e)).join('; ')
+        : '') ||
+      '';
   } catch {
     /* ignore */
   }
@@ -965,3 +973,384 @@ export async function deleteBooking(recordId) {
   await airtableWrite('DELETE', `${BASE_ID}/${TABLES.bookings}/${recordId}`);
   return recordId;
 }
+
+// ─── Proposal Italy → Prospects + linked Academic / Language Records ───────
+
+// Labels MUST match existing Airtable select options (typecast cannot create
+// new options without schema write permission — mismatches cause 422).
+
+const DEGREE_LEVEL_LABELS = {
+  bachelor: 'Bachelor',
+  master: 'Master',
+  phd: 'Phd',
+};
+
+const ACADEMIC_LEVEL_LABELS = {
+  'Pre Bac': 'Bac non obtenu',
+  'Bac (en cours)': 'Bac',
+  'Bac accompli': 'Bac accompli',
+  'Bac +1': 'Bac +1',
+  'Bac +2 (BTS / BTP / DUT / équivalent)': 'Bac +2 ',
+  'Bac +3 (en cours)': 'Bac +3 en cours',
+  'Bac +3 accompli (Licence)': 'Bac +3 (Licence)',
+  'Bac +4 (en cours)': 'Bac +4 en cours',
+  'Bac +5 (en cours – Master)': 'Bac +5 en cours',
+  'Bac +5 accompli (Master)': 'Bac +5 (Master / Ingénieur)',
+  'Bac +6+ (Doctorat / PhD)': 'Bac +8 (Doctorat)',
+};
+
+const LANGUAGE_LABELS = {
+  English: 'English',
+  French: 'French',
+  Italian: 'ITALIAN',
+  Spanish: 'SPANISH',
+  German: 'DEUTSCH',
+  Arabic: 'Arabic',
+};
+
+const INTAKE_LABELS = {
+  '2026/2027': '26 - 27 ',
+  '2027/2028': '2027/2028',
+};
+
+const CITY_PREFERENCE_LABELS = {
+  large_international: 'Large / international city',
+  student_city: 'Student city',
+  affordable_south: 'Affordable southern region',
+  no_preference: 'No preference',
+};
+
+const FINANCING_LABELS = {
+  'scholarship-only': 'Scholarship only',
+  'scholarship-plus-personal': 'Scholarship + personal funds',
+  'personal-family-only': 'Personal / family only',
+  'not-sure-yet': 'Not sure yet',
+};
+
+const GUARANTOR_LABELS = {
+  self: 'Self',
+  parent: 'Parent',
+  relative: 'Relative',
+  sponsor: 'Sponsor',
+};
+
+const YES_NO_LABELS = { yes: 'Yes', no: 'No' };
+
+const APP_FEES_LABELS = {
+  separate: 'Separate',
+  'include-in-service': 'Include in service',
+};
+
+const SERVICE_VALUE_ALIASES = {
+  'Admission (1 300 DT)': 'Phase 1 — Admission (1 300 DT)',
+  'Bourse (1 200 DT)': 'Phase 2 — Bourse (1 200 DT)',
+  'Visa + Intégration (500 DT)': 'Phase 3 — Visa + Intégration (500 DT)',
+  'Admission + Bourse + Visa + Intégration (2 300 DT)':
+    'Pack tout inclus (2 300 DT)',
+};
+
+const VALID_SERVICES = new Set([
+  'Phase 1 — Admission (1 300 DT)',
+  'Phase 2 — Bourse (1 200 DT)',
+  'Phase 3 — Visa + Intégration (500 DT)',
+  'Pack tout inclus (2 300 DT)',
+]);
+
+function normalizeSelectedServices(selected) {
+  return (selected || [])
+    .map((s) => SERVICE_VALUE_ALIASES[s] || s)
+    .filter((s) => VALID_SERVICES.has(s));
+}
+
+// Common demonym → country for Nationality multipleSelects
+const NATIONALITY_TO_COUNTRY = {
+  tunisian: 'Tunisia',
+  tunisien: 'Tunisia',
+  tunisienne: 'Tunisia',
+  algerian: 'Algeria',
+  algérien: 'Algeria',
+  algerien: 'Algeria',
+  moroccan: 'Morocco',
+  marocain: 'Morocco',
+  marocaine: 'Morocco',
+  french: 'France',
+  français: 'France',
+  francais: 'France',
+  italian: 'Italy',
+  italien: 'Italy',
+  italienne: 'Italy',
+};
+
+function splitFullName(full) {
+  const parts = (full || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { name: '', surname: '' };
+  if (parts.length === 1) return { name: parts[0], surname: '' };
+  return { name: parts[0], surname: parts.slice(1).join(' ') };
+}
+
+function mapLabel(map, value) {
+  if (!value) return null;
+  return map[value] || null;
+}
+
+function mapNationality(raw) {
+  const v = (raw || '').trim();
+  if (!v) return null;
+  const keyed = NATIONALITY_TO_COUNTRY[v.toLowerCase()];
+  if (keyed) return keyed;
+  // Already a country name (e.g. Tunisia)
+  return v;
+}
+
+function mapLanguages(list) {
+  return (list || [])
+    .map((l) => LANGUAGE_LABELS[l] || null)
+    .filter(Boolean);
+}
+
+async function deleteRecordBatch(tableId, recordIds) {
+  const ids = (recordIds || []).filter(Boolean);
+  for (const id of ids) {
+    await airtableWrite('DELETE', `${BASE_ID}/${tableId}/${id}`);
+  }
+}
+
+async function findProspectIdByEmail(email) {
+  const needle = (email || '').trim().toLowerCase();
+  if (!needle) return null;
+  const safe = needle.replace(/'/g, "\\'");
+  const params = new URLSearchParams();
+  params.append('fields[]', PF.email);
+  params.set('pageSize', '1');
+  params.set('returnFieldsByFieldId', 'true');
+  params.set('filterByFormula', `LOWER({Email})='${safe}'`);
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}?${params}`
+  );
+  if (!res.ok) await parseError(res);
+  const data = await res.json();
+  return data.records?.[0]?.id || null;
+}
+
+function toProposalProspectFields(data) {
+  const sp = data.studentProfile || {};
+  const prefs = data.studyPreferences || {};
+  const svc = data.services || {};
+  const { name, surname } = splitFullName(data.studentName);
+
+  const fields = {
+    [PF.name]: name,
+    [PF.surname]: surname,
+    [PF.email]: (data.email || '').trim(),
+  };
+
+  if ((data.phone || '').trim()) fields[PF.phone] = data.phone.trim();
+
+  const nationality = mapNationality(data.nationality);
+  if (nationality) fields[PF.nationality] = [nationality];
+
+  if (data.proposalDate) fields[PF.proposalDate] = data.proposalDate;
+  if (data.validUntil) fields[PF.validUntil] = data.validUntil;
+
+  if (sp.currentStatus) fields[PF.currentStatus] = sp.currentStatus;
+
+  const academicLevel = mapLabel(ACADEMIC_LEVEL_LABELS, sp.academicLevel);
+  if (academicLevel) fields[PF.lastAcademicLevel] = academicLevel;
+
+  if (sp.obtainedDiploma?.length) {
+    fields[PF.obtainedDiplomas] = sp.obtainedDiploma;
+  }
+
+  // Background is multipleSelects with a fixed option list — only write when
+  // the value is likely an exact option (skip arbitrary free text to avoid 422).
+  const background = (sp.fieldOfPreviousStudies || '').trim();
+  if (background && background.length < 80 && !background.includes('\n')) {
+    fields[PF.background] = [background];
+  }
+
+  if (sp.yearOfGraduation !== '' && sp.yearOfGraduation != null) {
+    const y = Number(sp.yearOfGraduation);
+    if (Number.isFinite(y)) fields[PF.yearOfGraduation] = y;
+  }
+  if ((sp.currentOccupation || '').trim()) {
+    fields[PF.currentOccupation] = sp.currentOccupation.trim();
+  }
+
+  const langs = mapLanguages(sp.languages);
+  if (langs.length) fields[PF.languages] = langs;
+
+  if ((sp.note || '').trim()) fields[PF.studentRequestNote] = sp.note.trim();
+
+  const degreeLabel = mapLabel(DEGREE_LEVEL_LABELS, prefs.targetDegreeLevel);
+  if (degreeLabel) fields[PF.entryLevel] = [degreeLabel];
+
+  const intake = mapLabel(INTAKE_LABELS, prefs.intendedIntake);
+  if (intake) fields[PF.intendedIntake] = [intake];
+
+  if ((prefs.fieldOfStudyPrimary || '').trim()) {
+    fields[PF.primaryFieldOfStudy] = prefs.fieldOfStudyPrimary.trim();
+  }
+  if ((prefs.alternativeField || '').trim()) {
+    fields[PF.alternativeField] = prefs.alternativeField.trim();
+  }
+  if (prefs.programLanguages?.length) {
+    fields[PF.programLanguages] = prefs.programLanguages;
+  }
+
+  const cityLabel = mapLabel(CITY_PREFERENCE_LABELS, prefs.cityPreferenceType);
+  if (cityLabel) fields[PF.cityPreferenceType] = cityLabel;
+
+  if ((prefs.preferredCityUniversity || '').trim()) {
+    fields[PF.preferredCityUniversity] = prefs.preferredCityUniversity.trim();
+  }
+
+  const financing = mapLabel(FINANCING_LABELS, prefs.financingPlan);
+  if (financing) fields[PF.financingPlan] = financing;
+  const guarantor = mapLabel(GUARANTOR_LABELS, prefs.financialGuarantor);
+  if (guarantor) fields[PF.financialGuarantor] = guarantor;
+  const blocked = mapLabel(YES_NO_LABELS, prefs.blockedAccount);
+  if (blocked) fields[PF.blockedAccount] = blocked;
+  const abroad = mapLabel(YES_NO_LABELS, prefs.hasAbroadSupport);
+  if (abroad) fields[PF.supportFromAbroad] = abroad;
+  if ((prefs.abroadSupportDetails || '').trim()) {
+    fields[PF.abroadSupportDetails] = prefs.abroadSupportDetails.trim();
+  }
+  const fees = mapLabel(APP_FEES_LABELS, prefs.applicationFeesPreference);
+  if (fees) fields[PF.applicationFeesPreference] = fees;
+  if (prefs.projectBudget !== '' && prefs.projectBudget != null) {
+    const n = Number(prefs.projectBudget);
+    if (Number.isFinite(n)) fields[PF.availableBudget] = n;
+  }
+
+  const services = normalizeSelectedServices(svc.selected);
+  if (services.length) fields[PF.selectedServices] = services;
+  if ((svc.note || '').trim()) fields[PF.servicesNote] = svc.note.trim();
+
+  return fields;
+}
+
+async function createProspectRecord(fields) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.prospects}`, {
+    fields,
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return data.id;
+}
+
+async function updateProspectRecord(recordId, fields) {
+  await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+    fields,
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return recordId;
+}
+
+async function fetchProspectLinkedRecordIds(prospectId) {
+  const params = new URLSearchParams();
+  params.append('fields[]', PF.academicRecordsLink);
+  params.append('fields[]', PF.languageRecordsLink);
+  params.set('returnFieldsByFieldId', 'true');
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${prospectId}?${params}`
+  );
+  if (!res.ok) await parseError(res);
+  const data = await res.json();
+  const f = data.fields || {};
+  return {
+    academicIds: asArray(f[PF.academicRecordsLink]),
+    languageIds: asArray(f[PF.languageRecordsLink]),
+  };
+}
+
+async function syncAcademicRecords(prospectId, academicRecords) {
+  const { academicIds } = await fetchProspectLinkedRecordIds(prospectId);
+  if (academicIds.length) {
+    await deleteRecordBatch(TABLES.academicRecords, academicIds);
+  }
+
+  const rows = (academicRecords || []).filter((r) => r.diploma);
+  for (const row of rows) {
+    const fields = {
+      [AR.diplomaLabel]: row.diploma || '',
+      [AR.prospect]: [prospectId],
+    };
+    // Diploma Type is singleSelect — typecast matches option by name when possible
+    if (row.diploma) fields[AR.diplomaType] = row.diploma;
+    if (row.score !== '' && row.score != null) {
+      const n = Number(row.score);
+      if (Number.isFinite(n)) fields[AR.score] = n;
+    }
+    if (row.maxScore !== '' && row.maxScore != null) {
+      const n = Number(row.maxScore);
+      if (Number.isFinite(n)) fields[AR.maxScore] = n;
+    }
+    // Never write AR.gpa — Airtable formula
+    await airtableWrite('POST', `${BASE_ID}/${TABLES.academicRecords}`, {
+      fields,
+      returnFieldsByFieldId: true,
+      typecast: true,
+    });
+  }
+}
+
+async function syncLanguageRecords(prospectId, languageRecords) {
+  const { languageIds } = await fetchProspectLinkedRecordIds(prospectId);
+  if (languageIds.length) {
+    await deleteRecordBatch(TABLES.languageRecords, languageIds);
+  }
+
+  const rows = (languageRecords || []).filter((r) => r.language);
+  for (const row of rows) {
+    const fields = {
+      [LR.language]: row.language || '',
+      [LR.prospect]: [prospectId],
+    };
+    if (row.level) fields[LR.level] = row.level;
+    if (row.certificate) fields[LR.certificate] = row.certificate;
+    await airtableWrite('POST', `${BASE_ID}/${TABLES.languageRecords}`, {
+      fields,
+      returnFieldsByFieldId: true,
+      typecast: true,
+    });
+  }
+}
+
+/**
+ * Upsert a Prospect from Proposal Italy form data, then replace linked
+ * Academic Records + Language Records. Full Name is formula — we write
+ * Name + Surname instead. GPA is never written.
+ *
+ * @returns {{ prospectRecordId: string, created: boolean }}
+ */
+export async function saveProposalToAirtable(data) {
+  if (!data?.studentName?.trim()) {
+    throw new Error('Student name is required to save to Airtable');
+  }
+  if (!data?.email?.trim()) {
+    throw new Error('Email is required to save to Airtable');
+  }
+
+  const fields = toProposalProspectFields(data);
+  let prospectRecordId = data.prospectRecordId || null;
+  let created = false;
+
+  if (!prospectRecordId) {
+    prospectRecordId = await findProspectIdByEmail(data.email);
+  }
+
+  if (prospectRecordId) {
+    await updateProspectRecord(prospectRecordId, fields);
+  } else {
+    prospectRecordId = await createProspectRecord(fields);
+    created = true;
+  }
+
+  const sp = data.studentProfile || {};
+  await syncAcademicRecords(prospectRecordId, sp.academicRecords);
+  await syncLanguageRecords(prospectRecordId, sp.languageRecords);
+
+  return { prospectRecordId, created };
+}
+
