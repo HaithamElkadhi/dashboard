@@ -63,10 +63,12 @@ function OverviewTab({ paiements }) {
     const moezActive = paiements.filter(
       (p) => p.soldeConfirme && p.moezType && p.moezType !== 'Aucune'
     );
+    const entered = paiements.filter((p) => !!p.paymentDate);
+    const invoiced = paiements.filter((p) => !!p.dueDate);
     const now = new Date();
-    const enteredThisMonth = paiements.filter((p) => isThisMonth(p.paymentDate, now));
-    const invoicedThisMonth = paiements.filter((p) => isThisMonth(p.dueDate, now));
-    return { pending, confirmed, moezActive, enteredThisMonth, invoicedThisMonth };
+    const enteredThisMonth = entered.filter((p) => isThisMonth(p.paymentDate, now));
+    const invoicedThisMonth = invoiced.filter((p) => isThisMonth(p.dueDate, now));
+    return { pending, confirmed, moezActive, entered, invoiced, enteredThisMonth, invoicedThisMonth };
   }, [paiements]);
 
   const recent = useMemo(
@@ -96,11 +98,19 @@ function OverviewTab({ paiements }) {
           value={`${stats.confirmed.length} / ${paiements.length}`}
         />
         <MetricCard
-          label="Paiement entré ce mois"
+          label="Total entré"
+          value={currencyTotalsLabel(stats.entered, (r) => r.amount)}
+        />
+        <MetricCard
+          label="Total facturé"
+          value={currencyTotalsLabel(stats.invoiced, (r) => r.amount)}
+        />
+        <MetricCard
+          label="Entré ce mois"
           value={currencyTotalsLabel(stats.enteredThisMonth, (r) => r.amount)}
         />
         <MetricCard
-          label="Paiement facturé ce mois"
+          label="Facturé ce mois"
           value={currencyTotalsLabel(stats.invoicedThisMonth, (r) => r.amount)}
         />
       </div>
