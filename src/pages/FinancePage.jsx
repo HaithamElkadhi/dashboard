@@ -50,6 +50,12 @@ function currencyTotalsLabel(rows, pick) {
   return entries.map(([cur, val]) => formatMoney(val, cur)).join(' · ');
 }
 
+function isThisMonth(dateStr, now) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
 function OverviewTab({ paiements }) {
   const stats = useMemo(() => {
     const pending = paiements.filter((p) => p.status === 'À payer');
@@ -57,7 +63,10 @@ function OverviewTab({ paiements }) {
     const moezActive = paiements.filter(
       (p) => p.soldeConfirme && p.moezType && p.moezType !== 'Aucune'
     );
-    return { pending, confirmed, moezActive };
+    const now = new Date();
+    const enteredThisMonth = paiements.filter((p) => isThisMonth(p.paymentDate, now));
+    const invoicedThisMonth = paiements.filter((p) => isThisMonth(p.dueDate, now));
+    return { pending, confirmed, moezActive, enteredThisMonth, invoicedThisMonth };
   }, [paiements]);
 
   const recent = useMemo(
@@ -85,6 +94,14 @@ function OverviewTab({ paiements }) {
         <MetricCard
           label="Soldes confirmés"
           value={`${stats.confirmed.length} / ${paiements.length}`}
+        />
+        <MetricCard
+          label="Paiement entré ce mois"
+          value={currencyTotalsLabel(stats.enteredThisMonth, (r) => r.amount)}
+        />
+        <MetricCard
+          label="Paiement facturé ce mois"
+          value={currencyTotalsLabel(stats.invoicedThisMonth, (r) => r.amount)}
         />
       </div>
 
