@@ -8,7 +8,7 @@ import PaiementsTable from '../components/finance/PaiementsTable.jsx';
 import PaiementModal from '../components/finance/PaiementModal.jsx';
 import CommissionsView from '../components/finance/CommissionsView.jsx';
 import { formatMoney } from '../lib/format.js';
-import { PAYMENT_STATUS_COLORS } from '../lib/config.js';
+import { PAYMENT_STATUS_COLORS, PAID_STATUS, DUE_STATUS } from '../lib/config.js';
 import { CheckCircleIcon, XIcon } from '../components/icons.jsx';
 
 const TABS = [
@@ -50,14 +50,20 @@ function currencyTotalsLabel(rows, pick) {
   return entries.map(([cur, val]) => formatMoney(val, cur)).join(' · ');
 }
 
+function isThisMonth(dateStr, now) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
 function OverviewTab({ paiements }) {
   const stats = useMemo(() => {
-    const pending = paiements.filter((p) => p.status === 'À payer');
-    const confirmed = paiements.filter((p) => p.soldeConfirme);
-    const moezActive = paiements.filter(
-      (p) => p.soldeConfirme && p.moezType && p.moezType !== 'Aucune'
-    );
-    return { pending, confirmed, moezActive };
+    const paid = paiements.filter((p) => p.status === PAID_STATUS);
+    const unpaid = paiements.filter((p) => p.status === DUE_STATUS);
+    const now = new Date();
+    const paidThisMonth = paid.filter((p) => isThisMonth(p.paymentDate, now));
+    const invoicedThisMonth = paiements.filter((p) => isThisMonth(p.dueDate, now));
+    return { paid, unpaid, paidThisMonth, invoicedThisMonth };
   }, [paiements]);
 
   const recent = useMemo(
@@ -70,22 +76,31 @@ function OverviewTab({ paiements }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3">
-        <MetricCard label="Total brut" value={currencyTotalsLabel(paiements, (r) => r.amount)} />
-        <MetricCard label="Net total" value={currencyTotalsLabel(paiements, (r) => r.netARecevoir)} />
-        <MetricCard label="Paiements en attente" value={stats.pending.length} />
-        <MetricCard
-          label="Commission Moez active"
-          value={currencyTotalsLabel(stats.moezActive, (r) => r.commissionMoez)}
-        />
-        <MetricCard
-          label="Commission Commercial"
-          value={currencyTotalsLabel(paiements, (r) => r.commCommercial)}
-        />
-        <MetricCard
-          label="Soldes confirmés"
-          value={`${stats.confirmed.length} / ${paiements.length}`}
-        />
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-text-muted sm:text-xs">
+            Total facturé
+          </p>
+          <p className="mt-1.5 text-2xl font-semibold tabular-nums text-text-strong sm:text-3xl">
+            {currencyTotalsLabel(paiements, (r) => r.amount)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <MetricCard label="Payé" value={currencyTotalsLabel(stats.paid, (r) => r.amount)} />
+          <MetricCard label="Non payé" value={currencyTotalsLabel(stats.unpaid, (r) => r.amount)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <MetricCard
+            label="Payé ce mois"
+            value={currencyTotalsLabel(stats.paidThisMonth, (r) => r.amount)}
+          />
+          <MetricCard
+            label="Facturé ce mois"
+            value={currencyTotalsLabel(stats.invoicedThisMonth, (r) => r.amount)}
+          />
+        </div>
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface">
