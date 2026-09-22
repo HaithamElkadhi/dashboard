@@ -8,6 +8,7 @@ import {
   KanbanIcon,
   KeyIcon,
   ListChecksIcon,
+  TrendingUpIcon,
   UsersIcon,
   WalletIcon,
   WrenchIcon,
@@ -26,6 +27,7 @@ export const NAV_ITEMS = [
   { path: '/accounts', label: 'Comptes clients', icon: KeyIcon },
   { path: '/finance', label: 'Paiements', icon: WalletIcon },
   { path: '/expenses', label: 'Expenses', icon: ChartBarIcon },
+  { path: '/performance', label: 'Performance', icon: TrendingUpIcon },
   { path: '/visa', label: 'Visa', icon: FolderIcon, matchPrefix: true },
   {
     path: '/operations',
@@ -44,6 +46,7 @@ export const PAGE_TITLES = {
   '/accounts': 'Comptes clients',
   '/finance': 'Paiements',
   '/expenses': 'Expenses',
+  '/performance': 'Performance',
   '/visa': 'Visa',
   '/visa/classement': 'Visa',
   '/visa/modeles': 'Visa',

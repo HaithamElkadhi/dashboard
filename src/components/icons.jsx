@@ -194,6 +194,15 @@ export function ChartBarIcon(props) {
   );
 }
 
+export function TrendingUpIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M3 17l6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </Svg>
+  );
+}
+
 export function SettingsIcon(props) {
   return (
     <Svg {...props}>

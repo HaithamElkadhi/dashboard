@@ -10,6 +10,7 @@ import TasksPage from './pages/TasksPage.jsx';
 import FinancePage from './pages/FinancePage.jsx';
 import AccountsPage from './pages/AccountsPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
+import PerformancePage from './pages/PerformancePage.jsx';
 import BookingsPage from './pages/BookingsPage.jsx';
 import VisaGuidePage from './pages/visa/VisaGuidePage.jsx';
 import VisaClassementPage from './pages/visa/VisaClassementPage.jsx';
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/performance" element={<PerformancePage />} />
           <Route path="/visa" element={<VisaGuidePage />} />
           <Route path="/visa/classement" element={<VisaClassementPage />} />
           <Route path="/visa/modeles" element={<VisaModelesPage />} />

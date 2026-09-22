@@ -14,6 +14,7 @@ import {
   BK,
   AR,
   LR,
+  KPI,
 } from './config.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
@@ -972,6 +973,34 @@ export async function updateBooking(recordId, input) {
 export async function deleteBooking(recordId) {
   await airtableWrite('DELETE', `${BASE_ID}/${TABLES.bookings}/${recordId}`);
   return recordId;
+}
+
+// ─── KPIs (funnel snapshots) ────────────────────────────────────────────────
+
+const KPI_FIELDS = Object.values(KPI);
+
+function normalizeKpiSnapshot(record) {
+  const f = record.fields || {};
+  return {
+    id: record.id,
+    date: f[KPI.createdTime] || record.createdTime,
+    totalProspect: f[KPI.totalProspect] ?? 0,
+    admitted: f[KPI.admitted] ?? 0,
+    lost: f[KPI.lost] ?? 0,
+    lead: f[KPI.lead] ?? 0,
+    prospect: f[KPI.prospect] ?? 0,
+    candidate: f[KPI.candidate] ?? 0,
+    student: f[KPI.student] ?? 0,
+  };
+}
+
+// Snapshots come back in Airtable insertion order, not chronological — sort
+// ascending by date so trend charts can plot them directly.
+export async function fetchKpiSnapshots() {
+  const records = await fetchAll(TABLES.kpis, KPI_FIELDS);
+  return records
+    .map(normalizeKpiSnapshot)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
 // ─── Proposal Italy → Prospects + linked Academic / Language Records ───────

@@ -13,6 +13,20 @@ export const TABLES = {
   bookings: 'tblYHIcXwoMupWnaC',
   academicRecords: 'tblCtnGCzWizzBaJM',
   languageRecords: 'tbl42QCqaRliEW3CN',
+  kpis: 'tblKH18HxeyAND7Ew',
+};
+
+// KPIS table field IDs — periodic snapshots of the prospect funnel, written by
+// an Airtable automation (not editable from this app).
+export const KPI = {
+  createdTime: 'fldRDBsAHkFRd8m5V', // "Date de création"
+  totalProspect: 'fldk1g3NRoclmymOZ',
+  admitted: 'fldY92Vy5qud99dNS',
+  lost: 'fld7ibMU4zJU2EYGx',
+  lead: 'fldhaGEHXOJm36RwJ',
+  prospect: 'fldYHZZYWbjATt5q2',
+  candidate: 'fldHGW6DC15PHm66S',
+  student: 'fld7gR8dnERNTw8EF',
 };
 
 // Prospects table field IDs
