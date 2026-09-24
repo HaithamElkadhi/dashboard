@@ -276,6 +276,7 @@ export default function FinancePage() {
             <PaiementsTable
               paiements={paiements}
               loading={loading && paiements.length === 0}
+              purposeChoices={purposeChoices}
               onEdit={(p) => setModal({ mode: 'edit', paiement: p })}
               onDuplicate={handleDuplicate}
               onToggleConfirmed={handleToggleConfirmed}

@@ -8,7 +8,7 @@ import {
 } from '../lib/airtable.js';
 import { PURPOSE_CHOICES } from '../lib/config.js';
 
-const CACHE_KEY = 'jeexpert:finance:v1';
+const CACHE_KEY = 'jeexpert:finance:v2';
 
 function readCache() {
   try {

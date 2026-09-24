@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Badge from '../Badge.jsx';
 import Pagination from '../Pagination.jsx';
 import { formatMoney } from '../../lib/format.js';
@@ -10,6 +10,7 @@ import {
 } from '../../lib/config.js';
 import { usePagination } from '../../hooks/usePagination.js';
 import { SkeletonRows } from '../states.jsx';
+import { ChevronDownIcon, XIcon } from '../icons.jsx';
 
 function FilterPill({ label, active, onClick }) {
   return (
@@ -24,6 +25,126 @@ function FilterPill({ label, active, onClick }) {
     >
       {label}
     </button>
+  );
+}
+
+function PurposeMultiSelect({ options, selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const toggle = (value) => {
+    onChange(
+      selected.includes(value)
+        ? selected.filter((v) => v !== value)
+        : [...selected, value]
+    );
+  };
+
+  const summary =
+    selected.length === 0
+      ? 'Tous'
+      : selected.length === 1
+        ? selected[0]
+        : `${selected.length} sélectionnés`;
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`inline-flex min-w-[12rem] max-w-[18rem] items-center justify-between gap-2 rounded-xl border bg-surface px-3 py-2.5 text-sm transition ${
+          selected.length > 0
+            ? 'border-brand text-text-strong'
+            : 'border-border text-text-strong hover:border-border-strong'
+        }`}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-text-muted">Purpose</span>
+          <span className="truncate font-medium">{summary}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {selected.length > 0 && (
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="Effacer"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange([]);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange([]);
+                }
+              }}
+              className="rounded p-0.5 text-text-muted hover:bg-canvas hover:text-text-strong"
+            >
+              <XIcon size={12} />
+            </span>
+          )}
+          <ChevronDownIcon size={14} className="text-text-muted" />
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 z-20 mt-1.5 w-72 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2">
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="text-xs font-medium text-text-muted hover:text-text-strong"
+            >
+              Tout effacer
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange([...options])}
+              className="text-xs font-medium text-text-muted hover:text-text-strong"
+            >
+              Tout sélectionner
+            </button>
+          </div>
+          <ul className="max-h-60 overflow-y-auto scroll-thin py-1">
+            {options.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-text-muted">Aucune option</li>
+            ) : (
+              options.map((opt) => (
+                <li key={opt}>
+                  <label className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-text-strong hover:bg-canvas">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(opt)}
+                      onChange={() => toggle(opt)}
+                      className="h-4 w-4 rounded border-border-strong accent-current"
+                    />
+                    <span className="min-w-0 break-words">{opt}</span>
+                  </label>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -110,12 +231,14 @@ function TotalsCell({ rows, pick }) {
 export default function PaiementsTable({
   paiements,
   loading,
+  purposeChoices = [],
   onEdit,
   onDuplicate,
   onToggleConfirmed,
 }) {
   const [status, setStatus] = useState('All');
   const [currency, setCurrency] = useState('All');
+  const [purposeFilter, setPurposeFilter] = useState([]);
   const [confirmedOnly, setConfirmedOnly] = useState('All');
   const [moezOnly, setMoezOnly] = useState(false);
   const [query, setQuery] = useState('');
@@ -128,6 +251,28 @@ export default function PaiementsTable({
     return () => clearTimeout(t);
   }, [query]);
 
+  // Schema choices + any purpose values present in data but not yet in schema.
+  const purposeOptions = useMemo(() => {
+    const seen = new Set(purposeChoices);
+    const extras = [];
+    for (const p of paiements) {
+      for (const label of p.purpose || []) {
+        if (label && !seen.has(label)) {
+          seen.add(label);
+          extras.push(label);
+        }
+      }
+    }
+    return [...purposeChoices, ...extras];
+  }, [purposeChoices, paiements]);
+
+  // Drop selections that no longer exist after an Airtable refresh.
+  useEffect(() => {
+    setPurposeFilter((prev) =>
+      prev.filter((p) => purposeOptions.includes(p))
+    );
+  }, [purposeOptions]);
+
   const filtered = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     return paiements.filter((p) => {
@@ -137,6 +282,12 @@ export default function PaiementsTable({
       if (confirmedOnly === 'Non confirmé' && p.soldeConfirme) return false;
       if (moezOnly && (!p.moezType || p.moezType === 'Aucune')) return false;
       if (
+        purposeFilter.length > 0 &&
+        !purposeFilter.some((label) => (p.purpose || []).includes(label))
+      ) {
+        return false;
+      }
+      if (
         q &&
         !p.fullName.toLowerCase().includes(q) &&
         !p.reference.toLowerCase().includes(q)
@@ -145,7 +296,15 @@ export default function PaiementsTable({
       }
       return true;
     });
-  }, [paiements, status, currency, confirmedOnly, moezOnly, debouncedQuery]);
+  }, [
+    paiements,
+    status,
+    currency,
+    confirmedOnly,
+    moezOnly,
+    purposeFilter,
+    debouncedQuery,
+  ]);
 
   const sorted = useMemo(
     () => sortRows(filtered, sortKey, sortDir),
@@ -154,8 +313,18 @@ export default function PaiementsTable({
 
   const resetKey = useMemo(
     () =>
-      `${status}|${currency}|${confirmedOnly}|${moezOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
-    [status, currency, confirmedOnly, moezOnly, debouncedQuery, sortKey, sortDir, sorted]
+      `${status}|${currency}|${purposeFilter.join(',')}|${confirmedOnly}|${moezOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
+    [
+      status,
+      currency,
+      purposeFilter,
+      confirmedOnly,
+      moezOnly,
+      debouncedQuery,
+      sortKey,
+      sortDir,
+      sorted,
+    ]
   );
   const pagination = usePagination(sorted, { resetKey });
   const visible = loading ? [] : pagination.pageItems;
@@ -208,6 +377,12 @@ export default function PaiementsTable({
             className="w-full rounded-xl border border-border bg-surface py-2.5 pl-9 pr-3 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong"
           />
         </div>
+
+        <PurposeMultiSelect
+          options={purposeOptions}
+          selected={purposeFilter}
+          onChange={setPurposeFilter}
+        />
 
         <div className="flex items-center gap-1.5">
           <label className="text-sm text-text-muted" htmlFor="paiements-sort">
