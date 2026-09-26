@@ -24,11 +24,6 @@ const YES_NO_LABELS = { yes: 'Yes', no: 'No' };
 
 const GUARANTOR_LABELS = { self: 'Self', parent: 'Parent', relative: 'Relative', sponsor: 'Sponsor' };
 
-const APP_FEES_PREF_LABELS = {
-  separate: 'I can pay application fees separately',
-  'include-in-service': 'I prefer to include them in the service',
-};
-
 function row(label, value) {
   if (!value?.trim()) return '';
   return `
@@ -99,7 +94,6 @@ export function buildProposalEmailBody(data) {
     row('Financial support from abroad', prefs.hasAbroadSupport ? (YES_NO_LABELS[prefs.hasAbroadSupport] || prefs.hasAbroadSupport) : ''),
     row('Abroad support details', prefs.abroadSupportDetails),
     row('Financial guarantor', prefs.financialGuarantor ? (GUARANTOR_LABELS[prefs.financialGuarantor] || prefs.financialGuarantor) : ''),
-    row('Application fees preference', prefs.applicationFeesPreference ? (APP_FEES_PREF_LABELS[prefs.applicationFeesPreference] || prefs.applicationFeesPreference) : ''),
     row('Available budget', prefs.projectBudget),
     row('City preference', prefs.cityPreferenceType ? (CITY_LABELS[prefs.cityPreferenceType] || prefs.cityPreferenceType) : ''),
     row('Preferred city / university', prefs.preferredCityUniversity),

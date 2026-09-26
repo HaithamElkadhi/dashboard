@@ -20,11 +20,6 @@ const FINANCIAL_GUARANTOR_OPTIONS = [
   { value: 'sponsor', label: 'Sponsor' },
 ];
 
-const APPLICATION_FEES_PREFERENCE_OPTIONS = [
-  { value: 'separate', label: 'I can pay application fees separately' },
-  { value: 'include-in-service', label: 'Include fees in the service package' },
-];
-
 export default function FinancialSituationSection({ data, onChange }) {
   return (
     <Card accent="from-emerald-600 to-teal-400">
@@ -98,16 +93,6 @@ export default function FinancialSituationSection({ data, onChange }) {
         )}
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <FieldLabel>Application fees preference</FieldLabel>
-            <Select
-              options={APPLICATION_FEES_PREFERENCE_OPTIONS}
-              placeholder="Select preference"
-              value={data.applicationFeesPreference || ''}
-              onChange={(e) => onChange({ ...data, applicationFeesPreference: e.target.value })}
-            />
-          </div>
-
           <div className="space-y-1.5">
             <FieldLabel>Available budget (€)</FieldLabel>
             <TextInput

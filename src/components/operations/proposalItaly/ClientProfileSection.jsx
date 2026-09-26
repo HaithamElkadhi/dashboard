@@ -1,5 +1,9 @@
-import { GraduationCapIcon } from '../../icons.jsx';
-import { Card, CardHeader, FieldLabel, PillButton, Select, SectionTitle, TextInput } from './shared.jsx';
+import { GraduationCapIcon, RefreshIcon } from '../../icons.jsx';
+import {
+  buildAcademicDescription,
+  buildLanguageDescription,
+} from '../../../lib/proposalItaly/recordDescriptions.js';
+import { Card, CardHeader, FieldLabel, PillButton, Select, SectionTitle, TextArea, TextInput } from './shared.jsx';
 
 const CURRENT_STATUS_OPTIONS = [
   { value: 'Student', label: 'Student' },
@@ -36,6 +40,35 @@ const LANGUAGE_OPTIONS = ['English', 'French', 'Italian', 'Spanish', 'German', '
 const LANGUAGE_LEVEL_OPTIONS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'];
 const LANGUAGE_CERTIFICATE_OPTIONS = ['IELTS', 'TOEFL', 'TOEIC', 'Cambridge', 'Duolingo', 'DELF', 'DALF', 'None'];
 
+// Editable summary of the records above it. Filled automatically whenever the
+// records change (or with what's already saved on the prospect in Airtable);
+// "Regenerate" rebuilds it from the records after a manual edit.
+function DescriptionField({ label, value, onChange, onRegenerate, canRegenerate }) {
+  return (
+    <div className="mt-4 space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <FieldLabel>{label}</FieldLabel>
+        {canRegenerate && (
+          <button
+            type="button"
+            onClick={onRegenerate}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-text-muted transition hover:bg-canvas hover:text-text-strong"
+          >
+            <RefreshIcon size={12} />
+            Regenerate
+          </button>
+        )}
+      </div>
+      <TextArea
+        rows={3}
+        placeholder="Generated from the records above — saved to Airtable"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export default function ClientProfileSection({ data, onChange }) {
   const selectedDiplomas = Array.isArray(data.obtainedDiploma) ? data.obtainedDiploma : [];
   const selectedLanguages = Array.isArray(data.languages) ? data.languages : [];
@@ -44,7 +77,7 @@ export default function ClientProfileSection({ data, onChange }) {
 
   const updateAcademicRecord = (idx, key, value) => {
     const next = academicRecords.map((record, i) => (i === idx ? { ...record, [key]: value } : record));
-    onChange({ ...data, academicRecords: next });
+    onChange({ ...data, academicRecords: next, academicDescription: buildAcademicDescription(next) });
   };
 
   const toggleObtainedDiploma = (diploma) => {
@@ -53,7 +86,12 @@ export default function ClientProfileSection({ data, onChange }) {
       : [...selectedDiplomas, diploma];
     const map = new Map(academicRecords.map((r) => [r.diploma, r]));
     const nextRecords = nextSelected.map((d) => map.get(d) || { diploma: d, score: '', maxScore: '' });
-    onChange({ ...data, obtainedDiploma: nextSelected, academicRecords: nextRecords });
+    onChange({
+      ...data,
+      obtainedDiploma: nextSelected,
+      academicRecords: nextRecords,
+      academicDescription: buildAcademicDescription(nextRecords),
+    });
   };
 
   const computeGpa = (score, maxScore) => {
@@ -69,12 +107,17 @@ export default function ClientProfileSection({ data, onChange }) {
       : [...selectedLanguages, language];
     const map = new Map(languageRecords.map((r) => [r.language, r]));
     const nextRecords = nextSelected.map((lang) => map.get(lang) || { language: lang, level: '', certificate: '' });
-    onChange({ ...data, languages: nextSelected, languageRecords: nextRecords });
+    onChange({
+      ...data,
+      languages: nextSelected,
+      languageRecords: nextRecords,
+      languageDescription: buildLanguageDescription(nextRecords),
+    });
   };
 
   const updateLanguageRecord = (idx, key, value) => {
     const next = languageRecords.map((record, i) => (i === idx ? { ...record, [key]: value } : record));
-    onChange({ ...data, languageRecords: next });
+    onChange({ ...data, languageRecords: next, languageDescription: buildLanguageDescription(next) });
   };
 
   return (
@@ -176,6 +219,16 @@ export default function ClientProfileSection({ data, onChange }) {
           </div>
         )}
 
+        <DescriptionField
+          label="Academic Record Description"
+          value={data.academicDescription || ''}
+          onChange={(academicDescription) => onChange({ ...data, academicDescription })}
+          canRegenerate={academicRecords.length > 0}
+          onRegenerate={() =>
+            onChange({ ...data, academicDescription: buildAcademicDescription(academicRecords) })
+          }
+        />
+
         <div>
           <SectionTitle>Study History</SectionTitle>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -254,6 +307,16 @@ export default function ClientProfileSection({ data, onChange }) {
               ))}
             </div>
           )}
+
+          <DescriptionField
+            label="Language Record Description"
+            value={data.languageDescription || ''}
+            onChange={(languageDescription) => onChange({ ...data, languageDescription })}
+            canRegenerate={languageRecords.length > 0}
+            onRegenerate={() =>
+              onChange({ ...data, languageDescription: buildLanguageDescription(languageRecords) })
+            }
+          />
         </div>
 
         <div className="space-y-1.5">

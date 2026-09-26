@@ -12,10 +12,15 @@ import {
   ACC,
   EXP,
   BK,
-  AR,
-  LR,
   KPI,
 } from './config.js';
+import {
+  buildAcademicDescription,
+  buildLanguageDescription,
+  parseAcademicDescription,
+  parseLanguageDescription,
+} from './proposalItaly/recordDescriptions.js';
+import { emptyProposalData } from './proposalItaly/initialData.js';
 
 // All requests go through the Vite / Vercel proxy at /api/airtable, which
 // injects the Authorization header server-side. Attachment uploads use
@@ -1081,11 +1086,6 @@ const GUARANTOR_LABELS = {
 
 const YES_NO_LABELS = { yes: 'Yes', no: 'No' };
 
-const APP_FEES_LABELS = {
-  separate: 'Separate',
-  'include-in-service': 'Include in service',
-};
-
 const SERVICE_VALUE_ALIASES = {
   'Admission (1 300 DT)': 'Phase 1 — Admission (1 300 DT)',
   'Bourse (1 200 DT)': 'Phase 2 — Bourse (1 200 DT)',
@@ -1153,13 +1153,6 @@ function mapLanguages(list) {
     .filter(Boolean);
 }
 
-async function deleteRecordBatch(tableId, recordIds) {
-  const ids = (recordIds || []).filter(Boolean);
-  for (const id of ids) {
-    await airtableWrite('DELETE', `${BASE_ID}/${tableId}/${id}`);
-  }
-}
-
 async function findProspectIdByEmail(email) {
   const needle = (email || '').trim().toLowerCase();
   if (!needle) return null;
@@ -1224,6 +1217,17 @@ function toProposalProspectFields(data) {
   const langs = mapLanguages(sp.languages);
   if (langs.length) fields[PF.languages] = langs;
 
+  // Descriptions: what's in the form (auto-generated from the records, possibly
+  // edited, or loaded from Airtable); regenerated when empty, e.g. a proposal
+  // saved locally before this field existed. Never written empty, so a
+  // description already on the prospect isn't wiped.
+  const academicDescription =
+    (sp.academicDescription || '').trim() || buildAcademicDescription(sp.academicRecords);
+  if (academicDescription) fields[PF.academicRecordDescription] = academicDescription;
+  const languageDescription =
+    (sp.languageDescription || '').trim() || buildLanguageDescription(sp.languageRecords);
+  if (languageDescription) fields[PF.languageRecordDescription] = languageDescription;
+
   if ((sp.note || '').trim()) fields[PF.studentRequestNote] = sp.note.trim();
 
   const degreeLabel = mapLabel(DEGREE_LEVEL_LABELS, prefs.targetDegreeLevel);
@@ -1260,8 +1264,6 @@ function toProposalProspectFields(data) {
   if ((prefs.abroadSupportDetails || '').trim()) {
     fields[PF.abroadSupportDetails] = prefs.abroadSupportDetails.trim();
   }
-  const fees = mapLabel(APP_FEES_LABELS, prefs.applicationFeesPreference);
-  if (fees) fields[PF.applicationFeesPreference] = fees;
   if (prefs.projectBudget !== '' && prefs.projectBudget != null) {
     const n = Number(prefs.projectBudget);
     if (Number.isFinite(n)) fields[PF.availableBudget] = n;
@@ -1292,80 +1294,11 @@ async function updateProspectRecord(recordId, fields) {
   return recordId;
 }
 
-async function fetchProspectLinkedRecordIds(prospectId) {
-  const params = new URLSearchParams();
-  params.append('fields[]', PF.academicRecordsLink);
-  params.append('fields[]', PF.languageRecordsLink);
-  params.set('returnFieldsByFieldId', 'true');
-  const res = await fetch(
-    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${prospectId}?${params}`
-  );
-  if (!res.ok) await parseError(res);
-  const data = await res.json();
-  const f = data.fields || {};
-  return {
-    academicIds: asArray(f[PF.academicRecordsLink]),
-    languageIds: asArray(f[PF.languageRecordsLink]),
-  };
-}
-
-async function syncAcademicRecords(prospectId, academicRecords) {
-  const { academicIds } = await fetchProspectLinkedRecordIds(prospectId);
-  if (academicIds.length) {
-    await deleteRecordBatch(TABLES.academicRecords, academicIds);
-  }
-
-  const rows = (academicRecords || []).filter((r) => r.diploma);
-  for (const row of rows) {
-    const fields = {
-      [AR.diplomaLabel]: row.diploma || '',
-      [AR.prospect]: [prospectId],
-    };
-    // Diploma Type is singleSelect — typecast matches option by name when possible
-    if (row.diploma) fields[AR.diplomaType] = row.diploma;
-    if (row.score !== '' && row.score != null) {
-      const n = Number(row.score);
-      if (Number.isFinite(n)) fields[AR.score] = n;
-    }
-    if (row.maxScore !== '' && row.maxScore != null) {
-      const n = Number(row.maxScore);
-      if (Number.isFinite(n)) fields[AR.maxScore] = n;
-    }
-    // Never write AR.gpa — Airtable formula
-    await airtableWrite('POST', `${BASE_ID}/${TABLES.academicRecords}`, {
-      fields,
-      returnFieldsByFieldId: true,
-      typecast: true,
-    });
-  }
-}
-
-async function syncLanguageRecords(prospectId, languageRecords) {
-  const { languageIds } = await fetchProspectLinkedRecordIds(prospectId);
-  if (languageIds.length) {
-    await deleteRecordBatch(TABLES.languageRecords, languageIds);
-  }
-
-  const rows = (languageRecords || []).filter((r) => r.language);
-  for (const row of rows) {
-    const fields = {
-      [LR.language]: row.language || '',
-      [LR.prospect]: [prospectId],
-    };
-    if (row.level) fields[LR.level] = row.level;
-    if (row.certificate) fields[LR.certificate] = row.certificate;
-    await airtableWrite('POST', `${BASE_ID}/${TABLES.languageRecords}`, {
-      fields,
-      returnFieldsByFieldId: true,
-      typecast: true,
-    });
-  }
-}
-
 /**
- * Upsert a Prospect from Proposal Italy form data, then replace linked
- * Academic Records + Language Records. Full Name is formula — we write
- * Name + Surname instead. GPA is never written.
+ * Upsert a Prospect from Proposal Italy form data. Academic / language
+ * records are stored as the two description fields on the prospect (same as
+ * the /italy form) — the old linked Academic/Language Records tables no longer
+ * exist. Full Name is formula — we write Name + Surname instead.
  *
  * @returns {{ prospectRecordId: string, created: boolean }}
  */
@@ -1392,10 +1325,117 @@ export async function saveProposalToAirtable(data) {
     created = true;
   }
 
-  const sp = data.studentProfile || {};
-  await syncAcademicRecords(prospectRecordId, sp.academicRecords);
-  await syncLanguageRecords(prospectRecordId, sp.languageRecords);
-
   return { prospectRecordId, created };
+}
+
+// ─── Proposal — Italy: load a Prospect back into the form ──────────────────
+
+const norm = (v) => String(v ?? '').trim().toLowerCase();
+
+// Airtable holds either the form's own value (written by the /italy form, e.g.
+// "master") or the mapped label (written by the dashboard, e.g. "Master").
+// Returns the form value for either, or '' when nothing matches.
+function fromAirtable(map, raw, extraValues = []) {
+  const n = norm(raw);
+  if (!n) return '';
+  const hit =
+    Object.keys(map).find((k) => norm(k) === n || norm(map[k]) === n) ||
+    extraValues.find((v) => norm(v) === n);
+  return hit || '';
+}
+
+const first = (v) => (Array.isArray(v) ? v[0] : v) ?? '';
+
+/**
+ * Fetch a Prospect and map every Proposal field back to form data — the
+ * reverse of toProposalProspectFields. Academic / language rows are rebuilt
+ * from the description fields; the descriptions themselves are kept verbatim.
+ */
+export async function fetchProposalFromProspect(recordId) {
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
+  );
+  if (!res.ok) await parseError(res);
+  const f = (await res.json()).fields || {};
+  const base = emptyProposalData();
+
+  const academicDescription = f[PF.academicRecordDescription] || '';
+  const languageDescription = f[PF.languageRecordDescription] || '';
+  const parsedAcademic = parseAcademicDescription(academicDescription);
+  const parsedLanguages = parseLanguageDescription(languageDescription);
+
+  // Diplomas: the multi-select plus any diploma only mentioned in the description.
+  const diplomas = [...asArray(f[PF.obtainedDiplomas])];
+  parsedAcademic.forEach((r) => {
+    if (!diplomas.some((d) => norm(d) === norm(r.diploma))) diplomas.push(r.diploma);
+  });
+  const academicRecords = diplomas.map(
+    (d) =>
+      parsedAcademic.find((r) => norm(r.diploma) === norm(d)) || { diploma: d, score: '', maxScore: '' }
+  );
+
+  const languages = [];
+  [...asArray(f[PF.languages]), ...parsedLanguages.map((r) => r.language)].forEach((raw) => {
+    const lang = fromAirtable(LANGUAGE_LABELS, raw, ['Other']) || raw;
+    if (lang && !languages.some((l) => norm(l) === norm(lang))) languages.push(lang);
+  });
+  const languageRecords = languages.map(
+    (l) =>
+      parsedLanguages.find((r) => norm(r.language) === norm(l)) || { language: l, level: '', certificate: '' }
+  );
+
+  const fullName =
+    f[PF.fullName] || [f[PF.name], f[PF.surname]].filter(Boolean).join(' ');
+  const budget = f[PF.availableBudget];
+  const year = f[PF.yearOfGraduation];
+
+  return {
+    ...base,
+    prospectRecordId: recordId,
+    proposalDate: f[PF.proposalDate] || base.proposalDate,
+    validUntil: f[PF.validUntil] || '',
+    studentName: fullName,
+    email: f[PF.email] || '',
+    phone: f[PF.phone] || '',
+    nationality: first(f[PF.nationality]),
+    studentProfile: {
+      ...base.studentProfile,
+      currentStatus: f[PF.currentStatus] || '',
+      academicLevel: fromAirtable(ACADEMIC_LEVEL_LABELS, f[PF.lastAcademicLevel]),
+      obtainedDiploma: diplomas,
+      academicRecords,
+      academicDescription,
+      fieldOfPreviousStudies: first(f[PF.background]),
+      yearOfGraduation: year != null ? String(year) : '',
+      currentOccupation: f[PF.currentOccupation] || '',
+      languages,
+      languageRecords,
+      languageDescription,
+      note: f[PF.studentRequestNote] || '',
+    },
+    studyPreferences: {
+      ...base.studyPreferences,
+      targetDegreeLevel: fromAirtable(DEGREE_LEVEL_LABELS, first(f[PF.entryLevel]), [
+        'researcher',
+        'formation-prof',
+      ]),
+      intendedIntake: fromAirtable(INTAKE_LABELS, first(f[PF.intendedIntake]), ['Flexible']),
+      fieldOfStudyPrimary: f[PF.primaryFieldOfStudy] || '',
+      alternativeField: f[PF.alternativeField] || '',
+      programLanguages: asArray(f[PF.programLanguages]),
+      cityPreferenceType: fromAirtable(CITY_PREFERENCE_LABELS, f[PF.cityPreferenceType]),
+      preferredCityUniversity: f[PF.preferredCityUniversity] || '',
+      financingPlan: fromAirtable(FINANCING_LABELS, f[PF.financingPlan]),
+      financialGuarantor: fromAirtable(GUARANTOR_LABELS, f[PF.financialGuarantor]),
+      blockedAccount: fromAirtable(YES_NO_LABELS, f[PF.blockedAccount]),
+      hasAbroadSupport: fromAirtable(YES_NO_LABELS, f[PF.supportFromAbroad]),
+      abroadSupportDetails: f[PF.abroadSupportDetails] || '',
+      projectBudget: budget != null ? String(budget) : '',
+    },
+    services: {
+      selected: normalizeSelectedServices(asArray(f[PF.selectedServices])),
+      note: f[PF.servicesNote] || '',
+    },
+  };
 }
 

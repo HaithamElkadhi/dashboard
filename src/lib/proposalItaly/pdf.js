@@ -166,10 +166,6 @@ export async function generateProposalItalyPDF(data) {
   };
   const yesNoLabels = { yes: 'Yes', no: 'No' };
   const guarantorLabels = { self: 'Self', parent: 'Parent', relative: 'Relative', sponsor: 'Sponsor' };
-  const appFeesPrefLabels = {
-    separate: 'I can pay application fees separately',
-    'include-in-service': 'I prefer to include them in the service',
-  };
 
   const sp1 = Math.max(
     drawField('Target Degree Level', sp.targetDegreeLevel ? degreeLabels[sp.targetDegreeLevel] || sp.targetDegreeLevel : '-', 0),
@@ -203,11 +199,9 @@ export async function generateProposalItalyPDF(data) {
   y += sp7 + 2;
   const sp8 = Math.max(
     drawField('Financial Guarantor', sp.financialGuarantor ? guarantorLabels[sp.financialGuarantor] || sp.financialGuarantor : '-', 0),
-    drawField('Application Fees Preference', sp.applicationFeesPreference ? appFeesPrefLabels[sp.applicationFeesPreference] || sp.applicationFeesPreference : '-', contentWidth / 2)
+    drawField('Available Budget', sp.projectBudget || '-', contentWidth / 2)
   );
   y += sp8 + 2;
-  const sp9 = drawField('Available Budget', sp.projectBudget || '-', 0, contentWidth);
-  y += sp9 + 2;
   const sp10 = drawField(
     'City Preference Type',
     sp.cityPreferenceType ? cityLabels[sp.cityPreferenceType] || sp.cityPreferenceType : '-',

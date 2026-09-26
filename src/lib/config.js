@@ -11,8 +11,6 @@ export const TABLES = {
   accounts: 'tblEQbtTmVkMlTbUV',
   expenses: 'tblrpf0nxZNlNftME',
   bookings: 'tblYHIcXwoMupWnaC',
-  academicRecords: 'tblCtnGCzWizzBaJM',
-  languageRecords: 'tbl42QCqaRliEW3CN',
   kpis: 'tblKH18HxeyAND7Ew',
 };
 
@@ -78,34 +76,12 @@ export const PF = {
   blockedAccount: 'fldjhqSyAPCnznYAs',
   supportFromAbroad: 'fldqst8OaoMhb9xTJ',
   abroadSupportDetails: 'fld0i1plGROk8Dq1X',
-  applicationFeesPreference: 'fldqVPDvlVxc3tBrh',
   availableBudget: 'fldLQp9TJZTDadP6L',
   selectedServices: 'fld6WnYXTMlgzsQl3',
   servicesNote: 'fldpvCWSHQtq5dzaF',
-  academicRecordsLink: 'fld0mWoMtx4Z6u1Vh',
-  languageRecordsLink: 'fldbPlVxTxmeV4dDY',
-};
-
-// Academic Records linked table (GPA is formula — never write)
-export const AR = {
-  diplomaLabel: 'fldm4wyfXtBOIwQiJ',
-  diplomaType: 'fldwE9TO6sCj51ENw',
-  fieldOfStudy: 'fldqU3whEyVtXaxqr',
-  institution: 'fldt7xm17wHTw2ItW',
-  year: 'fldenXwRz7pVm2XA5',
-  score: 'fldIKkTOrFsJ62QFP',
-  maxScore: 'flds4nRBOkGmuFzk9',
-  gpa: 'fldtDiVPlmmwiXYE3', // formula — read-only
-  prospect: 'fldnJFKbSy1R2ek9b',
-};
-
-// Language Records linked table
-export const LR = {
-  language: 'fldvKQTXGw7j43NVY',
-  level: 'fldGwllymFyoHr1Cq',
-  certificate: 'fldKHX4Qml0SpCoF3',
-  score: 'fldREJB1GpUzx5dP2',
-  prospect: 'fldT2FDuPBPQowYOF',
+  // Long-text summaries of the linked records (same fields the /italy form writes)
+  academicRecordDescription: 'fldgGMhu1oFDV8YbF',
+  languageRecordDescription: 'flduGDlcArGZHrWOA',
 };
 
 // Accounts table field IDs (student portal credentials: Universitaly,

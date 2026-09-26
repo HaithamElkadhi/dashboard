@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '../../components/Modal.jsx';
 import ProposalHeader from '../../components/operations/proposalItaly/ProposalHeader.jsx';
@@ -7,22 +7,20 @@ import ClientProfileSection from '../../components/operations/proposalItaly/Clie
 import StudyPreferencesSection from '../../components/operations/proposalItaly/StudyPreferencesSection.jsx';
 import FinancialSituationSection from '../../components/operations/proposalItaly/FinancialSituationSection.jsx';
 import ServicesSection from '../../components/operations/proposalItaly/ServicesSection.jsx';
+import ProspectSearchModal from '../../components/operations/proposalItaly/ProspectSearchModal.jsx';
 import { emptyProposalData } from '../../lib/proposalItaly/initialData.js';
 import { generateProposalItalyPDF } from '../../lib/proposalItaly/pdf.js';
 import { buildProposalEmailBody } from '../../lib/proposalItaly/emailBody.js';
-import { saveProposalToAirtable } from '../../lib/airtable.js';
+import { fetchProposalFromProspect, saveProposalToAirtable } from '../../lib/airtable.js';
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
   DownloadIcon,
-  HistoryIcon,
   EyeIcon,
   MailIcon,
   SaveIcon,
-  TrashIcon,
+  SearchIcon,
 } from '../../components/icons.jsx';
-
-const HISTORY_KEY = 'jeexpert:proposalItaly:history';
 
 const FORM_SECTIONS = [
   { id: 'proposal-info', label: 'Proposal Info' },
@@ -33,44 +31,23 @@ const FORM_SECTIONS = [
   { id: 'services', label: 'Services' },
 ];
 
-function loadHistory() {
-  try {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(items) {
-  try {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
-  } catch {
-    /* best-effort local persistence only */
-  }
-}
-
 export default function ProposalItalyPage() {
   const [data, setData] = useState(emptyProposalData);
   const [generating, setGenerating] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
-  const [history, setHistory] = useState([]);
   const [savingAirtable, setSavingAirtable] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [loadingProspect, setLoadingProspect] = useState(false);
+  const [loadedProspect, setLoadedProspect] = useState(null); // name shown in the banner
   const [emailForm, setEmailForm] = useState({
     fullName: '',
     email: '',
     cc: 'contact@jeexpert-study.com',
     subject: 'Your Study Proposal – Jeexpert',
   });
-
-  useEffect(() => {
-    setHistory(loadHistory());
-  }, []);
 
   const updateData = (updates) => setData((prev) => ({ ...prev, ...updates }));
 
@@ -84,14 +61,6 @@ export default function ProposalItalyPage() {
   ];
   const completedSections = completionChecks.filter(Boolean).length;
 
-  const handleSaveLocal = () => {
-    const item = { id: `${Date.now()}`, savedAt: new Date().toISOString(), data };
-    const next = [item, ...history].slice(0, 100);
-    setHistory(next);
-    saveHistory(next);
-    window.alert('Proposal saved locally.');
-  };
-
   const handleSaveAirtable = async () => {
     if (!data.studentName?.trim() || !data.email?.trim()) {
       window.alert('Please fill in Student Name and Email first.');
@@ -101,14 +70,6 @@ export default function ProposalItalyPage() {
     try {
       const result = await saveProposalToAirtable(data);
       setData((prev) => ({ ...prev, prospectRecordId: result.prospectRecordId }));
-      const item = {
-        id: `${Date.now()}`,
-        savedAt: new Date().toISOString(),
-        data: { ...data, prospectRecordId: result.prospectRecordId },
-      };
-      const next = [item, ...history].slice(0, 100);
-      setHistory(next);
-      saveHistory(next);
       window.alert(
         result.created
           ? 'Prospect created in Airtable and proposal saved.'
@@ -121,15 +82,19 @@ export default function ProposalItalyPage() {
     }
   };
 
-  const handleLoad = (item) => {
-    setData(item.data);
-    setHistoryOpen(false);
-  };
-
-  const handleDelete = (id) => {
-    const next = history.filter((item) => item.id !== id);
-    setHistory(next);
-    saveHistory(next);
+  // Replaces the whole form with the prospect's data from Airtable.
+  const handleSelectProspect = async (prospect) => {
+    setSearchOpen(false);
+    setLoadingProspect(true);
+    try {
+      const loaded = await fetchProposalFromProspect(prospect.id);
+      setData(loaded);
+      setLoadedProspect(loaded.studentName || prospect.fullName);
+    } catch (err) {
+      window.alert(err.message || 'Failed to load the prospect from Airtable.');
+    } finally {
+      setLoadingProspect(false);
+    }
   };
 
   const handleGeneratePdf = async () => {
@@ -206,27 +171,21 @@ export default function ProposalItalyPage() {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
+            onClick={() => setSearchOpen(true)}
+            disabled={loadingProspect}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong disabled:opacity-60"
+          >
+            <SearchIcon size={14} />
+            {loadingProspect ? 'Loading…' : 'Search Prospect'}
+          </button>
+          <button
+            type="button"
             onClick={handleSaveAirtable}
             disabled={savingAirtable}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
           >
             <SaveIcon size={14} />
             {savingAirtable ? 'Saving…' : 'Save to Airtable'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveLocal}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong"
-          >
-            Save locally
-          </button>
-          <button
-            type="button"
-            onClick={() => setHistoryOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong"
-          >
-            <HistoryIcon size={14} />
-            History
           </button>
           <button
             type="button"
@@ -254,6 +213,13 @@ export default function ProposalItalyPage() {
             {generating ? 'Generating…' : 'Generate PDF'}
           </button>
         </div>
+
+        {loadedProspect && (
+          <p className="mb-3 flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
+            <CheckCircleIcon size={13} />
+            Loaded from Airtable: <span className="font-semibold">{loadedProspect}</span>
+          </p>
+        )}
 
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-text-strong">Proposal Progress</p>
@@ -309,36 +275,8 @@ export default function ProposalItalyPage() {
         </div>
       </div>
 
-      {historyOpen && (
-        <Modal title="Saved proposals" subtitle="Saved on this device only. Click to load." onClose={() => setHistoryOpen(false)}>
-          {history.length === 0 && (
-            <p className="p-4 text-center text-sm text-text-muted">No saved proposals yet.</p>
-          )}
-          <div className="space-y-2">
-            {history.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 transition hover:bg-canvas"
-              >
-                <button type="button" onClick={() => handleLoad(item)} className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-sm font-semibold text-text-strong">
-                    {item.data.studentName || 'Untitled'}
-                  </p>
-                  <p className="truncate text-xs text-text-muted">
-                    {item.data.email || 'No email'} · {new Date(item.savedAt).toLocaleString()}
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id)}
-                  className="rounded-lg p-1.5 text-text-muted transition hover:bg-red-50 hover:text-red-600"
-                >
-                  <TrashIcon size={15} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </Modal>
+      {searchOpen && (
+        <ProspectSearchModal onSelect={handleSelectProspect} onClose={() => setSearchOpen(false)} />
       )}
 
       {previewOpen && (
