@@ -7,7 +7,43 @@ import { computeMoezAmount } from '../../lib/airtable.js';
 import { CURRENCIES, PAYMENT_STATUSES } from '../../lib/config.js';
 import { usePagination } from '../../hooks/usePagination.js';
 import { SkeletonRows } from '../states.jsx';
-import { ChevronDownIcon, XIcon } from '../icons.jsx';
+import {
+  ChevronDownIcon,
+  CopyIcon,
+  FileTextIcon,
+  PencilIcon,
+  ReceiptIcon,
+  TrashIcon,
+  XIcon,
+} from '../icons.jsx';
+
+// Compact row action: icon-only button (or link) with a hover/focus tooltip.
+function ActionIcon({ label, to, onClick, danger = false, children }) {
+  const className = `group relative inline-flex h-8 w-8 items-center justify-center rounded-lg border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+    danger
+      ? 'border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50'
+      : 'border-border text-text-muted hover:border-border-strong hover:text-text-strong'
+  }`;
+  const tooltip = (
+    <span
+      role="tooltip"
+      className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+    >
+      {label}
+    </span>
+  );
+  return to ? (
+    <Link to={to} aria-label={label} className={className}>
+      {children}
+      {tooltip}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} aria-label={label} className={className}>
+      {children}
+      {tooltip}
+    </button>
+  );
+}
 
 function MultiSelectFilter({ label, options, selected, onChange }) {
   const [open, setOpen] = useState(false);
@@ -225,6 +261,8 @@ export default function PaiementsTable({
   const [currencyFilter, setCurrencyFilter] = useState([]);
   const [purposeFilter, setPurposeFilter] = useState([]);
   const [moezOnly, setMoezOnly] = useState(false);
+  // The Comm. Moez column only shows while the "Commission Moez" filter is on.
+  const columnCount = moezOnly ? 10 : 9;
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [sortKey, setSortKey] = useState('none');
@@ -403,7 +441,7 @@ export default function PaiementsTable({
                 <th className="px-4 py-2.5 font-medium">Purpose</th>
                 <th className="px-4 py-2.5 font-medium">Montant</th>
                 <th className="px-4 py-2.5 font-medium">Taxe %</th>
-                <th className="px-4 py-2.5 font-medium">Comm. Moez</th>
+                {moezOnly && <th className="px-4 py-2.5 font-medium">Comm. Moez</th>}
                 <th className="px-4 py-2.5 font-medium">Net</th>
                 <th className="px-4 py-2.5 font-medium">Statut</th>
                 <th className="px-4 py-2.5 font-medium">Confirmé</th>
@@ -412,10 +450,10 @@ export default function PaiementsTable({
             </thead>
             <tbody>
               {loading ? (
-                <SkeletonRows rows={8} cols={11} />
+                <SkeletonRows rows={8} cols={columnCount} />
               ) : sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-10 text-center text-sm text-text-muted">
+                  <td colSpan={columnCount} className="px-4 py-10 text-center text-sm text-text-muted">
                     Aucun paiement trouvé
                   </td>
                 </tr>
@@ -441,7 +479,7 @@ export default function PaiementsTable({
                         {formatMoney(p.amount, p.currency)}
                       </td>
                       <td className="px-4 py-3 tabular-nums">{p.taxe || 0}%</td>
-                      <td className="px-4 py-3">{moezCell(p)}</td>
+                      {moezOnly && <td className="px-4 py-3">{moezCell(p)}</td>}
                       <td className="px-4 py-3 font-semibold tabular-nums">
                         {formatMoney(p.netARecevoir, p.currency)}
                       </td>
@@ -457,40 +495,28 @@ export default function PaiementsTable({
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-1.5">
-                          <Link
+                        <div className="flex gap-1">
+                          <ActionIcon
+                            label="Facture"
                             to={`/finance/paiements/${p.id}/document?type=invoice`}
-                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-brand transition hover:border-border-strong"
                           >
-                            Facture
-                          </Link>
-                          <Link
+                            <FileTextIcon size={15} />
+                          </ActionIcon>
+                          <ActionIcon
+                            label="Reçu"
                             to={`/finance/paiements/${p.id}/document?type=receipt`}
-                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-brand transition hover:border-border-strong"
                           >
-                            Reçu
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => onEdit(p)}
-                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
-                          >
-                            Éditer
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDuplicate(p)}
-                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
-                          >
-                            Dupliquer
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDelete(p)}
-                            className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50"
-                          >
-                            Supprimer
-                          </button>
+                            <ReceiptIcon size={15} />
+                          </ActionIcon>
+                          <ActionIcon label="Éditer" onClick={() => onEdit(p)}>
+                            <PencilIcon size={15} />
+                          </ActionIcon>
+                          <ActionIcon label="Dupliquer" onClick={() => onDuplicate(p)}>
+                            <CopyIcon size={15} />
+                          </ActionIcon>
+                          <ActionIcon label="Supprimer" danger onClick={() => onDelete(p)}>
+                            <TrashIcon size={15} />
+                          </ActionIcon>
                         </div>
                       </td>
                     </tr>
@@ -509,12 +535,14 @@ export default function PaiementsTable({
                     <TotalsCell rows={filtered} pick={(r) => r.amount} />
                   </td>
                   <td className="px-4 py-2.5" />
-                  <td className="px-4 py-2.5">
-                    <TotalsCell
-                      rows={filtered.filter((r) => r.soldeConfirme)}
-                      pick={(r) => r.commissionMoez}
-                    />
-                  </td>
+                  {moezOnly && (
+                    <td className="px-4 py-2.5">
+                      <TotalsCell
+                        rows={filtered.filter((r) => r.soldeConfirme)}
+                        pick={(r) => r.commissionMoez}
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-2.5">
                     <TotalsCell rows={filtered} pick={(r) => r.netARecevoir} />
                   </td>

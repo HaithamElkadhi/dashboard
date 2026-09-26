@@ -526,3 +526,22 @@ export function FileCheckIcon(props) {
     </Svg>
   );
 }
+
+export function FileTextIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h6M9 9h1" />
+    </Svg>
+  );
+}
+
+export function ReceiptIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M5 3v18l2.5-1.5L10 21l2-1.5 2 1.5 2.5-1.5L19 21V3l-2.5 1.5L14 3l-2 1.5L10 3 7.5 4.5 5 3z" />
+      <path d="M9 9h6M9 13h6" />
+    </Svg>
+  );
+}
