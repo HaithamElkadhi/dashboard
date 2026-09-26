@@ -65,7 +65,7 @@ function currencyTotalsLabel(rows, pick) {
   return entries.map(([cur, val]) => formatMoney(val, cur)).join(' · ');
 }
 
-function MoezRow({ p, onSave }) {
+function MoezRow({ p, onSave, moezTypeChoices }) {
   const [editing, setEditing] = useState(false);
   const [type, setType] = useState(p.moezType || 'Aucune');
   const [value, setValue] = useState(String(p.moezValeur ?? ''));
@@ -100,7 +100,7 @@ function MoezRow({ p, onSave }) {
             onChange={(e) => setType(e.target.value)}
             className="rounded-lg border border-border bg-surface px-1.5 py-1 text-xs"
           >
-            {MOEZ_TYPES.map((t) => (
+            {(moezTypeChoices.includes(type) ? moezTypeChoices : [...moezTypeChoices, type]).map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
@@ -154,7 +154,11 @@ function MoezRow({ p, onSave }) {
   );
 }
 
-export default function CommissionsView({ paiements, onUpdateMoez }) {
+export default function CommissionsView({
+  paiements,
+  onUpdateMoez,
+  moezTypeChoices = MOEZ_TYPES,
+}) {
   const moezActive = useMemo(
     () => paiements.filter((p) => p.soldeConfirme && p.moezType && p.moezType !== 'Aucune'),
     [paiements]
@@ -231,7 +235,7 @@ export default function CommissionsView({ paiements, onUpdateMoez }) {
             <>
               <ul className="mt-2 divide-y divide-border px-4 sm:px-5">
                 {moezPagination.pageItems.map((p) => (
-                  <MoezRow key={p.id} p={p} onSave={onUpdateMoez} />
+                  <MoezRow key={p.id} p={p} onSave={onUpdateMoez} moezTypeChoices={moezTypeChoices} />
                 ))}
               </ul>
               <Pagination

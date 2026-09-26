@@ -7,7 +7,7 @@ import ProspectEditModal from '../components/prospects/ProspectEditModal.jsx';
 import ScholarshipModal from '../components/prospects/ScholarshipModal.jsx';
 import Toast from '../components/Toast.jsx';
 import { ErrorState } from '../components/states.jsx';
-import { SITUATION_CHOICES } from '../lib/config.js';
+import { SITUATION_CHOICES, ADMITTED_SITUATION } from '../lib/config.js';
 import { chipStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
 import { RefreshIcon, SearchIcon } from '../components/icons.jsx';
@@ -106,7 +106,7 @@ export default function ProspectsPage() {
   const kpis = useMemo(() => {
     let admis = 0;
     for (const p of prospects) {
-      if (p.situations.includes('Admitted')) admis += 1;
+      if (p.situations.includes(ADMITTED_SITUATION)) admis += 1;
     }
     return { total: prospects.length, admis };
   }, [prospects]);

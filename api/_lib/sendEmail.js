@@ -21,9 +21,22 @@ function buildHtml(rawBody) {
     .join('');
 }
 
+// [{ filename, content }] where content is base64 (optionally a data: URI) —
+// used to attach generated PDFs (Finance → Facture / Reçu).
+function parseAttachments(value) {
+  if (!Array.isArray(value)) return undefined;
+  const list = value
+    .filter((a) => a && typeof a.content === 'string' && a.content.trim())
+    .map((a) => ({
+      filename: String(a.filename || 'attachment.pdf').trim() || 'attachment.pdf',
+      content: Buffer.from(a.content.replace(/^data:[^;]+;[^,]*,/, ''), 'base64'),
+    }));
+  return list.length ? list : undefined;
+}
+
 // Returns { status, body } — caller just writes both to its response.
 export async function sendProposalEmail(
-  { toName, toEmail, cc, subject, body, fromKey },
+  { toName, toEmail, cc, subject, body, fromKey, attachments },
   env = process.env
 ) {
   const apiKey = env.RESEND_API_KEY;
@@ -49,6 +62,7 @@ export async function sendProposalEmail(
       cc: parseEmails(cc).length ? parseEmails(cc) : undefined,
       subject: subject?.trim() || '(No subject)',
       html: buildHtml(body),
+      attachments: parseAttachments(attachments),
     });
 
     if (error) {

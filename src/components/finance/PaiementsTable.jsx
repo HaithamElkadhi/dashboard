@@ -1,34 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Badge from '../Badge.jsx';
 import Pagination from '../Pagination.jsx';
 import { formatMoney } from '../../lib/format.js';
 import { computeMoezAmount } from '../../lib/airtable.js';
-import {
-  CURRENCIES,
-  PAYMENT_STATUSES,
-  PAYMENT_STATUS_COLORS,
-} from '../../lib/config.js';
+import { CURRENCIES, PAYMENT_STATUSES } from '../../lib/config.js';
 import { usePagination } from '../../hooks/usePagination.js';
 import { SkeletonRows } from '../states.jsx';
 import { ChevronDownIcon, XIcon } from '../icons.jsx';
 
-function FilterPill({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-        active
-          ? 'border-transparent bg-brand text-white shadow-sm'
-          : 'border-border bg-surface text-text-strong hover:border-border-strong'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function PurposeMultiSelect({ options, selected, onChange }) {
+function MultiSelectFilter({ label, options, selected, onChange }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -76,7 +57,7 @@ function PurposeMultiSelect({ options, selected, onChange }) {
         }`}
       >
         <span className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-text-muted">Purpose</span>
+          <span className="shrink-0 text-text-muted">{label}</span>
           <span className="truncate font-medium">{summary}</span>
         </span>
         <span className="flex shrink-0 items-center gap-1">
@@ -232,14 +213,17 @@ export default function PaiementsTable({
   paiements,
   loading,
   purposeChoices = [],
+  statusChoices = PAYMENT_STATUSES,
+  currencyChoices = CURRENCIES,
+  statusColors = {},
   onEdit,
   onDuplicate,
+  onDelete,
   onToggleConfirmed,
 }) {
-  const [status, setStatus] = useState('All');
-  const [currency, setCurrency] = useState('All');
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [currencyFilter, setCurrencyFilter] = useState([]);
   const [purposeFilter, setPurposeFilter] = useState([]);
-  const [confirmedOnly, setConfirmedOnly] = useState('All');
   const [moezOnly, setMoezOnly] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -272,14 +256,18 @@ export default function PaiementsTable({
       prev.filter((p) => purposeOptions.includes(p))
     );
   }, [purposeOptions]);
+  useEffect(() => {
+    setStatusFilter((prev) => prev.filter((s) => statusChoices.includes(s)));
+  }, [statusChoices]);
+  useEffect(() => {
+    setCurrencyFilter((prev) => prev.filter((c) => currencyChoices.includes(c)));
+  }, [currencyChoices]);
 
   const filtered = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     return paiements.filter((p) => {
-      if (status !== 'All' && p.status !== status) return false;
-      if (currency !== 'All' && p.currency !== currency) return false;
-      if (confirmedOnly === 'Confirmé' && !p.soldeConfirme) return false;
-      if (confirmedOnly === 'Non confirmé' && p.soldeConfirme) return false;
+      if (statusFilter.length > 0 && !statusFilter.includes(p.status)) return false;
+      if (currencyFilter.length > 0 && !currencyFilter.includes(p.currency)) return false;
       if (moezOnly && (!p.moezType || p.moezType === 'Aucune')) return false;
       if (
         purposeFilter.length > 0 &&
@@ -298,9 +286,8 @@ export default function PaiementsTable({
     });
   }, [
     paiements,
-    status,
-    currency,
-    confirmedOnly,
+    statusFilter,
+    currencyFilter,
     moezOnly,
     purposeFilter,
     debouncedQuery,
@@ -313,12 +300,11 @@ export default function PaiementsTable({
 
   const resetKey = useMemo(
     () =>
-      `${status}|${currency}|${purposeFilter.join(',')}|${confirmedOnly}|${moezOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
+      `${statusFilter.join(',')}|${currencyFilter.join(',')}|${purposeFilter.join(',')}|${moezOnly}|${debouncedQuery}|${sortKey}|${sortDir}|${sorted.length}:${sorted[0]?.id ?? ''}`,
     [
-      status,
-      currency,
+      statusFilter,
+      currencyFilter,
       purposeFilter,
-      confirmedOnly,
       moezOnly,
       debouncedQuery,
       sortKey,
@@ -332,27 +318,6 @@ export default function PaiementsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <FilterPill label="Tous statuts" active={status === 'All'} onClick={() => setStatus('All')} />
-        {PAYMENT_STATUSES.map((s) => (
-          <FilterPill key={s} label={s} active={status === s} onClick={() => setStatus(s)} />
-        ))}
-        <span className="mx-1 h-4 w-px bg-border" />
-        <FilterPill label="Toutes devises" active={currency === 'All'} onClick={() => setCurrency('All')} />
-        {CURRENCIES.map((c) => (
-          <FilterPill key={c} label={c} active={currency === c} onClick={() => setCurrency(c)} />
-        ))}
-        <span className="mx-1 h-4 w-px bg-border" />
-        <FilterPill
-          label="Solde confirmé"
-          active={confirmedOnly === 'Confirmé'}
-          onClick={() => setConfirmedOnly(confirmedOnly === 'Confirmé' ? 'All' : 'Confirmé')}
-        />
-        <FilterPill
-          label="Non confirmé"
-          active={confirmedOnly === 'Non confirmé'}
-          onClick={() => setConfirmedOnly(confirmedOnly === 'Non confirmé' ? 'All' : 'Non confirmé')}
-        />
-        <span className="mx-1 h-4 w-px bg-border" />
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-strong transition hover:border-border-strong">
           <input
             type="checkbox"
@@ -378,7 +343,22 @@ export default function PaiementsTable({
           />
         </div>
 
-        <PurposeMultiSelect
+        <MultiSelectFilter
+          label="Statut"
+          options={statusChoices}
+          selected={statusFilter}
+          onChange={setStatusFilter}
+        />
+
+        <MultiSelectFilter
+          label="Devise"
+          options={currencyChoices}
+          selected={currencyFilter}
+          onChange={setCurrencyFilter}
+        />
+
+        <MultiSelectFilter
+          label="Purpose"
           options={purposeOptions}
           selected={purposeFilter}
           onChange={setPurposeFilter}
@@ -423,7 +403,6 @@ export default function PaiementsTable({
                 <th className="px-4 py-2.5 font-medium">Purpose</th>
                 <th className="px-4 py-2.5 font-medium">Montant</th>
                 <th className="px-4 py-2.5 font-medium">Taxe %</th>
-                <th className="px-4 py-2.5 font-medium">Comm. Commercial</th>
                 <th className="px-4 py-2.5 font-medium">Comm. Moez</th>
                 <th className="px-4 py-2.5 font-medium">Net</th>
                 <th className="px-4 py-2.5 font-medium">Statut</th>
@@ -436,13 +415,13 @@ export default function PaiementsTable({
                 <SkeletonRows rows={8} cols={11} />
               ) : sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-sm text-text-muted">
+                  <td colSpan={10} className="px-4 py-10 text-center text-sm text-text-muted">
                     Aucun paiement trouvé
                   </td>
                 </tr>
               ) : (
                 visible.map((p) => {
-                  const color = PAYMENT_STATUS_COLORS[p.status] || {
+                  const color = statusColors[p.status] || {
                     bg: '#F1EFE8',
                     text: '#5F5E5A',
                   };
@@ -462,9 +441,6 @@ export default function PaiementsTable({
                         {formatMoney(p.amount, p.currency)}
                       </td>
                       <td className="px-4 py-3 tabular-nums">{p.taxe || 0}%</td>
-                      <td className="px-4 py-3 tabular-nums">
-                        {formatMoney(p.commCommercial, p.currency)}
-                      </td>
                       <td className="px-4 py-3">{moezCell(p)}</td>
                       <td className="px-4 py-3 font-semibold tabular-nums">
                         {formatMoney(p.netARecevoir, p.currency)}
@@ -482,6 +458,18 @@ export default function PaiementsTable({
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1.5">
+                          <Link
+                            to={`/finance/paiements/${p.id}/document?type=invoice`}
+                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-brand transition hover:border-border-strong"
+                          >
+                            Facture
+                          </Link>
+                          <Link
+                            to={`/finance/paiements/${p.id}/document?type=receipt`}
+                            className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-brand transition hover:border-border-strong"
+                          >
+                            Reçu
+                          </Link>
                           <button
                             type="button"
                             onClick={() => onEdit(p)}
@@ -495,6 +483,13 @@ export default function PaiementsTable({
                             className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
                           >
                             Dupliquer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onDelete(p)}
+                            className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50"
+                          >
+                            Supprimer
                           </button>
                         </div>
                       </td>
@@ -514,9 +509,6 @@ export default function PaiementsTable({
                     <TotalsCell rows={filtered} pick={(r) => r.amount} />
                   </td>
                   <td className="px-4 py-2.5" />
-                  <td className="px-4 py-2.5">
-                    <TotalsCell rows={filtered} pick={(r) => r.commCommercial} />
-                  </td>
                   <td className="px-4 py-2.5">
                     <TotalsCell
                       rows={filtered.filter((r) => r.soldeConfirme)}

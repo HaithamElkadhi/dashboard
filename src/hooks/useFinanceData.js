@@ -1,14 +1,50 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchPaiements,
   fetchPeopleForPicker,
-  fetchPurposeChoices,
+  fetchPaiementChoices,
   createPaiement,
   updatePaiement,
+  deletePaiement,
 } from '../lib/airtable.js';
-import { PURPOSE_CHOICES } from '../lib/config.js';
+import {
+  PURPOSE_CHOICES,
+  PAYMENT_STATUSES,
+  PAYMENT_STATUS_COLORS,
+  CURRENCIES,
+  MOEZ_TYPES,
+} from '../lib/config.js';
+import { softChipStyle } from '../lib/colors.js';
 
-const CACHE_KEY = 'jeexpert:finance:v2';
+const CACHE_KEY = 'jeexpert:finance:v3';
+
+const FALLBACK_CHOICES = {
+  statuses: PAYMENT_STATUSES.map((name) => ({ name, color: null })),
+  currencies: CURRENCIES,
+  purposes: PURPOSE_CHOICES,
+  moezTypes: MOEZ_TYPES,
+};
+
+// Per-list fallback: an empty list from the schema (field missing/renamed)
+// falls back to the static one rather than leaving a select with no options.
+function withFallbacks(choices) {
+  const out = {};
+  for (const key of Object.keys(FALLBACK_CHOICES)) {
+    out[key] = choices?.[key]?.length ? choices[key] : FALLBACK_CHOICES[key];
+  }
+  return out;
+}
+
+// Badge color per status: Airtable's configured color when known, else the
+// hand-picked palette, else neutral (handled by the caller).
+function buildStatusColors(statuses) {
+  const map = {};
+  for (const { name, color } of statuses) {
+    const c = softChipStyle(color) || PAYMENT_STATUS_COLORS[name];
+    if (c) map[name] = c;
+  }
+  return map;
+}
 
 function readCache() {
   try {
@@ -19,9 +55,7 @@ function readCache() {
     return {
       paiements: parsed.paiements,
       people: Array.isArray(parsed.people) ? parsed.people : [],
-      purposeChoices: Array.isArray(parsed.purposeChoices)
-        ? parsed.purposeChoices
-        : [],
+      choices: parsed.choices || null,
       lastUpdated: parsed.lastUpdated ? new Date(parsed.lastUpdated) : null,
     };
   } catch {
@@ -29,14 +63,14 @@ function readCache() {
   }
 }
 
-function writeCache(paiements, people, purposeChoices, lastUpdated) {
+function writeCache(paiements, people, choices, lastUpdated) {
   try {
     localStorage.setItem(
       CACHE_KEY,
       JSON.stringify({
         paiements,
         people,
-        purposeChoices,
+        choices,
         lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
       })
     );
@@ -50,9 +84,7 @@ export function useFinanceData() {
 
   const [paiements, setPaiements] = useState(cached?.paiements ?? []);
   const [people, setPeople] = useState(cached?.people ?? []);
-  const [purposeChoices, setPurposeChoices] = useState(
-    cached?.purposeChoices?.length ? cached.purposeChoices : PURPOSE_CHOICES
-  );
+  const [choices, setChoices] = useState(() => withFallbacks(cached?.choices));
   const [status, setStatus] = useState(cached ? 'ready' : 'idle');
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(cached?.lastUpdated ?? null);
@@ -61,18 +93,19 @@ export function useFinanceData() {
     setStatus('loading');
     setError(null);
     try {
-      const [nextPaiements, nextPeople, nextPurposeChoices] = await Promise.all([
+      const [nextPaiements, nextPeople, fetchedChoices] = await Promise.all([
         fetchPaiements(),
         fetchPeopleForPicker(),
-        fetchPurposeChoices().catch(() => PURPOSE_CHOICES), // best-effort
+        fetchPaiementChoices().catch(() => null), // best-effort
       ]);
+      const nextChoices = withFallbacks(fetchedChoices);
       const now = new Date();
       setPaiements(nextPaiements);
       setPeople(nextPeople);
-      setPurposeChoices(nextPurposeChoices);
+      setChoices(nextChoices);
       setLastUpdated(now);
       setStatus('ready');
-      writeCache(nextPaiements, nextPeople, nextPurposeChoices, now);
+      writeCache(nextPaiements, nextPeople, nextChoices, now);
     } catch (err) {
       setError(err.message || 'Erreur inconnue');
       setStatus('error');
@@ -90,12 +123,12 @@ export function useFinanceData() {
       const created = await createPaiement(input);
       setPaiements((prev) => {
         const next = [created, ...prev];
-        writeCache(next, people, purposeChoices, new Date());
+        writeCache(next, people, choices, new Date());
         return next;
       });
       return created;
     },
-    [people, purposeChoices]
+    [people, choices]
   );
 
   const update = useCallback(
@@ -113,7 +146,7 @@ export function useFinanceData() {
         const updated = await updatePaiement(recordId, input);
         setPaiements((prev) => {
           const next = prev.map((p) => (p.id === recordId ? updated : p));
-          writeCache(next, people, purposeChoices, new Date());
+          writeCache(next, people, choices, new Date());
           return next;
         });
         return updated;
@@ -122,18 +155,38 @@ export function useFinanceData() {
         throw err;
       }
     },
-    [people, purposeChoices]
+    [people, choices]
   );
+
+  const remove = useCallback(
+    async (recordId) => {
+      await deletePaiement(recordId);
+      setPaiements((prev) => {
+        const next = prev.filter((p) => p.id !== recordId);
+        writeCache(next, people, choices, new Date());
+        return next;
+      });
+    },
+    [people, choices]
+  );
+
+  const statusColors = useMemo(() => buildStatusColors(choices.statuses), [choices]);
+  const statusChoices = useMemo(() => choices.statuses.map((c) => c.name), [choices]);
 
   return {
     paiements,
     people,
-    purposeChoices,
+    purposeChoices: choices.purposes,
+    statusChoices,
+    statusColors,
+    currencyChoices: choices.currencies,
+    moezTypeChoices: choices.moezTypes,
     status,
     error,
     lastUpdated,
     refresh: load,
     create,
     update,
+    remove,
   };
 }

@@ -7,6 +7,7 @@ import Toast from '../components/Toast.jsx';
 import Avatar from '../components/Avatar.jsx';
 import StatsCard from '../components/tasks/StatsCard.jsx';
 import SituationBadge from '../components/accounts/SituationBadge.jsx';
+import { ADMITTED_SITUATION, ENGAGED_SITUATION } from '../lib/config.js';
 import AccountRow from '../components/accounts/AccountRow.jsx';
 import AccountForm from '../components/accounts/AccountForm.jsx';
 import {
@@ -15,7 +16,7 @@ import {
   UsersIcon,
 } from '../components/icons.jsx';
 
-const SCOPED_SITUATIONS = ['Engaged', 'Admitted'];
+const SCOPED_SITUATIONS = [ENGAGED_SITUATION, ADMITTED_SITUATION];
 const EMAIL_CANDIDATURE = 'Email Candidature';
 
 const STATUS_FILTERS = [
@@ -164,8 +165,8 @@ export default function AccountsPage() {
       .filter((p) => {
         const prospectAccounts = accountsByProspect.get(p.id) || [];
         const count = prospectAccounts.length;
-        if (statusFilter === 'admitted' && !p.situations.includes('Admitted')) return false;
-        if (statusFilter === 'engaged' && !p.situations.includes('Engaged')) return false;
+        if (statusFilter === 'admitted' && !p.situations.includes(ADMITTED_SITUATION)) return false;
+        if (statusFilter === 'engaged' && !p.situations.includes(ENGAGED_SITUATION)) return false;
         if (statusFilter === 'noAccount' && count > 0) return false;
         if (
           statusFilter === 'emailNoDelegation' &&

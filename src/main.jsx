@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage.jsx';
 import ProspectsPage from './pages/ProspectsPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FinancePage from './pages/FinancePage.jsx';
+import FinanceDocumentPage from './pages/FinanceDocumentPage.jsx';
 import AccountsPage from './pages/AccountsPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
 import PerformancePage from './pages/PerformancePage.jsx';
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/finance" element={<FinancePage />} />
+          <Route path="/finance/paiements/:paiementId/document" element={<FinanceDocumentPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/performance" element={<PerformancePage />} />

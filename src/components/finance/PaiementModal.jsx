@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import ProspectPicker from '../tasks/ProspectPicker.jsx';
-import { CURRENCIES, PAYMENT_STATUSES, MOEZ_TYPES } from '../../lib/config.js';
+import {
+  CURRENCIES,
+  PAYMENT_STATUSES,
+  MOEZ_TYPES,
+  DUE_STATUS,
+} from '../../lib/config.js';
 
 const inputClass =
   'w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong';
@@ -17,12 +22,18 @@ function Field({ label, required, children }) {
   );
 }
 
+// Options for a select, keeping the record's current value selectable even if
+// it's no longer an option in Airtable (so saving doesn't silently change it).
+function withCurrent(options, current) {
+  return current && !options.includes(current) ? [...options, current] : options;
+}
+
 function emptyForm() {
   return {
     prospect: null,
     amount: '',
     currency: 'EUR',
-    status: 'À payer',
+    status: DUE_STATUS,
     paymentMethod: '',
     taxe: '',
     commCommercial: '',
@@ -44,6 +55,9 @@ export default function PaiementModal({
   paiement,
   people,
   purposeChoices,
+  statusChoices = PAYMENT_STATUSES,
+  currencyChoices = CURRENCIES,
+  moezTypeChoices = MOEZ_TYPES,
   onClose,
   onSubmit,
 }) {
@@ -53,7 +67,7 @@ export default function PaiementModal({
       prospect: null,
       amount: String(paiement.amount ?? ''),
       currency: paiement.currency || 'EUR',
-      status: paiement.status || 'À payer',
+      status: paiement.status || DUE_STATUS,
       paymentMethod: paiement.paymentMethod || '',
       taxe: String(paiement.taxe ?? ''),
       commCommercial: String(paiement.commCommercial ?? ''),
@@ -185,7 +199,7 @@ export default function PaiementModal({
             </Field>
             <Field label="Devise">
               <select className={inputClass} value={form.currency} onChange={set('currency')}>
-                {CURRENCIES.map((c) => (
+                {withCurrent(currencyChoices, form.currency).map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -194,7 +208,7 @@ export default function PaiementModal({
             </Field>
             <Field label="Statut">
               <select className={inputClass} value={form.status} onChange={set('status')}>
-                {PAYMENT_STATUSES.map((s) => (
+                {withCurrent(statusChoices, form.status).map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -231,7 +245,7 @@ export default function PaiementModal({
             </Field>
             <Field label="Commission Moez — Type">
               <select className={inputClass} value={form.moezType} onChange={set('moezType')}>
-                {MOEZ_TYPES.map((t) => (
+                {withCurrent(moezTypeChoices, form.moezType).map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>

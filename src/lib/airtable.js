@@ -550,20 +550,31 @@ export async function fetchPaiements() {
   return records.map(normalizePaiement);
 }
 
-// Live choices for the Purpose field, read from the Airtable schema so the
-// list in the app always matches what's configured in Airtable (renaming or
-// adding a Purpose option there needs no code change). Best-effort — the
-// caller falls back to PURPOSE_CHOICES (config.js) if this fails, e.g.
-// missing `schema.bases:read` PAT scope.
-export async function fetchPurposeChoices() {
+// Live choices for the Paiements select fields (Status, Currency, Purpose,
+// Commission Moez Type), read from the Airtable schema so the lists — and the
+// Status badge colors — always match what's configured in Airtable (renaming
+// or adding an option there needs no code change). Best-effort — the caller
+// falls back to the static lists in config.js if this fails, e.g. missing
+// `schema.bases:read` PAT scope.
+export async function fetchPaiementChoices() {
   const res = await fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`);
   if (!res.ok) throw new Error(`Schema ${res.status}`);
   const data = await res.json();
   const table = (data.tables || []).find((t) => t.id === TABLES.paiements);
   if (!table) throw new Error('Paiements table not found in schema');
-  const field = (table.fields || []).find((f) => f.id === FIN.purpose);
-  const choices = field?.options?.choices || [];
-  return choices.map((c) => c.name);
+  const fields = table.fields || [];
+  const choicesOf = (id) =>
+    (fields.find((f) => f.id === id)?.options?.choices || []).map((c) => ({
+      name: c.name,
+      color: c.color || null,
+    }));
+  const names = (id) => choicesOf(id).map((c) => c.name);
+  return {
+    statuses: choicesOf(FIN.status),
+    currencies: names(FIN.currency),
+    purposes: names(FIN.purpose),
+    moezTypes: names(FIN.moezType),
+  };
 }
 
 // PATCH/POST responses are keyed by field NAME by default — FIN.* are field
@@ -583,6 +594,11 @@ export async function createPaiement(input) {
     typecast: true,
   });
   return normalizePaiement(data);
+}
+
+export async function deletePaiement(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.paiements}/${recordId}`);
+  return recordId;
 }
 
 export async function updatePaiement(recordId, input) {

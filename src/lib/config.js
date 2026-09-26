@@ -183,8 +183,10 @@ export const FIN = {
   proofOfPayment: 'fldLG0u4INznvhroy', // multipleAttachments
 };
 
-// Real Airtable choices for Paiements singleSelect fields (fetched from schema —
-// the currency/status lists differ from generic assumptions: FR statuses, +GBP).
+// Fallbacks only — useFinanceData reads the live Status / Currency / Moez Type
+// choices (and Status colors) from the Airtable schema. Used if that fails.
+// PAID_STATUS / DUE_STATUS below drive the totals, so keep those two in sync
+// with Airtable if they're ever renamed there.
 export const CURRENCIES = ['EUR', 'USD', 'TND', 'GBP'];
 
 export const PAYMENT_STATUSES = ['À payer', 'Payé', 'Exonéré', 'En retard'];
@@ -221,18 +223,14 @@ export const PAYMENT_STATUS_COLORS = {
   'En retard': { bg: '#FCEBEB', text: '#A32D2D' },
 };
 
-// Prospect Situation choices (ordered for the filter pills)
-export const SITUATION_CHOICES = [
-  'Undecided',
-  'Last chance',
-  'Potential',
-  'Lost',
-  'Admitted',
-  'Engaged',
-  'Serious',
-  'Next Year',
-  'Completed',
-];
+// Prospect Situation choices (fallback only — ProspectsPage reads the live
+// list from the Airtable schema). Ordered along the funnel.
+export const SITUATION_CHOICES = ['Lead', 'Prospect', 'Candidate', 'Student', 'Lost'];
+
+// Situation values the app keys behavior on. "Candidate" = engaged/signed
+// client, "Student" = admitted. Update here if they're renamed in Airtable.
+export const ENGAGED_SITUATION = 'Candidate';
+export const ADMITTED_SITUATION = 'Student';
 
 export const PAID_STATUS = 'Payé';
 export const DUE_STATUS = 'À payer';

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useFinanceData } from '../hooks/useFinanceData.js';
+import PaiementDeleteDialog from '../components/finance/PaiementDeleteDialog.jsx';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
 import Badge from '../components/Badge.jsx';
@@ -8,7 +10,7 @@ import PaiementsTable from '../components/finance/PaiementsTable.jsx';
 import PaiementModal from '../components/finance/PaiementModal.jsx';
 import CommissionsView from '../components/finance/CommissionsView.jsx';
 import { formatMoney } from '../lib/format.js';
-import { PAYMENT_STATUS_COLORS, PAID_STATUS, DUE_STATUS } from '../lib/config.js';
+import { PAID_STATUS, DUE_STATUS } from '../lib/config.js';
 import { CheckCircleIcon, XIcon } from '../components/icons.jsx';
 
 const TABS = [
@@ -56,7 +58,7 @@ function isThisMonth(dateStr, now) {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
 }
 
-function OverviewTab({ paiements }) {
+function OverviewTab({ paiements, statusColors }) {
   const stats = useMemo(() => {
     const paid = paiements.filter((p) => p.status === PAID_STATUS);
     const unpaid = paiements.filter((p) => p.status === DUE_STATUS);
@@ -129,7 +131,7 @@ function OverviewTab({ paiements }) {
                 </tr>
               ) : (
                 recent.map((p) => {
-                  const color = PAYMENT_STATUS_COLORS[p.status] || {
+                  const color = statusColors[p.status] || {
                     bg: '#F1EFE8',
                     text: '#5F5E5A',
                   };
@@ -169,18 +171,27 @@ export default function FinancePage() {
     paiements,
     people,
     purposeChoices,
+    statusChoices,
+    statusColors,
+    currencyChoices,
+    moezTypeChoices,
     status,
     error,
     lastUpdated,
     refresh,
     create,
     update,
+    remove,
   } = useFinanceData();
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
 
-  const [tab, setTab] = useState('overview');
+  // The document page links back with { tab: 'paiements' } so the user lands
+  // where they left.
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab || 'overview');
   const [toast, setToast] = useState('');
   const [modal, setModal] = useState(null); // { mode: 'create' | 'edit', paiement? }
+  const [toDelete, setToDelete] = useState(null);
 
   const loading = status === 'loading';
 
@@ -200,6 +211,19 @@ export default function FinancePage() {
   const handleUpdateMoez = async (id, payload) => {
     await update(id, payload);
     showToast('Commission Moez mise à jour');
+  };
+
+  const handleDelete = async () => {
+    try {
+      await remove(toDelete.id);
+      showToast(
+        toDelete.reference ? `Paiement supprimé — ${toDelete.reference}` : 'Paiement supprimé'
+      );
+    } catch (err) {
+      showToast(err.message || 'Suppression impossible');
+    } finally {
+      setToDelete(null);
+    }
   };
 
   const handleDuplicate = async (paiement) => {
@@ -271,19 +295,27 @@ export default function FinancePage() {
         )}
 
         <div className="mt-5">
-          {tab === 'overview' && <OverviewTab paiements={paiements} />}
+          {tab === 'overview' && <OverviewTab paiements={paiements} statusColors={statusColors} />}
           {tab === 'paiements' && (
             <PaiementsTable
               paiements={paiements}
               loading={loading && paiements.length === 0}
               purposeChoices={purposeChoices}
+              statusChoices={statusChoices}
+              currencyChoices={currencyChoices}
+              statusColors={statusColors}
               onEdit={(p) => setModal({ mode: 'edit', paiement: p })}
               onDuplicate={handleDuplicate}
+              onDelete={setToDelete}
               onToggleConfirmed={handleToggleConfirmed}
             />
           )}
           {tab === 'commissions' && (
-            <CommissionsView paiements={paiements} onUpdateMoez={handleUpdateMoez} />
+            <CommissionsView
+              paiements={paiements}
+              onUpdateMoez={handleUpdateMoez}
+              moezTypeChoices={moezTypeChoices}
+            />
           )}
         </div>
       </div>
@@ -295,6 +327,9 @@ export default function FinancePage() {
           paiement={modal.paiement}
           people={people}
           purposeChoices={purposeChoices}
+          statusChoices={statusChoices}
+          currencyChoices={currencyChoices}
+          moezTypeChoices={moezTypeChoices}
           onClose={() => setModal(null)}
           onSubmit={async (payload) => {
             if (modal.mode === 'create') {
@@ -305,6 +340,14 @@ export default function FinancePage() {
               showToast('Paiement mis à jour');
             }
           }}
+        />
+      )}
+
+      {toDelete && (
+        <PaiementDeleteDialog
+          paiement={toDelete}
+          onClose={() => setToDelete(null)}
+          onConfirm={handleDelete}
         />
       )}
 

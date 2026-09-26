@@ -1,9 +1,13 @@
 import Badge from '../Badge.jsx';
-import { CAM_SITUATION_COLORS } from '../../lib/config.js';
+import {
+  CAM_SITUATION_COLORS,
+  ADMITTED_SITUATION,
+  ENGAGED_SITUATION,
+} from '../../lib/config.js';
 
 export default function SituationBadge({ situations }) {
-  const hasAdmitted = situations.includes('Admitted');
-  const hasEngaged = situations.includes('Engaged');
+  const hasAdmitted = situations.includes(ADMITTED_SITUATION);
+  const hasEngaged = situations.includes(ENGAGED_SITUATION);
 
   let label = '—';
   let color = { bg: '#F1EFE8', text: '#5F5E5A' };

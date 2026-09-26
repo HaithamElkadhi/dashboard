@@ -59,6 +59,15 @@ export function chipStyle(token) {
   return { bg, text };
 }
 
+// Returns { bg, text } for a pale badge in the token's color family — the
+// app's usual badge look (light background, dark text), whatever shade is
+// configured in Airtable. Null if the token is unknown.
+export function softChipStyle(token) {
+  const fam = familyOf(token);
+  if (!fam || !FAMILY_DARK[fam]) return null;
+  return { bg: HEX[`${fam}Light2`], text: FAMILY_DARK[fam] };
+}
+
 // Returns { dot, text } for the visa dot+label style. Uses a saturated dot and
 // dark text regardless of the (usually pale) configured shade, for legibility.
 export function dotStyle(token) {

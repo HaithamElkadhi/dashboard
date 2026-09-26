@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
 import { usePageRefreshInfo } from '../../contexts/PageRefreshContext.jsx';
 import { useCurrentUser } from '../../hooks/useCurrentUser.js';
@@ -22,6 +23,9 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const { tasks, openCreate, openDetails } = useTasksWorkspace();
   const { lastUpdated, refresh, loading } = usePageRefreshInfo();
   const [currentUser] = useCurrentUser();
+  const { pathname } = useLocation();
+  // Pages where the global "Nouvelle tâche" button is hidden.
+  const hideNewTask = pathname === '/' || pathname === '/finance';
 
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
@@ -136,14 +140,16 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
 
           <Avatar fullName={currentUser} seed={currentUser} />
 
-          <button
-            type="button"
-            onClick={() => openCreate()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
-          >
-            <PlusIcon size={15} />
-            <span className="hidden sm:inline">Nouvelle tâche</span>
-          </button>
+          {!hideNewTask && (
+            <button
+              type="button"
+              onClick={() => openCreate()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
+            >
+              <PlusIcon size={15} />
+              <span className="hidden sm:inline">Nouvelle tâche</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
