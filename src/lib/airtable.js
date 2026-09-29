@@ -245,6 +245,8 @@ function normalizeProspect(record, payMap) {
     regionAuthority: f[PF.regionAuthority] || '',
     photoUrl: photoUrl(f[PF.photo]),
     whatsappLink: f[PF.whatsappLink] || '',
+    phone: f[PF.phone] || '',
+    whatsappNumber: f[PF.whatsappNumber] || '',
     proposal: proposalCompleteness(f),
     lastContact: f[PF.lastContact] || null,
     interestLevel: f[PF.interestLevel] || '',
@@ -415,6 +417,8 @@ export async function fetchDashboardData() {
     PF.lastContact,
     PF.contactHistory,
     PF.interestLevel,
+    PF.phone,
+    PF.whatsappNumber,
     ...STAGE_DATE_KEYS.map((k) => PF[k]),
     ...PROPOSAL_COMPLETENESS_FIELD_IDS,
   ];
@@ -1893,4 +1897,13 @@ export async function fetchGoalSources() {
     })
     .filter((p) => p.date && p.status !== 'Canceled');
   return { stageDates, logs, leadDates, payments };
+}
+
+/** Save the number to use for WhatsApp ("WhatsApp Number" field). */
+export async function updateWhatsappNumber(recordId, number) {
+  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+    fields: { [PF.whatsappNumber]: String(number || '').trim() || null },
+    returnFieldsByFieldId: true,
+  });
+  return data.fields?.[PF.whatsappNumber] || '';
 }

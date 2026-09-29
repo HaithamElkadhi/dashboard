@@ -3,7 +3,7 @@ import { fetchDashboardData, updateProspect, deleteProspect } from '../lib/airta
 
 // Bump the version whenever a prospect gets new fields: an older cache is then
 // dropped and the data re-fetched once, so new columns/filters aren't empty.
-const CACHE_VERSION = 4;
+const CACHE_VERSION = 5;
 const CACHE_KEY = `jeexpert:dashboard:v${CACHE_VERSION}`;
 
 // True when a cache from an older version was found (and removed). Evaluated

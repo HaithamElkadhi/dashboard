@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Avatar from './Avatar.jsx';
 import Badge from './Badge.jsx';
 import Pagination from './Pagination.jsx';
@@ -26,23 +26,86 @@ const BASE_COLUMNS = [
   '',
 ];
 
-const ALL_COLUMNS = [
+
+// Lead / Prospect tabs: only what matters before signing.
+const PROPOSAL_COLUMNS = ['Étudiant', 'Intérêt', 'Dernier contact', 'Proposal', 'Payé', 'Restant', ''];
+
+// "Tous" tab: school year + stage dates, editable in place.
+const ALL_TAB_COLUMNS = [
   'Étudiant',
   'Prospect Situation',
   'Dernier contact',
-  'Appli.',
+  'Année scolaire',
+  'Date Lead',
+  'Date Prospect',
+  'Date Candidate',
   'Admission',
-  'Université',
   'Payé',
   'Restant',
-  'Scholarship',
-  'Visa',
   'Universitaly Validation',
   '',
 ];
 
-// Lead / Prospect tabs: only what matters before signing.
-const PROPOSAL_COLUMNS = ['Étudiant', 'Intérêt', 'Dernier contact', 'Proposal', 'Payé', 'Restant', ''];
+const STAGE_DATE_COLUMNS = [
+  { key: 'dateLead', label: 'Lead' },
+  { key: 'dateProspect', label: 'Prospect' },
+  { key: 'dateCandidate', label: 'Candidate' },
+];
+
+// School year as a dropdown; changing it saves at once. Airtable allows
+// several years, so a prospect with 2 shows them together until changed.
+function IntakeCell({ p, years, onChange }) {
+  const current = p.intakes || [];
+  const value = current.length === 1 ? current[0] : current.length > 1 ? '__multi__' : '';
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange?.(p, e.target.value ? [e.target.value] : [])}
+      disabled={!onChange}
+      title="Année scolaire"
+      className={`cursor-pointer rounded-lg border px-2 py-1 text-xs font-medium outline-none transition hover:border-border-strong ${
+        value ? 'border-border bg-surface text-text-strong' : 'border-dashed border-border bg-surface text-text-muted'
+      }`}
+    >
+      <option value="">— Année</option>
+      {value === '__multi__' && <option value="__multi__">{current.join(' + ')}</option>}
+      {current.filter((y) => !years.includes(y)).map((y) => (
+        <option key={y} value={y}>
+          {y}
+        </option>
+      ))}
+      {years.map((y) => (
+        <option key={y} value={y}>
+          {y}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+// Stage date, editable in place. Saved when leaving the field (typing a year
+// digit by digit would otherwise save intermediate dates).
+function StageDateCell({ p, field, onChange }) {
+  const saved = p[field] || '';
+  const [value, setValue] = useState(saved);
+  useEffect(() => setValue(saved), [saved]);
+  const commit = () => {
+    if (value !== saved) onChange?.(p, field, value);
+  };
+  return (
+    <input
+      type="date"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+      disabled={!onChange}
+      className={`w-[8.5rem] rounded-lg border px-2 py-1 text-xs tabular-nums outline-none transition hover:border-border-strong focus:border-border-strong ${
+        value ? 'border-border bg-surface text-text-strong' : 'border-dashed border-border bg-surface text-text-muted'
+      }`}
+    />
+  );
+}
 
 const EMPTY = {};
 
@@ -226,7 +289,7 @@ function Field({ label, children }) {
   );
 }
 
-function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, proposalMode }) {
+function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -253,17 +316,16 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
                   {p.nbrApplications || 0} appli.
                 </span>
               )}
-              {p.whatsappLink && (
-                <a
-                  href={p.whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {(p.whatsappLink || p.phone || p.whatsappNumber) && (
+                <button
+                  type="button"
+                  onClick={() => onWhatsApp?.(p)}
                   title="WhatsApp"
                   aria-label={`WhatsApp ${p.fullName}`}
                   className="rounded-lg border border-border p-1.5 text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/10"
                 >
                   <WhatsAppIcon size={13} />
-                </a>
+                </button>
               )}
               {onEdit && (
                 <button
@@ -351,6 +413,18 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         </dl>
       ) : (
         <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+          {showSituation && (
+            <>
+              <Field label="Année scolaire">
+                <IntakeCell p={p} years={intakeYears} onChange={onIntakeChange} />
+              </Field>
+              {STAGE_DATE_COLUMNS.map((d) => (
+                <Field key={d.key} label={`Date ${d.label}`}>
+                  <StageDateCell p={p} field={d.key} onChange={onDateChange} />
+                </Field>
+              ))}
+            </>
+          )}
           <div className="col-span-2">
             <Field label="Dernier contact">
               <LastContactCell p={p} onClick={onContact} />
@@ -406,7 +480,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, proposalMode }) {
+function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
       <td className="px-4 py-3">
@@ -449,6 +523,32 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
           </td>
           <td className="px-4 py-3">
             <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </td>
+        </>
+      ) : showSituation ? (
+        <>
+          <td className="px-4 py-3">
+            <LastContactCell p={p} onClick={onContact} />
+          </td>
+          <td className="px-4 py-3">
+            <IntakeCell p={p} years={intakeYears} onChange={onIntakeChange} />
+          </td>
+          {STAGE_DATE_COLUMNS.map((d) => (
+            <td key={d.key} className="px-4 py-3">
+              <StageDateCell p={p} field={d.key} onChange={onDateChange} />
+            </td>
+          ))}
+          <td className="px-4 py-3">
+            <AdmissionTags values={p.admissionStatus} colorMap={colors.admission} />
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </td>
+          <td className="px-4 py-3">
+            <StatusBadge value={p.universitalyValidation} colorMap={colors.universitaly} />
           </td>
         </>
       ) : (
@@ -494,17 +594,16 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
       )}
       <td className="px-4 py-3">
         <div className="flex items-center justify-end gap-1.5">
-          {p.whatsappLink && (
-            <a
-              href={p.whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
+          {(p.whatsappLink || p.phone || p.whatsappNumber) && (
+            <button
+              type="button"
+              onClick={() => onWhatsApp?.(p)}
               title="WhatsApp"
               aria-label={`WhatsApp ${p.fullName}`}
               className="rounded-lg border border-border p-1.5 text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/10"
             >
               <WhatsAppIcon size={14} />
-            </a>
+            </button>
           )}
           {onEdit && (
             <button
@@ -574,6 +673,10 @@ export default function ProspectsTable({
   onFiche,
   onContact,
   onInterest,
+  onWhatsApp,
+  onIntakeChange,
+  onDateChange,
+  intakeYears = [],
   proposalMode = false,
 }) {
   const palette = {
@@ -584,7 +687,7 @@ export default function ProspectsTable({
     universitaly: colors?.universitaly || EMPTY,
   };
 
-  const columns = proposalMode ? PROPOSAL_COLUMNS : showSituation ? ALL_COLUMNS : BASE_COLUMNS;
+  const columns = proposalMode ? PROPOSAL_COLUMNS : showSituation ? ALL_TAB_COLUMNS : BASE_COLUMNS;
 
   const resetKey = useMemo(
     () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}:${showSituation}:${proposalMode}`,
@@ -598,7 +701,7 @@ export default function ProspectsTable({
       {/* Desktop / tablet: full table */}
       <div className="scroll-thin hidden overflow-x-auto md:block">
         <table
-          className={`w-full border-collapse text-left ${proposalMode ? 'min-w-[880px]' : 'min-w-[1120px]'}`}
+          className={`w-full border-collapse text-left ${proposalMode ? 'min-w-[880px]' : showSituation ? 'min-w-[1400px]' : 'min-w-[1120px]'}`}
         >
           <thead>
             <tr className="border-b border-border">
@@ -635,6 +738,10 @@ export default function ProspectsTable({
                   onFiche={onFiche}
                   onContact={onContact}
                   onInterest={onInterest}
+                  onWhatsApp={onWhatsApp}
+                  onIntakeChange={onIntakeChange}
+                  onDateChange={onDateChange}
+                  intakeYears={intakeYears}
                   proposalMode={proposalMode}
                 />
               ))
@@ -663,6 +770,10 @@ export default function ProspectsTable({
               onFiche={onFiche}
               onContact={onContact}
               onInterest={onInterest}
+              onWhatsApp={onWhatsApp}
+              onIntakeChange={onIntakeChange}
+              onDateChange={onDateChange}
+              intakeYears={intakeYears}
               proposalMode={proposalMode}
             />
           ))

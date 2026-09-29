@@ -8,8 +8,9 @@ import ScholarshipModal from '../components/prospects/ScholarshipModal.jsx';
 import ProposalViewModal from '../components/prospects/ProposalViewModal.jsx';
 import ClientFicheModal from '../components/prospects/ClientFicheModal.jsx';
 import ContactLogModal from '../components/prospects/ContactLogModal.jsx';
+import WhatsAppModal from '../components/prospects/WhatsAppModal.jsx';
 import Toast from '../components/Toast.jsx';
-import { fetchProspectCompleteness, updateInterestLevel } from '../lib/airtable.js';
+import { fetchProspectCompleteness, normalizeIntake, updateInterestLevel } from '../lib/airtable.js';
 import { ErrorState } from '../components/states.jsx';
 import { SITUATION_CHOICES, ADMITTED_SITUATION } from '../lib/config.js';
 import { chipStyle } from '../lib/colors.js';
@@ -84,6 +85,7 @@ export default function ProspectsPage() {
   const [proposalFor, setProposalFor] = useState(null);
   const [ficheFor, setFicheFor] = useState(null);
   const [contactFor, setContactFor] = useState(null);
+  const [whatsappFor, setWhatsappFor] = useState(null);
   const [intakeFilter, setIntakeFilter] = useState('all');
   const [admissionFilter, setAdmissionFilter] = useState('all');
   const isProposalTab = PROPOSAL_TABS.includes(activeTab);
@@ -91,6 +93,46 @@ export default function ProspectsPage() {
   const [editing, setEditing] = useState(null);
   const [bourseEditing, setBourseEditing] = useState(null);
   const [toast, setToast] = useState('');
+
+  // Année scolaire options: one per year, saved as an EXISTING Airtable option
+  // (Airtable has "26 - 27 " and "2026/2027" style duplicates).
+  const intakeOptionByYear = useMemo(() => {
+    const byYear = new Map();
+    (schema?.intake?.order || []).forEach((raw) => {
+      const year = normalizeIntake(raw);
+      if (!year) return;
+      const current = byYear.get(year);
+      if (!current || (raw.includes('/') && !current.includes('/'))) byYear.set(year, raw);
+    });
+    return byYear;
+  }, [schema]);
+  const intakeYears = useMemo(() => [...intakeOptionByYear.keys()].sort(), [intakeOptionByYear]);
+
+  // Inline edits from the table: shown at once, rolled back if Airtable refuses.
+  const saveInline = async (p, localPatch, input, previous, errorMsg) => {
+    patchLocal(p.id, localPatch);
+    try {
+      await update(p.id, input);
+    } catch (err) {
+      patchLocal(p.id, previous);
+      showToast(err.message || errorMsg);
+    }
+  };
+
+  const handleIntakeChange = (p, years) => {
+    const raw = years.map((y) => intakeOptionByYear.get(y) || y);
+    saveInline(
+      p,
+      { intakes: years, intakeRaw: raw },
+      { intendedIntake: raw },
+      { intakes: p.intakes, intakeRaw: p.intakeRaw },
+      "Impossible d'enregistrer l'année scolaire"
+    );
+  };
+
+  const handleDateChange = (p, field, value) => {
+    saveInline(p, { [field]: value }, { [field]: value || null }, { [field]: p[field] }, "Impossible d'enregistrer la date");
+  };
 
   // Optimistic: show the new level at once, roll back if Airtable refuses.
   const handleInterestChange = async (p, value) => {
@@ -532,10 +574,25 @@ export default function ProspectsPage() {
               onFiche={isProposalTab ? setFicheFor : undefined}
               onContact={setContactFor}
               onInterest={handleInterestChange}
+              onWhatsApp={setWhatsappFor}
+              onIntakeChange={handleIntakeChange}
+              onDateChange={handleDateChange}
+              intakeYears={intakeYears}
             />
           )}
         </div>
       </div>
+
+      {whatsappFor && (
+        <WhatsAppModal
+          prospect={whatsappFor}
+          onClose={() => setWhatsappFor(null)}
+          onSaved={(id, patch) => {
+            patchLocal(id, patch);
+            showToast('Numéro WhatsApp enregistré');
+          }}
+        />
+      )}
 
       {contactFor && (
         <ContactLogModal
