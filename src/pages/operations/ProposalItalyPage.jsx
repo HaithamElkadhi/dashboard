@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Modal from '../../components/Modal.jsx';
 import ProposalHeader from '../../components/operations/proposalItaly/ProposalHeader.jsx';
 import StudentInfo from '../../components/operations/proposalItaly/StudentInfo.jsx';
@@ -96,6 +96,17 @@ export default function ProposalItalyPage() {
       setLoadingProspect(false);
     }
   };
+
+  // Opened from Prospects → Proposal → "View / modify": load that prospect once.
+  const [searchParams] = useSearchParams();
+  const prospectParam = searchParams.get('prospect');
+  const autoLoaded = useRef(false);
+  useEffect(() => {
+    if (!prospectParam || autoLoaded.current) return;
+    autoLoaded.current = true;
+    handleSelectProspect({ id: prospectParam, fullName: '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prospectParam]);
 
   const handleGeneratePdf = async () => {
     if (!data.studentName || !data.email) {

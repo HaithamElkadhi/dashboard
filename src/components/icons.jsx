@@ -545,3 +545,12 @@ export function ReceiptIcon(props) {
     </Svg>
   );
 }
+
+export function WhatsAppIcon(props) {
+  return (
+    <Svg {...props}>
+      <path d="M3 21l1.65-3.8A9 9 0 1 1 7.8 20.2L3 21z" />
+      <path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2L9 9.5z" />
+    </Svg>
+  );
+}

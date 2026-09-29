@@ -25,8 +25,9 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const [currentUser] = useCurrentUser();
   const { pathname } = useLocation();
   // Pages where the global "Nouvelle tâche" button is hidden.
-  const hideNewTask =
-    pathname === '/' || pathname === '/finance' || pathname === '/operations/proposal-italy';
+  const hideNewTask = ['/', '/finance', '/performance', '/operations/proposal-italy'].includes(
+    pathname
+  );
 
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);

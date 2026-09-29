@@ -1,4 +1,4 @@
-const DEGREE_LABELS = {
+export const DEGREE_LABELS = {
   bachelor: 'Bachelor',
   master: 'Master',
   researcher: 'Searcher',
@@ -6,23 +6,23 @@ const DEGREE_LABELS = {
   'formation-prof': 'Formation Prof',
 };
 
-const CITY_LABELS = {
+export const CITY_LABELS = {
   large_international: 'Large international city',
   student_city: 'Student city',
   affordable_south: 'Affordable southern region',
   no_preference: 'No preference (best admission chance)',
 };
 
-const FINANCING_PLAN_LABELS = {
+export const FINANCING_PLAN_LABELS = {
   'scholarship-only': 'Fully dependent on scholarship',
   'scholarship-plus-personal': 'Scholarship + personal funds',
   'personal-family-only': 'Personal / family funds only',
   'not-sure-yet': 'Not sure yet',
 };
 
-const YES_NO_LABELS = { yes: 'Yes', no: 'No' };
+export const YES_NO_LABELS = { yes: 'Yes', no: 'No' };
 
-const GUARANTOR_LABELS = { self: 'Self', parent: 'Parent', relative: 'Relative', sponsor: 'Sponsor' };
+export const GUARANTOR_LABELS = { self: 'Self', parent: 'Parent', relative: 'Relative', sponsor: 'Sponsor' };
 
 function row(label, value) {
   if (!value?.trim()) return '';
@@ -45,7 +45,7 @@ function sectionTitle(title) {
   return `<p style="margin:20px 0 8px;font-size:14px;font-weight:700;color:#111;">${escapeHtml(title)}</p>`;
 }
 
-function toGpa(score, maxScore) {
+export function toGpa(score, maxScore) {
   const s = Number(score);
   const m = Number(maxScore);
   if (!Number.isFinite(s) || !Number.isFinite(m) || m <= 0) return '';

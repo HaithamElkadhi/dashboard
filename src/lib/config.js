@@ -12,6 +12,8 @@ export const TABLES = {
   expenses: 'tblrpf0nxZNlNftME',
   bookings: 'tblYHIcXwoMupWnaC',
   kpis: 'tblKH18HxeyAND7Ew',
+  goals: 'tblzvEuPholyHRas6', // "MOS" — objectives per period
+  log: 'tblryt49y74X8MXC3', // situation-change log (filled by an Airtable automation)
 };
 
 // KPIS table field IDs — periodic snapshots of the prospect funnel, written by
@@ -50,6 +52,29 @@ export const PF = {
   regionAuthority: 'fld7692flEhPFJzz8',
   paiementsLink: 'fldStoAPufN0Ux4JF',
   email: 'fldWBOtlmuPIXdsep',
+  // First time the person reached the stage — written once, never overwritten
+  dateLead: 'fldr3x29CNkzEXKBa', // date — "📅 Date Lead"
+  dateProspect: 'fldw8INyJcrckaK4W', // date — "📅 Date Prospect"
+  dateCandidate: 'fld16Wc0eAV7vISzS', // date — "📅 Date Candidate"
+  dateStudent: 'fld4J0VFnAiOza61n', // date — "📅 Date Student"
+  dateLost: 'fldPUxKxYe4zDSLSq', // date — "📅 Date Lost"
+  interestLevel: 'fldfGWfKdWXRjzBR6', // singleSelect — "Niveau d'intérêt"
+  // Follow-up: latest contact date + append-only log ("DD/MM/YYYY — motif" per line)
+  lastContact: 'fldMNqg6mBhMVRlaE', // date — "Dernier contact"
+  contactHistory: 'fldZUcZ5HyfWP7aGJ', // multilineText — "Historique contacts"
+  logLinks: 'fld4Wy22Jk3ppjlOs', // multipleRecordLinks → Log
+  // Fiche client — personal & contact details
+  gender: 'fldQ0JmIyKP072h1h', // singleSelect
+  birthday: 'fldUiSJwz4U9FDNJH', // date
+  age: 'fld5yUPBYWhj1qipl', // formula — read-only
+  countryOfResidence: 'fldYwQB9OLIgBwNwi', // singleSelect
+  cityOfBirth: 'fldkvs4xlblyvyTjr',
+  fullAddress: 'fldP5aCtktb3nrpPI',
+  secondaryEmail: 'fld9oUPtE6vSJvwqe',
+  applicationEmail: 'flduBzqGehqb5iu4f', // "Email For application"
+  whatsappNumber: 'fldHIXLt8b7LaLf9s',
+  whatsappLink: 'fldbzCV7Zy2YqqONJ', // formula — https://wa.me/<phone>, read-only
+  photo: 'fldHcDL1G6rD6gR8S', // Photo (multipleAttachments) — profile picture
   phone: 'fldx6RMeRYPWC9BV3',
   accountsLink: 'flddNBP0jC3rYtcF0',
   // Proposal — Italy (persisted on Prospects)
@@ -376,3 +401,47 @@ export function bookingStatusColor(status) {
     ? BOOKING_STATUS_COLORS[key]
     : { bg: '#EEEEEE', text: '#5F5E5A' };
 }
+
+// Niveau d'intérêt (Prospects) — Airtable options in display order, with emoji.
+export const INTEREST_LEVELS = [
+  { value: 'Élevé', emoji: '🔥' },
+  { value: 'Moyen', emoji: '🙂' },
+  { value: 'Faible', emoji: '😐' },
+  { value: 'Non contacté', emoji: '⏳' },
+];
+
+// Log table (situation changes, one row per change — read-only here)
+export const LOG = {
+  name: 'flddKYjOjY9vLKRYx',
+  notes: 'fldYlCWCoSUwhVH5L',
+  prospect: 'fldBaOTTG5KNi8svI',
+  newSituation: 'fld0FjiRnR0S5l2bP', // "Nouvelle situation"
+  changedAt: 'fldxq6q8uEBKeZ8rx', // createdTime — "Date du changement"
+  changedBy: 'fldr7JiEEBFykbvNO', // "Modifié par"
+};
+
+// Goals table ("MOS"). Targets are set by the team; actuals are entered for
+// now (rates / health formulas in Airtable are recomputed in the dashboard).
+export const GOAL = {
+  name: 'fldlqHGbYFkHMaBkc',
+  periodType: 'fldr8WtPOV8ZTumaa', // singleSelect
+  startDate: 'fld2XuONN4p7BGEHn',
+  endDate: 'fldHxVlxZmrjgLoGr', // "End Date / DDL"
+  targetLeads: 'fldjnXwCDtMSgKuGf',
+  actualLeads: 'fldj90ZrjAyDZdSmV',
+  targetProspects: 'fldbnh0EeoqhEnFZ8',
+  actualProspects: 'fldqSYtqCjFtawXFA',
+  targetCandidates: 'fldvtcZpC5KaK33Vd',
+  actualCandidates: 'fldYHBaeQLZ4tsrBW',
+  duePayments: 'fldiWnklYfFagy97B', // DT
+  collectedPayments: 'fldaqawnVwmD1fm7d', // DT
+  targetRevenue: 'fldbWQYQqvlIuMnBW', // DT
+  actualRevenue: 'fldnnB7nvFcuOQ33B', // DT
+  targetCollection: 'fld8Xeivauorm1FpM', // number — collection rate aimed for, in % (e.g. 80)
+};
+
+export const GOAL_PERIOD_TYPES = [
+  { value: '📅 Monthly', label: 'Mensuel', emoji: '📅' },
+  { value: '📆 Weekly', label: 'Hebdomadaire', emoji: '📆' },
+  { value: '⏰ Deadline-based', label: 'Échéance', emoji: '⏰' },
+];

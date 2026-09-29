@@ -13,6 +13,8 @@ import {
   EXP,
   BK,
   KPI,
+  LOG,
+  GOAL,
 } from './config.js';
 import {
   buildAcademicDescription,
@@ -126,6 +128,84 @@ function asArray(v) {
   return Array.isArray(v) ? v : [v];
 }
 
+// Proposal — Italy completeness: share of the proposal fields that are filled
+// on the prospect. Contact details (email / phone) come with every lead, so
+// they don't count — an untouched proposal is 0%. Optional extras like notes
+// or the alternative field don't count either.
+const PROPOSAL_COMPLETENESS_FIELDS = [
+  ['Nationality', 'nationality'],
+  ['Current status', 'currentStatus'],
+  ['Academic level', 'lastAcademicLevel'],
+  ['Obtained diplomas', 'obtainedDiplomas'],
+  ['Academic records', 'academicRecordDescription'],
+  ['Field of previous studies', 'background'],
+  ['Year of graduation', 'yearOfGraduation'],
+  ['Languages', 'languages'],
+  ['Language records', 'languageRecordDescription'],
+  ['Target degree', 'entryLevel'],
+  ['Intended intake', 'intendedIntake'],
+  ['Primary field of study', 'primaryFieldOfStudy'],
+  ['Program languages', 'programLanguages'],
+  ['City preference', 'cityPreferenceType'],
+  ['Financing plan', 'financingPlan'],
+  ['Financial guarantor', 'financialGuarantor'],
+  ['Blocked account', 'blockedAccount'],
+  ['Support from abroad', 'supportFromAbroad'],
+  ['Available budget', 'availableBudget'],
+  ['Selected services', 'selectedServices'],
+];
+const PROPOSAL_COMPLETENESS_FIELD_IDS = PROPOSAL_COMPLETENESS_FIELDS.map(([, k]) => PF[k]);
+
+function isFilled(v) {
+  if (v == null) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'number') return true;
+  return String(v).trim() !== '';
+}
+
+/** @returns {{ percent: number, missing: string[] }} */
+function proposalCompleteness(f) {
+  const missing = PROPOSAL_COMPLETENESS_FIELDS.filter(([, k]) => !isFilled(f[PF[k]])).map(
+    ([label]) => label
+  );
+  const total = PROPOSAL_COMPLETENESS_FIELDS.length;
+  return { percent: Math.round(((total - missing.length) / total) * 100), missing };
+}
+
+/** Re-read one prospect's completeness (after saving its proposal). */
+export async function fetchProspectCompleteness(recordId) {
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
+  );
+  if (!res.ok) await parseError(res);
+  return proposalCompleteness((await res.json()).fields || {});
+}
+
+// Intended Intake options exist in two spellings ("26 - 27 " and "2026/2027");
+// both become "2026/2027" so the same school year is one filter.
+export function normalizeIntake(raw) {
+  const v = String(raw || '').trim();
+  const m = v.match(/^(\d{2}|\d{4})\s*[-/–]\s*(\d{2}|\d{4})$/);
+  if (!m) return v;
+  const full = (y) => (y.length === 2 ? `20${y}` : y);
+  return `${full(m[1])}/${full(m[2])}`;
+}
+
+// The five "📅 Date …" stage fields of a prospect record.
+export const STAGE_DATE_KEYS = ['dateLead', 'dateProspect', 'dateCandidate', 'dateStudent', 'dateLost'];
+function stageDatesOf(f) {
+  return Object.fromEntries(STAGE_DATE_KEYS.map((k) => [k, f[PF[k]] || '']));
+}
+
+// First attachment of the Photo field, as a thumbnail (fast, avatar-sized).
+// Airtable attachment URLs expire after a few hours — Avatar falls back to
+// initials if a cached one no longer loads.
+function photoUrl(attachments) {
+  const a = asArray(attachments).find((x) => x?.type?.startsWith('image/') || x?.thumbnails);
+  if (!a) return '';
+  return a.thumbnails?.large?.url || a.thumbnails?.small?.url || a.url || '';
+}
+
 function normalizeProspect(record, payMap) {
   const f = record.fields || {};
   const prospectId = f[PF.prospectId] || '';
@@ -163,6 +243,15 @@ function normalizeProspect(record, payMap) {
     scholarshipPayment: f[PF.scholarshipPayment] || '',
     scholarshipDDL: f[PF.scholarshipDDL] || null,
     regionAuthority: f[PF.regionAuthority] || '',
+    photoUrl: photoUrl(f[PF.photo]),
+    whatsappLink: f[PF.whatsappLink] || '',
+    proposal: proposalCompleteness(f),
+    lastContact: f[PF.lastContact] || null,
+    interestLevel: f[PF.interestLevel] || '',
+    intakes: [...new Set(asArray(f[PF.intendedIntake]).map(normalizeIntake).filter(Boolean))],
+    intakeRaw: asArray(f[PF.intendedIntake]),
+    ...stageDatesOf(f),
+    contactHistory: f[PF.contactHistory] || '',
     pay,
   };
 }
@@ -201,6 +290,7 @@ async function fetchSchema() {
     scholarshipType: extract(PF.scholarshipType),
     scholarshipPayment: extract(PF.scholarshipPayment),
     regionAuthority: extract(PF.regionAuthority),
+    intake: extract(PF.intendedIntake),
   };
 }
 
@@ -249,6 +339,12 @@ function toProspectFields(input) {
   if (input.regionAuthority !== undefined) {
     fields[PF.regionAuthority] = input.regionAuthority || null;
   }
+  if (input.intendedIntake !== undefined) {
+    fields[PF.intendedIntake] = input.intendedIntake || [];
+  }
+  STAGE_DATE_KEYS.forEach((k) => {
+    if (input[k] !== undefined) fields[PF[k]] = input[k] || null;
+  });
   return fields;
 }
 
@@ -282,6 +378,9 @@ export async function updateProspect(recordId, input) {
     scholarshipPayment: f[PF.scholarshipPayment] || '',
     scholarshipDDL: f[PF.scholarshipDDL] || null,
     regionAuthority: f[PF.regionAuthority] || '',
+    intakeRaw: asArray(f[PF.intendedIntake]),
+    intakes: [...new Set(asArray(f[PF.intendedIntake]).map(normalizeIntake).filter(Boolean))],
+    ...stageDatesOf(f),
   };
 }
 
@@ -311,6 +410,13 @@ export async function fetchDashboardData() {
     PF.scholarshipPayment,
     PF.scholarshipDDL,
     PF.regionAuthority,
+    PF.photo,
+    PF.whatsappLink,
+    PF.lastContact,
+    PF.contactHistory,
+    PF.interestLevel,
+    ...STAGE_DATE_KEYS.map((k) => PF[k]),
+    ...PROPOSAL_COMPLETENESS_FIELD_IDS,
   ];
   const paymentFields = [
     PAY.paymentId,
@@ -1439,3 +1545,352 @@ export async function fetchProposalFromProspect(recordId) {
   };
 }
 
+
+// ─── Fiche client (Prospects: personal & contact details) ──────────────────
+
+// Editable text / date fields of the fiche; formulas (Full Name, Prospect ID,
+// Age) and Photo are handled separately.
+const FICHE_TEXT_FIELDS = [
+  'name',
+  'surname',
+  'birthday',
+  'cityOfBirth',
+  'fullAddress',
+  'email',
+  'secondaryEmail',
+  'applicationEmail',
+  'phone',
+  'whatsappNumber',
+];
+
+function normalizeFiche(record) {
+  const f = record.fields || {};
+  const out = {
+    id: record.id,
+    fullName: f[PF.fullName] || '',
+    prospectId: f[PF.prospectId] || '',
+    age: f[PF.age] ?? null,
+    gender: f[PF.gender] || '',
+    nationality: asArray(f[PF.nationality]),
+    countryOfResidence: f[PF.countryOfResidence] || '',
+    photoUrl: photoUrl(f[PF.photo]),
+  };
+  FICHE_TEXT_FIELDS.forEach((k) => {
+    out[k] = f[PF[k]] ?? '';
+  });
+  return out;
+}
+
+export async function fetchClientFiche(recordId) {
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
+  );
+  if (!res.ok) await parseError(res);
+  return normalizeFiche(await res.json());
+}
+
+/** Writes the editable fiche fields; empty values clear the Airtable field. */
+export async function updateClientFiche(recordId, input) {
+  const fields = {};
+  FICHE_TEXT_FIELDS.forEach((k) => {
+    if (input[k] === undefined) return;
+    const v = String(input[k] ?? '').trim();
+    fields[PF[k]] = v || null;
+  });
+  if (input.gender !== undefined) fields[PF.gender] = input.gender || null;
+  if (input.countryOfResidence !== undefined) {
+    fields[PF.countryOfResidence] = input.countryOfResidence || null;
+  }
+  if (input.nationality !== undefined) fields[PF.nationality] = input.nationality;
+  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+    fields,
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizeFiche(data);
+}
+
+/** Replace the prospect's Photo with an image file (max 5 MB). */
+export async function uploadProspectPhoto(recordId, file) {
+  if (!file) throw new Error('No file selected');
+  if (!file.type.startsWith('image/')) throw new Error('Please choose an image file.');
+  if (file.size > MAX_INVOICE_BYTES) throw new Error(`“${file.name}” is over 5 MB.`);
+  const uploaded = await airtableWrite(
+    'POST',
+    `${BASE_ID}/${recordId}/${PF.photo}/uploadAttachment`,
+    { contentType: file.type, file: await fileToBase64(file), filename: file.name || 'photo' },
+    { contentHost: true }
+  );
+  // uploadAttachment appends — keep only the new file so it becomes the photo.
+  const all = asArray(uploaded?.fields?.[PF.photo]);
+  const newest = all[all.length - 1];
+  if (all.length > 1 && newest?.id) {
+    const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+      fields: { [PF.photo]: [{ id: newest.id }] },
+      returnFieldsByFieldId: true,
+    });
+    return normalizeFiche(data);
+  }
+  return fetchClientFiche(recordId);
+}
+
+let ficheChoicesPromise = null;
+
+/** Dropdown options (Gender, Nationality, Country of residence) from the schema. */
+export function fetchClientFicheChoices() {
+  if (!ficheChoicesPromise) {
+    ficheChoicesPromise = fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`)
+      .then(async (res) => {
+        if (!res.ok) await parseError(res);
+        const table = (await res.json()).tables.find((t) => t.id === TABLES.prospects);
+        const choices = (id) =>
+          (table?.fields.find((fl) => fl.id === id)?.options?.choices || []).map((c) => c.name);
+        return {
+          gender: choices(PF.gender).filter((g) => g !== 'Gender'),
+          nationality: choices(PF.nationality),
+          countryOfResidence: choices(PF.countryOfResidence),
+        };
+      })
+      .catch((err) => {
+        ficheChoicesPromise = null;
+        throw err;
+      });
+  }
+  return ficheChoicesPromise;
+}
+
+// ─── Contact log (Dernier contact + Historique contacts) ────────────────────
+
+/** "28/09/2026 — Appel" lines → [{ date: '2026-09-28', reason: 'Appel' }], newest first. */
+export function parseContactHistory(text) {
+  return String(text || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = line.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*[—–-]\s*(.*)$/);
+      if (!m) return { date: '', reason: line };
+      const [, d, mo, y, reason] = m;
+      return { date: `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`, reason };
+    });
+}
+
+function formatContactLine({ date, reason }) {
+  const [y, m, d] = date.split('-');
+  return `${d}/${m}/${y} — ${reason.replace(/\s*\n\s*/g, ' ').trim()}`;
+}
+
+/**
+ * Add one contact to the prospect: a new line in Historique contacts (never
+ * overwrites) and Dernier contact moved to that date if it's the most recent.
+ * Re-reads the record first so a stale cached history is never written back.
+ */
+export async function addContactLog(recordId, { date, reason }) {
+  if (!date) throw new Error('Choose a date.');
+  if (!reason?.trim()) throw new Error('Write the reason of the contact.');
+  const res = await fetch(
+    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
+  );
+  if (!res.ok) await parseError(res);
+  const f = (await res.json()).fields || {};
+
+  const entries = [{ date, reason: reason.trim() }, ...parseContactHistory(f[PF.contactHistory])];
+  // Newest first; lines without a parsable date keep their place at the end.
+  entries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const history = entries.map((e) => (e.date ? formatContactLine(e) : e.reason)).join('\n');
+
+  const current = f[PF.lastContact] || '';
+  const lastContact = current && current > date ? current : date;
+
+  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+    fields: { [PF.contactHistory]: history, [PF.lastContact]: lastContact },
+    returnFieldsByFieldId: true,
+  });
+  return {
+    lastContact: data.fields?.[PF.lastContact] || lastContact,
+    contactHistory: data.fields?.[PF.contactHistory] || history,
+  };
+}
+
+/** Set (or clear with '') the prospect's Niveau d'intérêt. */
+export async function updateInterestLevel(recordId, value) {
+  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
+    fields: { [PF.interestLevel]: value || null },
+    returnFieldsByFieldId: true,
+  });
+  return data.fields?.[PF.interestLevel] || '';
+}
+
+/**
+ * Situation changes of one prospect, from the Log table, newest first.
+ * Empty log rows (no new situation) are skipped.
+ * @returns {Promise<{ id: string, at: string, situation: string, by: string, notes: string }[]>}
+ */
+export async function fetchProspectLogs(recordId) {
+  const params = new URLSearchParams();
+  params.set('filterByFormula', `RECORD_ID()='${recordId}'`);
+  params.append('fields[]', PF.logLinks);
+  params.set('returnFieldsByFieldId', 'true');
+  const res = await fetch(`${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}?${params}`);
+  if (!res.ok) await parseError(res);
+  const ids = asArray((await res.json()).records?.[0]?.fields?.[PF.logLinks]);
+  if (!ids.length) return [];
+
+  const logs = [];
+  // Airtable formulas get long — fetch the linked rows in chunks.
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    const q = new URLSearchParams();
+    q.set('filterByFormula', `OR(${chunk.map((id) => `RECORD_ID()='${id}'`).join(',')})`);
+    [LOG.newSituation, LOG.changedAt, LOG.changedBy, LOG.notes].forEach((f) => q.append('fields[]', f));
+    q.set('returnFieldsByFieldId', 'true');
+    const r = await fetch(`${PROXY_BASE}/${BASE_ID}/${TABLES.log}?${q}`);
+    if (!r.ok) await parseError(r);
+    ((await r.json()).records || []).forEach((rec) => {
+      const f = rec.fields || {};
+      const situation = String(f[LOG.newSituation] || '').trim();
+      if (!situation) return;
+      logs.push({
+        id: rec.id,
+        at: f[LOG.changedAt] || rec.createdTime,
+        situation,
+        by: String(f[LOG.changedBy] || '').trim(),
+        notes: String(f[LOG.notes] || '').trim(),
+      });
+    });
+  }
+  return logs.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+// ─── Goals (MOS table) ─────────────────────────────────────────────────────
+
+const GOAL_NUMBER_KEYS = [
+  'targetLeads',
+  'actualLeads',
+  'targetProspects',
+  'actualProspects',
+  'targetCandidates',
+  'actualCandidates',
+  'duePayments',
+  'collectedPayments',
+  'targetRevenue',
+  'actualRevenue',
+  'targetCollection',
+];
+
+function normalizeGoal(record) {
+  const f = record.fields || {};
+  const goal = {
+    id: record.id,
+    createdTime: record.createdTime,
+    name: f[GOAL.name] || '',
+    periodType: f[GOAL.periodType] || '',
+    startDate: f[GOAL.startDate] || '',
+    endDate: f[GOAL.endDate] || '',
+  };
+  GOAL_NUMBER_KEYS.forEach((k) => {
+    const v = f[GOAL[k]];
+    goal[k] = typeof v === 'number' ? v : null;
+  });
+  return goal;
+}
+
+function toGoalFields(input) {
+  const fields = {
+    [GOAL.name]: (input.name || '').trim() || null,
+    [GOAL.periodType]: input.periodType || null,
+    [GOAL.startDate]: input.startDate || null,
+    [GOAL.endDate]: input.endDate || null,
+  };
+  GOAL_NUMBER_KEYS.forEach((k) => {
+    if (!(k in input)) return; // not part of the form — leave Airtable as is
+    const v = input[k];
+    fields[GOAL[k]] = v === '' || v == null || !Number.isFinite(Number(v)) ? null : Number(v);
+  });
+  return fields;
+}
+
+export async function fetchGoals() {
+  const records = await fetchAll(TABLES.goals, Object.values(GOAL));
+  return records.map(normalizeGoal);
+}
+
+export async function createGoal(input) {
+  const data = await airtableWrite('POST', `${BASE_ID}/${TABLES.goals}`, {
+    fields: toGoalFields(input),
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizeGoal(data);
+}
+
+export async function updateGoal(recordId, input) {
+  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.goals}/${recordId}`, {
+    fields: toGoalFields(input),
+    returnFieldsByFieldId: true,
+    typecast: true,
+  });
+  return normalizeGoal(data);
+}
+
+export async function deleteGoal(recordId) {
+  await airtableWrite('DELETE', `${BASE_ID}/${TABLES.goals}/${recordId}`);
+}
+
+/**
+ * Everything needed to compute goal results automatically, for any period:
+ * - stageDates: "📅 Date Prospect / Candidate / …" of every prospect (main source)
+ * - logs: situation changes (Log table), fallback while a stage date is empty
+ * - leadDates: creation date of every row of the LEADS table
+ * - payments: invoiced / paid amounts (Paiements), for the collection rate
+ */
+const PICKER_LEAD_FIELD_ID = 'fldlHoRJSGDj6loWU'; // LEADS › Full Name (any field works; we only need createdTime)
+
+export async function fetchGoalSources() {
+  const [stageRecords, logRecords, leadRecords, paymentRecords] = await Promise.all([
+    fetchAll(TABLES.prospects, [PF.dateLead, PF.dateProspect, PF.dateCandidate, PF.dateStudent, PF.dateLost]),
+    fetchAll(TABLES.log, [LOG.prospect, LOG.newSituation, LOG.changedAt]),
+    fetchAll(TABLES.leads, [PICKER_LEAD_FIELD_ID]),
+    fetchAll(TABLES.paiements, [FIN.status, FIN.dueDate, FIN.paymentDate, FIN.amount, FIN.currency]),
+  ]);
+  const logs = logRecords
+    .map((rec) => {
+      const f = rec.fields || {};
+      return {
+        prospectId: asArray(f[LOG.prospect])[0] || '',
+        at: f[LOG.changedAt] || rec.createdTime,
+        situations: String(f[LOG.newSituation] || '')
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
+      };
+    })
+    .filter((l) => l.prospectId && l.situations.length);
+  const leadDates = leadRecords.map((rec) => rec.createdTime);
+  // First date each person reached each stage (the "📅 Date …" fields).
+  const stageDates = {};
+  stageRecords.forEach((rec) => {
+    const f = rec.fields || {};
+    stageDates[rec.id] = {
+      Lead: f[PF.dateLead] || '',
+      Prospect: f[PF.dateProspect] || '',
+      Candidate: f[PF.dateCandidate] || '',
+      Student: f[PF.dateStudent] || '',
+      Lost: f[PF.dateLost] || '',
+    };
+  });
+  const payments = paymentRecords
+    .map((rec) => {
+      const f = rec.fields || {};
+      return {
+        status: f[FIN.status] || '',
+        // Period of a payment = its due date (when it was invoiced for),
+        // or its payment date when no due date was set.
+        date: f[FIN.dueDate] || f[FIN.paymentDate] || '',
+        amount: toNumber(f[FIN.amount]),
+        currency: f[FIN.currency] || 'EUR',
+      };
+    })
+    .filter((p) => p.date && p.status !== 'Canceled');
+  return { stageDates, logs, leadDates, payments };
+}

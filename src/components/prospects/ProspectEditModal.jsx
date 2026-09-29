@@ -1,6 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Modal from '../Modal.jsx';
 import { SITUATION_CHOICES } from '../../lib/config.js';
+import { normalizeIntake } from '../../lib/airtable.js';
+
+// First date each stage was reached ("📅 Date …" fields) — set once, but
+// correctable here.
+const STAGE_DATES = [
+  { key: 'dateLead', label: 'Lead' },
+  { key: 'dateProspect', label: 'Prospect' },
+  { key: 'dateCandidate', label: 'Candidate' },
+  { key: 'dateStudent', label: 'Student' },
+  { key: 'dateLost', label: 'Lost' },
+];
 
 const inputClass =
   'w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong';
@@ -52,6 +63,8 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
     visaStatus: prospect.visaStatus || '',
     visaAppointmentDate: prospect.visaAppointmentDate || '',
     universitalyValidation: prospect.universitalyValidation || '',
+    intakes: [...new Set((prospect.intakeRaw || []).map(normalizeIntake).filter(Boolean))],
+    ...Object.fromEntries(STAGE_DATES.map((d) => [d.key, prospect[d.key] || ''])),
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -61,6 +74,25 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
   const scholarshipChoices = choices?.scholarship || [];
   const visaChoices = choices?.visa || [];
   const universitalyChoices = choices?.universitaly || [];
+
+  // Année scolaire: Airtable has two spellings per year ("26 - 27 " and
+  // "2026/2027") — show one chip per year and save an existing option,
+  // preferring the "YYYY/YYYY" spelling.
+  const intakeOptions = useMemo(() => {
+    const byYear = new Map();
+    (choices?.intake || []).forEach((raw) => {
+      const year = normalizeIntake(raw);
+      if (!year) return;
+      const current = byYear.get(year);
+      if (!current || (raw.includes('/') && !current.includes('/'))) byYear.set(year, raw);
+    });
+    return byYear;
+  }, [choices]);
+  const intakeYears = [...intakeOptions.keys()].sort();
+  const initialIntakes = useMemo(
+    () => [...new Set((prospect.intakeRaw || []).map(normalizeIntake).filter(Boolean))].sort().join('|'),
+    [prospect.intakeRaw]
+  );
 
   const toggleIn = (key) => (choice) =>
     setForm((f) => ({
@@ -87,6 +119,11 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
         visaStatus: form.visaStatus,
         visaAppointmentDate: form.visaAppointmentDate || null,
         universitalyValidation: form.universitalyValidation,
+        // Only rewrite the intake when it was changed (keeps Airtable's spelling).
+        ...([...form.intakes].sort().join('|') !== initialIntakes
+          ? { intendedIntake: form.intakes.map((y) => intakeOptions.get(y) || y) }
+          : {}),
+        ...Object.fromEntries(STAGE_DATES.map((d) => [d.key, form[d.key] || null])),
       });
       onClose();
     } catch (err) {
@@ -216,6 +253,25 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
               ))}
             </select>
           </Field>
+        </div>
+
+        <Field label="Année scolaire">
+          <ChipPicker choices={intakeYears} value={form.intakes} onToggle={toggleIn('intakes')} />
+        </Field>
+
+        <div>
+          <p className="text-sm font-medium text-text-strong">Dates d’étape</p>
+          <p className="mb-2 text-xs text-text-muted">
+            1ʳᵉ fois que la personne a atteint chaque étape — utilisées pour les objectifs.
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {STAGE_DATES.map((d) => (
+              <label key={d.key} className="block space-y-1">
+                <span className="block text-xs text-text-muted">📅 {d.label}</span>
+                <input type="date" className={inputClass} value={form[d.key]} onChange={set(d.key)} />
+              </label>
+            ))}
+          </div>
         </div>
 
         {error && (

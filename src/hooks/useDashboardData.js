@@ -1,7 +1,34 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchDashboardData, updateProspect, deleteProspect } from '../lib/airtable.js';
 
-const CACHE_KEY = 'jeexpert:dashboard:v1';
+// Bump the version whenever a prospect gets new fields: an older cache is then
+// dropped and the data re-fetched once, so new columns/filters aren't empty.
+const CACHE_VERSION = 4;
+const CACHE_KEY = `jeexpert:dashboard:v${CACHE_VERSION}`;
+
+// True when a cache from an older version was found (and removed). Evaluated
+// once per page load — not during render, where React may run it twice.
+let outdatedCacheFound = null;
+function hadOutdatedCache() {
+  if (outdatedCacheFound === null) outdatedCacheFound = dropOutdatedCaches();
+  return outdatedCacheFound;
+}
+
+function dropOutdatedCaches() {
+  let found = false;
+  try {
+    for (let v = 1; v < CACHE_VERSION; v += 1) {
+      const key = `jeexpert:dashboard:v${v}`;
+      if (localStorage.getItem(key) != null) {
+        localStorage.removeItem(key);
+        found = true;
+      }
+    }
+  } catch {
+    /* storage unavailable */
+  }
+  return found;
+}
 
 // Load any previously fetched data from localStorage so a browser refresh keeps
 // showing the last snapshot instead of going back to the empty state. This
@@ -40,6 +67,7 @@ function writeCache(prospects, schema, lastUpdated) {
 export function useDashboardData() {
   // Hydrate synchronously from cache (runs once) so there's no empty flash.
   const cached = typeof window !== 'undefined' ? readCache() : null;
+  const reloadOutdated = typeof window !== 'undefined' && !cached && hadOutdatedCache();
 
   const [prospects, setProspects] = useState(cached?.prospects ?? []);
   const [schema, setSchema] = useState(cached?.schema ?? null);
@@ -69,6 +97,18 @@ export function useDashboardData() {
   // Only the fields edited via the popup form are patched here — a full
   // re-normalize would need the payment map too, and the payment totals
   // aren't part of this edit, so the rest of the row is left untouched.
+  // The operator had data before this version — reload it once automatically
+  // instead of showing the empty state.
+  useEffect(() => {
+    // Check the module flag, not just the render value: React may run this
+    // effect twice in development, and the reload must happen only once.
+    if (reloadOutdated && outdatedCacheFound) {
+      outdatedCacheFound = false;
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const update = useCallback(
     async (recordId, input) => {
       const patch = await updateProspect(recordId, input);
@@ -93,6 +133,13 @@ export function useDashboardData() {
                 scholarshipPayment: patch.scholarshipPayment,
                 scholarshipDDL: patch.scholarshipDDL,
                 regionAuthority: patch.regionAuthority,
+                intakeRaw: patch.intakeRaw,
+                intakes: patch.intakes,
+                dateLead: patch.dateLead,
+                dateProspect: patch.dateProspect,
+                dateCandidate: patch.dateCandidate,
+                dateStudent: patch.dateStudent,
+                dateLost: patch.dateLost,
               }
             : p
         );
@@ -116,5 +163,18 @@ export function useDashboardData() {
     [schema, lastUpdated]
   );
 
-  return { prospects, schema, status, error, lastUpdated, refresh: load, update, remove };
+  // Merge already-known values into one row (no Airtable call), e.g. the
+  // proposal completeness after the proposal popup saved.
+  const patchLocal = useCallback(
+    (recordId, partial) => {
+      setProspects((prev) => {
+        const next = prev.map((p) => (p.id === recordId ? { ...p, ...partial } : p));
+        writeCache(next, schema, lastUpdated);
+        return next;
+      });
+    },
+    [schema, lastUpdated]
+  );
+
+  return { prospects, schema, status, error, lastUpdated, refresh: load, update, remove, patchLocal };
 }

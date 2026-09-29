@@ -23,7 +23,14 @@ export default function Modal({
   }, [onClose]);
 
   const maxWidth =
-    size === 'lg' ? 'max-w-2xl' : size === 'sm' ? 'max-w-md' : 'max-w-xl';
+    size === 'xl'
+      ? 'max-w-5xl'
+      : size === 'lg'
+        ? 'max-w-2xl'
+        : size === 'sm'
+          ? 'max-w-md'
+          : 'max-w-xl';
+  const maxHeight = size === 'xl' ? 'max-h-[min(92vh,960px)]' : 'max-h-[min(90vh,720px)]';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -37,7 +44,7 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative z-10 flex max-h-[min(90vh,720px)] w-full ${maxWidth} flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl`}
+        className={`relative z-10 flex ${maxHeight} w-full ${maxWidth} flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl`}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
           <div className="min-w-0">

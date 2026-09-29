@@ -6,11 +6,15 @@ import { EmptyState, SkeletonRows } from './states.jsx';
 import { usePagination } from '../hooks/usePagination.js';
 import { chipStyle, dotStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
-import { PencilIcon, TrashIcon, WalletIcon } from './icons.jsx';
+import { FileTextIcon, PencilIcon, TrashIcon, UserIcon, WalletIcon, WhatsAppIcon } from './icons.jsx';
 import { formatShortDate } from '../lib/taskDates.js';
+import { parseContactHistory } from '../lib/airtable.js';
+import { INTEREST_LEVELS } from '../lib/config.js';
+import { formatContactDate } from './prospects/ContactLogModal.jsx';
 
 const BASE_COLUMNS = [
   'Étudiant',
+  'Dernier contact',
   'Appli.',
   'Admission',
   'Université',
@@ -25,6 +29,7 @@ const BASE_COLUMNS = [
 const ALL_COLUMNS = [
   'Étudiant',
   'Prospect Situation',
+  'Dernier contact',
   'Appli.',
   'Admission',
   'Université',
@@ -36,7 +41,106 @@ const ALL_COLUMNS = [
   '',
 ];
 
+// Lead / Prospect tabs: only what matters before signing.
+const PROPOSAL_COLUMNS = ['Étudiant', 'Intérêt', 'Dernier contact', 'Proposal', 'Payé', 'Restant', ''];
+
 const EMPTY = {};
+
+const INTEREST_TONES = {
+  Élevé: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+  Moyen: 'border-yellow-200 bg-yellow-50 text-yellow-800',
+  Faible: 'border-orange-200 bg-orange-50 text-orange-800',
+  Aucun: 'border-red-200 bg-red-50 text-red-700',
+  'Non contacté': 'border-border bg-canvas text-text-muted',
+};
+
+// Niveau d'intérêt as an emoji pill; it's a select, so changing it saves.
+function InterestCell({ p, onChange }) {
+  const value = p.interestLevel || '';
+  const tone = INTEREST_TONES[value] || 'border-dashed border-border bg-surface text-text-muted';
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange?.(p, e.target.value)}
+      disabled={!onChange}
+      title="Niveau d'intérêt"
+      className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs font-medium outline-none transition hover:border-border-strong ${tone}`}
+    >
+      <option value="">— Choisir</option>
+      {value && !INTEREST_LEVELS.some((l) => l.value === value) && <option value={value}>{value}</option>}
+      {INTEREST_LEVELS.map((l) => (
+        <option key={l.value} value={l.value}>
+          {l.emoji} {l.value}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function daysSince(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const then = new Date(y, m - 1, d);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((today - then) / 86400000);
+}
+
+// Latest contact (date + motif); click to add a new one. Turns amber after a
+// week and red after two weeks without contact.
+function LastContactCell({ p, onClick }) {
+  const latest = parseContactHistory(p.contactHistory)[0];
+  if (!p.lastContact) {
+    return (
+      <button
+        type="button"
+        onClick={() => onClick(p)}
+        className="rounded-lg border border-dashed border-border px-2.5 py-1 text-xs font-medium text-text-muted transition hover:border-border-strong hover:text-text-strong"
+      >
+        + Ajouter
+      </button>
+    );
+  }
+  const days = daysSince(p.lastContact);
+  const tone = days > 14 ? 'text-red-600' : days > 7 ? 'text-amber-700' : 'text-emerald-700';
+  const ago = days <= 0 ? "aujourd'hui" : days === 1 ? 'hier' : `il y a ${days} j`;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(p)}
+      title={latest?.reason ? `${formatContactDate(p.lastContact)} — ${latest.reason}` : 'Ajouter un contact'}
+      className="-mx-2 -my-1 block max-w-[14rem] rounded-lg px-2 py-1 text-left transition hover:bg-canvas"
+    >
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-sm font-medium tabular-nums text-text-strong">
+          {formatContactDate(p.lastContact)}
+        </span>
+        <span className={`text-xs font-medium ${tone}`}>{ago}</span>
+      </span>
+      {latest?.reason && <span className="block truncate text-xs text-text-muted">{latest.reason}</span>}
+    </button>
+  );
+}
+
+// Share of the proposal filled in; the missing fields are listed on hover.
+function ProposalProgress({ value }) {
+  if (!value) return <Muted />;
+  const { percent, missing } = value;
+  const tone =
+    percent >= 80
+      ? { bar: 'bg-emerald-500', text: 'text-emerald-700' }
+      : percent >= 40
+        ? { bar: 'bg-amber-500', text: 'text-amber-700' }
+        : { bar: 'bg-red-500', text: 'text-red-600' };
+  const title = missing.length ? `Missing: ${missing.join(', ')}` : 'Proposal complete';
+  return (
+    <div className="flex min-w-[9rem] items-center gap-2.5" title={title}>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-canvas">
+        <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${percent}%` }} />
+      </div>
+      <span className={`w-10 text-right text-sm font-semibold tabular-nums ${tone.text}`}>{percent}%</span>
+    </div>
+  );
+}
 
 function Muted() {
   return <span className="text-text-muted">—</span>;
@@ -122,7 +226,7 @@ function Field({ label, children }) {
   );
 }
 
-function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
+function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, proposalMode }) {
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -131,6 +235,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) 
           last={p.lastName}
           fullName={p.fullName}
           seed={p.prospectId || p.id}
+          src={p.photoUrl}
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -143,9 +248,23 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) 
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-medium tabular-nums text-text-muted">
-                {p.nbrApplications || 0} appli.
-              </span>
+              {!proposalMode && (
+                <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-medium tabular-nums text-text-muted">
+                  {p.nbrApplications || 0} appli.
+                </span>
+              )}
+              {p.whatsappLink && (
+                <a
+                  href={p.whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="WhatsApp"
+                  aria-label={`WhatsApp ${p.fullName}`}
+                  className="rounded-lg border border-border p-1.5 text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/10"
+                >
+                  <WhatsAppIcon size={13} />
+                </a>
+              )}
               {onEdit && (
                 <button
                   type="button"
@@ -154,6 +273,26 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) 
                   className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
                 >
                   <PencilIcon size={13} />
+                </button>
+              )}
+              {onFiche && (
+                <button
+                  type="button"
+                  onClick={() => onFiche(p)}
+                  title="Fiche client"
+                  className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+                >
+                  <UserIcon size={13} />
+                </button>
+              )}
+              {onProposal && (
+                <button
+                  type="button"
+                  onClick={() => onProposal(p)}
+                  title="Proposal"
+                  className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+                >
+                  <FileTextIcon size={13} />
                 </button>
               )}
               {onBourse && (
@@ -186,33 +325,64 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse }) 
         </div>
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
-        <Field label="Admission">
-          <AdmissionTags values={p.admissionStatus} colorMap={colors.admission} />
-        </Field>
-        <Field label="Université">
-          {p.university ? p.university : <Muted />}
-        </Field>
-        <Field label="Payé">
-          <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
-        </Field>
-        <Field label="Restant">
-          <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
-        </Field>
-        <Field label="Scholarship">
-          <StatusBadge value={p.scholarshipStatus} colorMap={colors.scholarship} />
-        </Field>
-        <Field label="Visa">
-          <VisaCell
-            value={p.visaStatus}
-            colorMap={colors.visa}
-            appointmentDate={p.visaAppointmentDate}
-          />
-        </Field>
-        <Field label="Universitaly Validation">
-          <StatusBadge value={p.universitalyValidation} colorMap={colors.universitaly} />
-        </Field>
-      </dl>
+      {proposalMode ? (
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+          <div className="col-span-2">
+            <Field label="Intérêt">
+              <InterestCell p={p} onChange={onInterest} />
+            </Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="Dernier contact">
+              <LastContactCell p={p} onClick={onContact} />
+            </Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="Proposal">
+              <ProposalProgress value={p.proposal} />
+            </Field>
+          </div>
+          <Field label="Payé">
+            <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
+          </Field>
+          <Field label="Restant">
+            <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </Field>
+        </dl>
+      ) : (
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+          <div className="col-span-2">
+            <Field label="Dernier contact">
+              <LastContactCell p={p} onClick={onContact} />
+            </Field>
+          </div>
+          <Field label="Admission">
+            <AdmissionTags values={p.admissionStatus} colorMap={colors.admission} />
+          </Field>
+          <Field label="Université">
+            {p.university ? p.university : <Muted />}
+          </Field>
+          <Field label="Payé">
+            <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
+          </Field>
+          <Field label="Restant">
+            <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </Field>
+          <Field label="Scholarship">
+            <StatusBadge value={p.scholarshipStatus} colorMap={colors.scholarship} />
+          </Field>
+          <Field label="Visa">
+            <VisaCell
+              value={p.visaStatus}
+              colorMap={colors.visa}
+              appointmentDate={p.visaAppointmentDate}
+            />
+          </Field>
+          <Field label="Universitaly Validation">
+            <StatusBadge value={p.universitalyValidation} colorMap={colors.universitaly} />
+          </Field>
+        </dl>
+      )}
     </div>
   );
 }
@@ -236,7 +406,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
+function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, proposalMode }) {
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
       <td className="px-4 py-3">
@@ -246,6 +416,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
             last={p.lastName}
             fullName={p.fullName}
             seed={p.prospectId || p.id}
+            src={p.photoUrl}
           />
           <div className="min-w-0">
             <div className="truncate text-sm font-medium capitalize text-text-strong">
@@ -262,42 +433,79 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
           <SituationBadges values={p.situations} colorMap={colors.situation} />
         </td>
       )}
-      <td className="px-4 py-3">
-        <span className="text-sm tabular-nums text-text-strong">
-          {p.nbrApplications || 0}
-        </span>
-      </td>
-      <td className="px-4 py-3">
-        <AdmissionTags values={p.admissionStatus} colorMap={colors.admission} />
-      </td>
-      <td className="px-4 py-3">
-        {p.university ? (
-          <span className="text-sm text-text-strong">{p.university}</span>
-        ) : (
-          <Muted />
-        )}
-      </td>
-      <td className="px-4 py-3">
-        <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
-      </td>
-      <td className="px-4 py-3">
-        <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
-      </td>
-      <td className="px-4 py-3">
-        <StatusBadge value={p.scholarshipStatus} colorMap={colors.scholarship} />
-      </td>
-      <td className="px-4 py-3">
-        <VisaCell
-          value={p.visaStatus}
-          colorMap={colors.visa}
-          appointmentDate={p.visaAppointmentDate}
-        />
-      </td>
-      <td className="px-4 py-3">
-        <StatusBadge value={p.universitalyValidation} colorMap={colors.universitaly} />
-      </td>
+      {proposalMode ? (
+        <>
+          <td className="px-4 py-3">
+            <InterestCell p={p} onChange={onInterest} />
+          </td>
+          <td className="px-4 py-3">
+            <LastContactCell p={p} onClick={onContact} />
+          </td>
+          <td className="px-4 py-3">
+            <ProposalProgress value={p.proposal} />
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </td>
+        </>
+      ) : (
+        <>
+          <td className="px-4 py-3">
+            <LastContactCell p={p} onClick={onContact} />
+          </td>
+          <td className="px-4 py-3">
+            <span className="text-sm tabular-nums text-text-strong">
+              {p.nbrApplications || 0}
+            </span>
+          </td>
+          <td className="px-4 py-3">
+            <AdmissionTags values={p.admissionStatus} colorMap={colors.admission} />
+          </td>
+          <td className="px-4 py-3">
+            {p.university ? (
+              <span className="text-sm text-text-strong">{p.university}</span>
+            ) : (
+              <Muted />
+            )}
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurPaid} tnd={p.pay.tndPaid} />
+          </td>
+          <td className="px-4 py-3">
+            <PaymentCell eur={p.pay.eurDue} tnd={p.pay.tndDue} />
+          </td>
+          <td className="px-4 py-3">
+            <StatusBadge value={p.scholarshipStatus} colorMap={colors.scholarship} />
+          </td>
+          <td className="px-4 py-3">
+            <VisaCell
+              value={p.visaStatus}
+              colorMap={colors.visa}
+              appointmentDate={p.visaAppointmentDate}
+            />
+          </td>
+          <td className="px-4 py-3">
+            <StatusBadge value={p.universitalyValidation} colorMap={colors.universitaly} />
+          </td>
+        </>
+      )}
       <td className="px-4 py-3">
         <div className="flex items-center justify-end gap-1.5">
+          {p.whatsappLink && (
+            <a
+              href={p.whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="WhatsApp"
+              aria-label={`WhatsApp ${p.fullName}`}
+              className="rounded-lg border border-border p-1.5 text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/10"
+            >
+              <WhatsAppIcon size={14} />
+            </a>
+          )}
           {onEdit && (
             <button
               type="button"
@@ -306,6 +514,26 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse }) {
               className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
             >
               <PencilIcon size={14} />
+            </button>
+          )}
+          {onFiche && (
+            <button
+              type="button"
+              onClick={() => onFiche(p)}
+              title="Fiche client"
+              className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+            >
+              <UserIcon size={14} />
+            </button>
+          )}
+          {onProposal && (
+            <button
+              type="button"
+              onClick={() => onProposal(p)}
+              title="Proposal"
+              className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
+            >
+              <FileTextIcon size={14} />
             </button>
           )}
           {onBourse && (
@@ -342,6 +570,11 @@ export default function ProspectsTable({
   onEdit,
   onDelete,
   onBourse,
+  onProposal,
+  onFiche,
+  onContact,
+  onInterest,
+  proposalMode = false,
 }) {
   const palette = {
     situation: colors?.situation || EMPTY,
@@ -351,11 +584,11 @@ export default function ProspectsTable({
     universitaly: colors?.universitaly || EMPTY,
   };
 
-  const columns = showSituation ? ALL_COLUMNS : BASE_COLUMNS;
+  const columns = proposalMode ? PROPOSAL_COLUMNS : showSituation ? ALL_COLUMNS : BASE_COLUMNS;
 
   const resetKey = useMemo(
-    () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}:${showSituation}`,
-    [rows, showSituation]
+    () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}:${showSituation}:${proposalMode}`,
+    [rows, showSituation, proposalMode]
   );
   const pagination = usePagination(rows, { resetKey });
   const visible = loading ? [] : pagination.pageItems;
@@ -364,7 +597,9 @@ export default function ProspectsTable({
     <>
       {/* Desktop / tablet: full table */}
       <div className="scroll-thin hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[960px] border-collapse text-left">
+        <table
+          className={`w-full border-collapse text-left ${proposalMode ? 'min-w-[880px]' : 'min-w-[1120px]'}`}
+        >
           <thead>
             <tr className="border-b border-border">
               {columns.map((col) => (
@@ -396,6 +631,11 @@ export default function ProspectsTable({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onBourse={onBourse}
+                  onProposal={onProposal}
+                  onFiche={onFiche}
+                  onContact={onContact}
+                  onInterest={onInterest}
+                  proposalMode={proposalMode}
                 />
               ))
             )}
@@ -419,6 +659,11 @@ export default function ProspectsTable({
               onEdit={onEdit}
               onDelete={onDelete}
               onBourse={onBourse}
+              onProposal={onProposal}
+              onFiche={onFiche}
+              onContact={onContact}
+              onInterest={onInterest}
+              proposalMode={proposalMode}
             />
           ))
         )}

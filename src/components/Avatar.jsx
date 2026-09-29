@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { initials } from '../lib/format.js';
 
 // Deterministic soft color from a string so each person keeps a stable avatar.
@@ -19,8 +20,24 @@ function hash(str) {
   return Math.abs(h);
 }
 
-export default function Avatar({ first, last, fullName, seed = '', size = 36 }) {
+export default function Avatar({ first, last, fullName, seed = '', size = 36, src = '' }) {
   const color = PALETTE[hash(seed || fullName || '') % PALETTE.length];
+  // Remember which URL failed so a new URL (after a data refresh) is retried.
+  const [failedSrc, setFailedSrc] = useState(null);
+
+  if (src && failedSrc !== src) {
+    return (
+      <img
+        src={src}
+        alt={fullName || ''}
+        loading="lazy"
+        onError={() => setFailedSrc(src)}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size, backgroundColor: color.bg }}
+      />
+    );
+  }
+
   return (
     <span
       className="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold"
