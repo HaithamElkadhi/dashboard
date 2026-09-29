@@ -9,6 +9,7 @@ import ProposalViewModal from '../components/prospects/ProposalViewModal.jsx';
 import ClientFicheModal from '../components/prospects/ClientFicheModal.jsx';
 import ContactLogModal from '../components/prospects/ContactLogModal.jsx';
 import WhatsAppModal from '../components/prospects/WhatsAppModal.jsx';
+import SituationFilter from '../components/prospects/SituationFilter.jsx';
 import Toast from '../components/Toast.jsx';
 import { fetchProspectCompleteness, normalizeIntake, updateInterestLevel } from '../lib/airtable.js';
 import { ErrorState } from '../components/states.jsx';
@@ -88,6 +89,8 @@ export default function ProspectsPage() {
   const [whatsappFor, setWhatsappFor] = useState(null);
   const [intakeFilter, setIntakeFilter] = useState('all');
   const [admissionFilter, setAdmissionFilter] = useState('all');
+  // Tous tab only: combine several situations (empty = all).
+  const [situationFilter, setSituationFilter] = useState([]);
   const isProposalTab = PROPOSAL_TABS.includes(activeTab);
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(null);
@@ -324,6 +327,7 @@ export default function ProspectsPage() {
   // so it never filters another tab silently.
   useEffect(() => {
     if (activeTab !== ADMISSION_TAB) setAdmissionFilter('all');
+    if (activeTab !== 'all') setSituationFilter([]);
   }, [activeTab]);
 
   // Keep active tab valid if situations change after a refresh.
@@ -336,6 +340,9 @@ export default function ProspectsPage() {
     const q = query.trim().toLowerCase();
     return prospects.filter((p) => {
       if (!inTab(p, activeTab)) return false;
+      if (activeTab === 'all' && situationFilter.length) {
+        if (!situationFilter.some((s) => inTab(p, s))) return false;
+      }
       if (intakeFilter !== 'all') {
         const intakes = p.intakes || [];
         const matchesIntake =
@@ -355,7 +362,7 @@ export default function ProspectsPage() {
         p.prospectId.toLowerCase().includes(q)
       );
     });
-  }, [prospects, activeTab, intakeFilter, admissionFilter, query]);
+  }, [prospects, activeTab, situationFilter, intakeFilter, admissionFilter, query]);
 
   // Payé / Restant follow the current filters + search, not the whole dataset.
   const moneyKpis = useMemo(() => {
@@ -460,6 +467,9 @@ export default function ProspectsPage() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          {activeTab === 'all' && (
+            <SituationFilter options={situationTabs} value={situationFilter} onChange={setSituationFilter} />
+          )}
           <label
             className={`inline-flex items-center gap-2 rounded-xl border bg-surface py-1 pl-3 pr-1 text-sm transition ${
               intakeFilter === 'all' ? 'border-border' : 'border-brand'
@@ -511,12 +521,13 @@ export default function ProspectsPage() {
               </select>
             </label>
           )}
-          {(intakeFilter !== 'all' || admissionFilter !== 'all') && (
+          {(intakeFilter !== 'all' || admissionFilter !== 'all' || situationFilter.length > 0) && (
             <button
               type="button"
               onClick={() => {
                 setIntakeFilter('all');
                 setAdmissionFilter('all');
+                setSituationFilter([]);
               }}
               className="text-xs font-medium text-text-muted underline-offset-2 transition hover:text-text-strong hover:underline"
             >
