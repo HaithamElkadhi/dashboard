@@ -137,6 +137,9 @@ export const DELEGATION_CHOICES = [
   'jeexpert.service@gmail.com',
   'jeexpert.etudiant.aa1@gmail.com',
   'jeexpert.etudiant.aa2@gmail.com',
+  'jeexpert2627.1@gmail.com',
+  'jeexpert2627.2@gmail.com',
+  'jeexpert2627.3@gmail.com',
 ];
 
 // CAM situation badge colors (Engaged / Admitted / both) — distinct accents

@@ -15,6 +15,7 @@ import {
   KPI,
   LOG,
   GOAL,
+  DELEGATION_CHOICES,
 } from './config.js';
 import {
   buildAcademicDescription,
@@ -744,9 +745,17 @@ export async function fetchAccountSelectChoices() {
   const fields = table.fields || [];
   const labelField = fields.find((f) => f.id === ACC.label);
   const delegationField = fields.find((f) => f.id === ACC.delegation);
+  // Delegations: Airtable's options + the known addresses not created there
+  // yet (Airtable creates the option on first save — writes use typecast).
+  // Trimmed & de-duplicated: "jeexpert.service@gmail.com" exists twice in
+  // Airtable (once with a trailing line break).
+  const delegations = [
+    ...(delegationField?.options?.choices || []).map((c) => c.name.trim()),
+    ...DELEGATION_CHOICES,
+  ].filter((d, i, all) => d && all.indexOf(d) === i);
   return {
     labels: (labelField?.options?.choices || []).map((c) => c.name),
-    delegations: (delegationField?.options?.choices || []).map((c) => c.name),
+    delegations,
   };
 }
 
