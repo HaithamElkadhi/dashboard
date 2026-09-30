@@ -7,7 +7,8 @@ import Toast from '../components/Toast.jsx';
 import Avatar from '../components/Avatar.jsx';
 import StatsCard from '../components/tasks/StatsCard.jsx';
 import SituationBadge from '../components/accounts/SituationBadge.jsx';
-import { ADMITTED_SITUATION, ENGAGED_SITUATION } from '../lib/config.js';
+import SituationFilter from '../components/prospects/SituationFilter.jsx';
+import { SITUATION_CHOICES } from '../lib/config.js';
 import AccountRow from '../components/accounts/AccountRow.jsx';
 import AccountForm from '../components/accounts/AccountForm.jsx';
 import {
@@ -16,16 +17,31 @@ import {
   UsersIcon,
 } from '../components/icons.jsx';
 
-const SCOPED_SITUATIONS = [ENGAGED_SITUATION, ADMITTED_SITUATION];
 const EMAIL_CANDIDATURE = 'Email Candidature';
+const NO_SITUATION = '__none__';
 
+// Account-status filters; the situation is filtered separately (all prospects
+// are listed, filterable by Prospect Situation).
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous' },
-  { value: 'admitted', label: 'Admis' },
-  { value: 'engaged', label: 'Engagés' },
   { value: 'noAccount', label: 'Sans compte' },
   { value: 'emailNoDelegation', label: 'Email sans délégation' },
 ];
+
+const SITUATION_DOTS = {
+  Lead: '#1D9E75',
+  Prospect: '#378ADD',
+  Candidate: '#639922',
+  Student: '#7F77DD',
+  Lost: '#D4537E',
+};
+
+// Accent- and case-insensitive text for search ("Hélène" matches "helene").
+const fold = (v) =>
+  String(v || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
 function isEmailSansDelegation(account) {
   return (
@@ -129,6 +145,7 @@ export default function AccountsPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [situationFilter, setSituationFilter] = useState([]); // empty = all situations
   const [selectedId, setSelectedId] = useState(null);
   const [toast, setToast] = useState('');
 
@@ -153,20 +170,49 @@ export default function AccountsPage() {
     return map;
   }, [accounts]);
 
+  // Every prospect, narrowed by the Situation filter (KPIs follow it too).
   const scopedProspects = useMemo(
     () =>
-      prospects.filter((p) => p.situations.some((s) => SCOPED_SITUATIONS.includes(s))),
-    [prospects]
+      situationFilter.length === 0
+        ? prospects
+        : prospects.filter((p) =>
+            situationFilter.some((s) =>
+              s === NO_SITUATION ? p.situations.length === 0 : p.situations.includes(s)
+            )
+          ),
+    [prospects, situationFilter]
   );
 
+  const situationOptions = useMemo(() => {
+    const counts = {};
+    let none = 0;
+    for (const p of prospects) {
+      if (!p.situations.length) none += 1;
+      p.situations.forEach((s) => {
+        counts[s] = (counts[s] || 0) + 1;
+      });
+    }
+    const names = [
+      ...SITUATION_CHOICES.filter((s) => counts[s]),
+      ...Object.keys(counts).filter((s) => !SITUATION_CHOICES.includes(s)),
+    ];
+    const opts = names.map((s) => ({
+      id: s,
+      label: s,
+      count: counts[s],
+      color: { bg: SITUATION_DOTS[s] || '#888780' },
+    }));
+    if (none) opts.push({ id: NO_SITUATION, label: 'Sans situation', count: none, color: { bg: '#B4B2A9' } });
+    return opts;
+  }, [prospects]);
+
   const filteredProspects = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
+    // Every word must match somewhere in name, ID, email or phone.
+    const words = fold(debouncedQuery).split(/\s+/).filter(Boolean);
     return scopedProspects
       .filter((p) => {
         const prospectAccounts = accountsByProspect.get(p.id) || [];
         const count = prospectAccounts.length;
-        if (statusFilter === 'admitted' && !p.situations.includes(ADMITTED_SITUATION)) return false;
-        if (statusFilter === 'engaged' && !p.situations.includes(ENGAGED_SITUATION)) return false;
         if (statusFilter === 'noAccount' && count > 0) return false;
         if (
           statusFilter === 'emailNoDelegation' &&
@@ -180,12 +226,11 @@ export default function AccountsPage() {
         ) {
           return false;
         }
-        if (
-          q &&
-          !p.fullName.toLowerCase().includes(q) &&
-          !p.prospectId.toLowerCase().includes(q)
-        ) {
-          return false;
+        if (words.length) {
+          const haystack = fold(
+            [p.fullName, p.prospectId, p.email, p.phone, String(p.phone || '').replace(/\D/g, '')].join(' ')
+          );
+          if (!words.every((w) => haystack.includes(w))) return false;
         }
         return true;
       })
@@ -301,7 +346,7 @@ export default function AccountsPage() {
       )}
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <StatsCard label="Étudiants actifs" value={kpis.total} icon={UsersIcon} />
+        <StatsCard label="Étudiants" value={kpis.total} icon={UsersIcon} />
         <StatsCard label="Avec comptes" value={kpis.withAccounts} icon={KeyIcon} tone="green" />
         <StatsCard
           label="Sans compte"
@@ -362,10 +407,16 @@ export default function AccountsPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un étudiant…"
+                placeholder="Nom, ID, email ou téléphone…"
                 className="w-full rounded-lg border border-border bg-surface py-2 pl-8 pr-3 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong"
               />
             </div>
+
+            <SituationFilter
+              options={situationOptions}
+              value={situationFilter}
+              onChange={setSituationFilter}
+            />
 
             <div className="flex flex-wrap gap-1.5">
               {STATUS_FILTERS.map((f) => (

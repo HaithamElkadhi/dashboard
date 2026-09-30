@@ -82,7 +82,7 @@ export function buildDocFilename(kind, { clientName, reference, date }) {
   const clean = (v) =>
     String(v || '')
       .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^A-Za-z0-9-]+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
