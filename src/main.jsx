@@ -7,6 +7,8 @@ import AppShell from './components/layout/AppShell.jsx';
 import ComingSoonPage from './components/layout/ComingSoonPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ProspectsPage from './pages/ProspectsPage.jsx';
+import TicketingPage from './pages/TicketingPage.jsx';
+import StudentDocumentsPage from './pages/StudentDocumentsPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FinancePage from './pages/FinancePage.jsx';
 import FinanceDocumentPage from './pages/FinanceDocumentPage.jsx';
@@ -28,7 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/prospects" element={<ProspectsPage />} />
+          <Route path="/students/:studentId/documents" element={<StudentDocumentsPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/ticketing" element={<TicketingPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/finance/paiements/:paiementId/document" element={<FinanceDocumentPage />} />

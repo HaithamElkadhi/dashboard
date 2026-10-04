@@ -22,6 +22,7 @@ export const NAV_ITEMS = [
   { path: '/', label: 'Overview', icon: HomeIcon },
   { path: '/tasks', label: 'My Tasks', icon: ListChecksIcon, taskView: 'list' },
   { path: '/tasks', label: 'Kanban Board', icon: KanbanIcon, taskView: 'kanban' },
+  { path: '/ticketing', label: 'Ticketing', icon: FolderIcon },
   { path: '/prospects', label: 'Students', icon: UsersIcon },
   { path: '/bookings', label: 'Bookings', icon: CalendarIcon },
   { path: '/accounts', label: 'Client Accounts', icon: KeyIcon },
@@ -39,6 +40,7 @@ export const NAV_ITEMS = [
 ];
 
 export const PAGE_TITLES = {
+  '/ticketing': 'Ticketing',
   '/admin/users': 'Users',
   '/': 'Overview',
   '/tasks': 'Tasks',

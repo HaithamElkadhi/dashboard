@@ -327,6 +327,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
                   <WhatsAppIcon size={13} />
                 </button>
               )}
+              
               {onEdit && (
                 <button
                   type="button"
@@ -387,6 +388,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         </div>
       </div>
 
+      <div className="mt-3"><a href={`/students/${p.id}/documents`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a></div>
       {proposalMode ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
           <div className="col-span-2">
@@ -605,7 +607,8 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
               <WhatsAppIcon size={14} />
             </button>
           )}
-          {onEdit && (
+          <a href={`/students/${p.id}/documents`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
+              {onEdit && (
             <button
               type="button"
               onClick={() => onEdit(p)}

@@ -159,11 +159,8 @@ export default function ProspectsPage() {
     const openId = searchParams.get('open');
     if (!openId) return;
 
-    if (status === 'idle') {
-      refresh();
-      return;
-    }
-    if (status === 'loading') return;
+    // Wait for student data, keeping the link intact if loading fails.
+    if (status !== 'ready') return;
 
     const match = prospects.find((p) => p.id === openId);
     if (match) setEditing(match);

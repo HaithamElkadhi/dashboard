@@ -446,6 +446,7 @@ export async function fetchDashboardData() {
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
 const TASK_FIELDS = [
+  'Assigned User ID', 'Assigned User Name', 'Type', 'Objet', 'Linked Prospect', 'Client Email', 'Client Phone', 'Attachment', 'Date de création',
   TF.status,
   TF.priority,
   TF.type,
@@ -457,17 +458,23 @@ const TASK_FIELDS = [
   TF.ticketId,
 ];
 
-function normalizeTask(record) {
+export function normalizeTask(record) {
   const f = record.fields || {};
   const description = f[TF.description] || '';
   return {
     id: record.id,
     // App "name"/title = Airtable Description (Name field removed)
-    name: description,
-    status: f[TF.status] || 'Todo',
+    recordKind: f.Type || '',
+    subject: f.Objet || '',
+    linkedProspectIds: f['Linked Prospect'] || [],
+    email: f['Client Email'] || '', phone: f['Client Phone'] || '',
+    attachments: f.Attachment || [], createdAt: f['Date de création'] || record.createdTime || '',
+    name: f.Type === 'Ticket' ? (f.Objet || description) : description,
+    status: f[TF.status] || (f.Type === 'Ticket' ? '' : 'Todo'),
     priority: f[TF.priority] || '',
     type: f[TF.type] || '',
-    assignedTo: f[TF.assignedTo] || '',
+    assignedTo: f.Type === 'Ticket' ? f['Assigned User ID'] || '' : f[TF.assignedTo] || '',
+    assignedToName: f['Assigned User Name'] || '', legacyAssignedTo: f.Type === 'Ticket' ? f[TF.assignedTo] || '' : '',
     ddl: f[TF.ddl] || '',
     prospectName: f[TF.prospectName] || '',
     description,
@@ -1915,4 +1922,36 @@ export async function updateWhatsappNumber(recordId, number) {
     returnFieldsByFieldId: true,
   });
   return data.fields?.[PF.whatsappNumber] || '';
+}
+
+export async function fetchTicketChoices() {
+  const [res, usersRes] = await Promise.all([fetch(PROXY_BASE + '/meta/bases/' + BASE_ID + '/tables'), fetch('/api/ticketing?users=1')]);
+  if (!res.ok || !usersRes.ok) throw new Error('Cannot load ticket choices and platform users. Retry before saving.');
+  const [data, directory] = await Promise.all([res.json(), usersRes.json()]);
+  const table = data.tables.find(t => t.id === TABLES.tasks);
+  const users = directory.users || [];
+  return {
+    ...Object.fromEntries([['status','Task Status'],['priority','Priority'],['type','Task Type']].map(([key,name]) => [key, table?.fields.find(f => f.name === name)?.options?.choices?.map(c => c.name) || []])),
+    assignedTo: users.map(user => user.id),
+    assigneeLabels: Object.fromEntries(users.map(user => [user.id, `${user.displayName} (${user.username})`])),
+  };
+}
+export async function saveTicket(input, recordId, activity = {}) {
+  const res = await fetch('/api/ticketing', { method: recordId ? 'PATCH' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ input, recordId, ...activity }) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'Cannot save ticket.');
+  return { ...normalizeTask(data), warning: data.warning };
+}
+
+export async function fetchTicketHistory(recordId) {
+  const res = await fetch('/api/ticketing?recordId=' + encodeURIComponent(recordId));
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Cannot load history.');
+  return data.records || [];
+}
+export async function deleteTicket(recordId, expected) {
+  const res = await fetch('/api/ticketing', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({recordId, expected, confirmDelete: true}) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Cannot delete ticket.');
+  return data;
 }

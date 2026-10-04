@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  saveTicket,
+  deleteTicket,
   fetchTasks,
   fetchPeopleForPicker,
   createTask,
@@ -89,7 +91,20 @@ export function useTasksData() {
     }
   }, [people]);
 
+  const saveTicketRecord = useCallback(async (input, recordId, activity) => {
+    const saved = await saveTicket(input, recordId, activity);
+    setTasks((prev) => recordId ? prev.map((t) => t.id === recordId ? saved : t) : [saved, ...prev]);
+    return saved;
+  }, []);
+
+  const deleteTicketRecord = useCallback(async (recordId, expected) => {
+    const result = await deleteTicket(recordId, expected);
+    setTasks(prev => prev.filter(t => t.id !== recordId));
+    return result;
+  }, []);
   return {
+    deleteTicketRecord,
+    saveTicketRecord,
     tasks,
     people,
     status,

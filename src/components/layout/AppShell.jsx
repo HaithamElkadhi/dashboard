@@ -76,7 +76,7 @@ export default function AppShell() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const title = PAGE_TITLES[location.pathname] || 'JEExpert';
+  const title = location.pathname.startsWith('/students/') && location.pathname.endsWith('/documents') ? 'Student documents' : PAGE_TITLES[location.pathname] || 'JEExpert';
 
   return (
     <PageRefreshProvider>

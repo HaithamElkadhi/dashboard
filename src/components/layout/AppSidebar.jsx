@@ -50,6 +50,7 @@ export default function AppSidebar({
   };
 
   const isActive = (item) => {
+    if (item.path === '/prospects' && location.pathname.startsWith('/students/')) return true;
     if (item.matchPrefix) return location.pathname.startsWith(item.path);
     if (item.path !== '/tasks') return location.pathname === item.path;
     const view = searchParams.get('view') || 'list';

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
 import { usePageRefreshInfo } from '../../contexts/PageRefreshContext.jsx';
 import { useCurrentUser } from '../../hooks/useCurrentUser.js';
@@ -23,9 +23,10 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const { tasks, openCreate, openDetails } = useTasksWorkspace();
   const { lastUpdated, refresh, loading } = usePageRefreshInfo();
   const [currentUser] = useCurrentUser();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   // Pages where the global "Nouvelle tâche" button is hidden.
-  const hideNewTask = ['/', '/finance', '/performance', '/operations/proposal-italy', '/admin/users'].includes(
+  const hideNewTask = pathname.startsWith('/students/') || ['/', '/finance', '/performance', '/operations/proposal-italy', '/admin/users'].includes(
     pathname
   );
 
@@ -49,7 +50,8 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   );
 
   const openResult = (task) => {
-    openDetails(task.id);
+    if (task.recordKind === 'Ticket') navigate('/ticketing?ticket=' + task.id);
+    else openDetails(task.id);
     setNotifOpen(false);
   };
 
@@ -118,7 +120,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
                         >
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-medium text-text-strong">
-                              {t.name}
+                              {t.recordKind === 'Ticket' ? 'Ticket · ' : ''}{t.name}
                             </span>
                             <span className="block truncate text-xs text-text-muted">
                               {t.assignedTo || '—'}
@@ -145,11 +147,12 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
           {!hideNewTask && (
             <button
               type="button"
-              onClick={() => openCreate()}
+              aria-label={pathname === '/ticketing' ? 'New ticket' : 'New task'}
+              onClick={() => pathname === '/ticketing' ? navigate('/ticketing?new=1') : openCreate()}
               className="inline-flex items-center min-h-11 min-w-11 justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
             >
               <PlusIcon size={18} />
-              <span className="hidden sm:inline">New task</span>
+              <span className="hidden sm:inline">{pathname === '/ticketing' ? 'New ticket' : 'New task'}</span>
             </button>
           )}
         </div>

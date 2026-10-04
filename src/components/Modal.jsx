@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { XIcon } from './icons.jsx';
 
 export default function Modal({
@@ -9,18 +9,31 @@ export default function Modal({
   footer,
   size = 'md',
 }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeRef.current();
+      if (e.key === 'Tab') {
+        const nodes = [...(dialogRef.current?.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]') || [])].filter(node => node.getClientRects().length);
+        const first = nodes[0], last = nodes[nodes.length - 1];
+        if (!first) { e.preventDefault(); dialogRef.current?.focus(); }
+        else if (e.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
     };
+    const trigger = document.activeElement;
+    dialogRef.current?.focus();
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prev;
+      if (trigger?.isConnected) trigger.focus();
       document.removeEventListener('keydown', onKey);
     };
-  }, [onClose]);
+  }, []);
 
   const maxWidth =
     size === 'xl'
@@ -41,6 +54,8 @@ export default function Modal({
         onClick={onClose}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

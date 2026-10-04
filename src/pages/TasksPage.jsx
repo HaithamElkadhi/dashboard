@@ -115,7 +115,7 @@ function ArchivedSection({ tasks, onOpen, onRestore, onDelete }) {
 
 export default function TasksPage() {
   const {
-    tasks,
+    tasks: allTasks,
     status,
     error,
     lastUpdated,
@@ -127,6 +127,8 @@ export default function TasksPage() {
     openDetails,
     showToast,
   } = useTasksWorkspace();
+
+  const tasks = useMemo(() => allTasks.filter(t => t.recordKind !== 'Ticket'), [allTasks]);
 
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
 
