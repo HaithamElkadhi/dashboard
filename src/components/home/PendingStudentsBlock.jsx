@@ -9,7 +9,7 @@ export default function PendingStudentsBlock({ items, loading }) {
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-canvas text-text-muted">
             <UsersIcon size={16} />
           </span>
-          <h2 className="text-sm font-semibold text-text-strong">Pending Student</h2>
+          <h2 className="text-sm font-semibold text-text-strong">Pending students</h2>
         </div>
         {!loading && (
           <span className="text-xs tabular-nums text-text-muted">{items.length}</span>

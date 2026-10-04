@@ -19,13 +19,13 @@ import {
 // used to keep internal tooling (Operations) visually separate from the
 // client-pipeline pages above it.
 export const NAV_ITEMS = [
-  { path: '/', label: 'Vue d’ensemble', icon: HomeIcon },
-  { path: '/tasks', label: 'Mes tâches', icon: ListChecksIcon, taskView: 'list' },
-  { path: '/tasks', label: 'Tableau Kanban', icon: KanbanIcon, taskView: 'kanban' },
-  { path: '/prospects', label: 'Étudiants / Prospects', icon: UsersIcon },
-  { path: '/bookings', label: 'Booking', icon: CalendarIcon },
-  { path: '/accounts', label: 'Comptes clients', icon: KeyIcon },
-  { path: '/finance', label: 'Paiements', icon: WalletIcon },
+  { path: '/', label: 'Overview', icon: HomeIcon },
+  { path: '/tasks', label: 'My Tasks', icon: ListChecksIcon, taskView: 'list' },
+  { path: '/tasks', label: 'Kanban Board', icon: KanbanIcon, taskView: 'kanban' },
+  { path: '/prospects', label: 'Students', icon: UsersIcon },
+  { path: '/bookings', label: 'Bookings', icon: CalendarIcon },
+  { path: '/accounts', label: 'Client Accounts', icon: KeyIcon },
+  { path: '/finance', label: 'Payments', icon: WalletIcon },
   { path: '/expenses', label: 'Expenses', icon: ChartBarIcon },
   { path: '/performance', label: 'Performance', icon: TrendingUpIcon },
   { path: '/visa', label: 'Visa', icon: FolderIcon, matchPrefix: true },
@@ -39,12 +39,13 @@ export const NAV_ITEMS = [
 ];
 
 export const PAGE_TITLES = {
-  '/': 'Vue d’ensemble',
-  '/tasks': 'Tâches',
-  '/prospects': 'Étudiants / Prospects',
-  '/bookings': 'Booking',
-  '/accounts': 'Comptes clients',
-  '/finance': 'Paiements',
+  '/admin/users': 'Users',
+  '/': 'Overview',
+  '/tasks': 'Tasks',
+  '/prospects': 'Students',
+  '/bookings': 'Bookings',
+  '/accounts': 'Client Accounts',
+  '/finance': 'Payments',
   '/expenses': 'Expenses',
   '/performance': 'Performance',
   '/visa': 'Visa',

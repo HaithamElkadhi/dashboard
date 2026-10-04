@@ -2,16 +2,16 @@
    pages and scoped under .visa-page so they can't leak into the dashboard. */
 
 .visa-page {
-  --green: #1a6b3c;
-  --green-light: #e8f5ee;
-  --green-mid: #2d8a52;
+  --green: #173b65;
+  --green-light: #e9f3fb;
+  --green-mid: #102d4f;
   --red-it: #c8102e;
   --gold: #d4a520;
-  --text: #1a1a1a;
-  --text-muted: #5a5a5a;
+  --text: #172d43;
+  --text-muted: #526579;
   --text-light: #888;
-  --border: #e2e2de;
-  --bg: #fafaf8;
+  --border: #d9e2ec;
+  --bg: #f4f7fb;
   --surface: #ffffff;
   --tag-blue: #e8f0fb;
   --tag-blue-text: #1a4a8a;
@@ -20,7 +20,7 @@
   --tag-orange: #fef3e2;
   --tag-orange-text: #8a4a00;
 
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   font-size: 16px;
@@ -41,7 +41,7 @@
   position: sticky;
   top: 0;
   z-index: 110;
-  background: rgba(250, 250, 248, 0.95);
+  background: rgba(244, 247, 251, 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   padding: 0 1.5rem;
@@ -77,7 +77,7 @@
   position: sticky;
   top: 48px;
   z-index: 100;
-  background: rgba(250, 250, 248, 0.95);
+  background: rgba(244, 247, 251, 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   padding: 0 1.5rem;
@@ -123,7 +123,7 @@
 .visa-page .topbar {
   border-bottom: 1px solid var(--border);
   padding: 0 1.5rem;
-  background: rgba(250, 250, 248, 0.95);
+  background: rgba(244, 247, 251, 0.95);
 }
 .visa-page .topbar-inner {
   max-width: 720px;
@@ -154,7 +154,7 @@
   color: var(--text);
   cursor: pointer;
   font-weight: 500;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
   white-space: nowrap;
   transition: background 0.15s;
 }
@@ -511,6 +511,25 @@
   border-bottom: 1px solid var(--border);
 }
 
+.visa-page .document-editor {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+.visa-page .document-hidden .checklist-item { opacity: .45; }
+.visa-page .document-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-left: 34px; }
+.visa-page .document-actions button { font: inherit; font-size: 12px; color: var(--green); background: transparent; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.visa-page .document-actions span { font-size: 12px; color: var(--text-muted); }
+.visa-page .document-note { display: block; margin: 10px 0 0 34px; }
+.visa-page .document-note span { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+.visa-page .document-note textarea { display: block; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; resize: vertical; }
+.visa-page .document-note textarea:focus { outline: 2px solid var(--green); outline-offset: 2px; }
+.visa-page .document-settings-toolbar { margin: 16px 0 24px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: #f4f8f5; }
+.visa-page .document-settings-toolbar p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.visa-page .document-settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.visa-page .document-settings-toolbar .document-pdf-error { color: #b42318; margin-top: 8px; }
+.visa-page .btn:disabled { opacity: .6; cursor: wait; }
+
 .visa-page .checklist-item {
   display: grid;
   grid-template-columns: 20px 1fr;
@@ -524,7 +543,7 @@
   text-align: left;
   background: none;
   border: none;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .checklist-item:hover {
   background: #f5f5f2;
@@ -573,7 +592,7 @@
   align-items: center;
   gap: 6px;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .btn:hover {
   background: #f0f0ec;
@@ -648,7 +667,7 @@
   font-weight: 500;
   transition: color 0.15s;
   margin-bottom: -1px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .tab-btn.active {
   color: var(--text);
@@ -1022,7 +1041,7 @@
   color: var(--text-muted);
   font-weight: 500;
   transition: all 0.15s;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .filter-btn.active,
 .visa-page .filter-btn:hover {
@@ -1085,7 +1104,7 @@
   transition: background 0.15s;
   cursor: pointer;
   background: none;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .back-top:hover {
   background: var(--surface);
@@ -1135,7 +1154,7 @@
   border-left: none;
   border-right: none;
   border-top: none;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 .visa-page .doc-item:hover {
   background: #f5f5f2;

@@ -9,49 +9,9 @@ import {
 } from '../lib/airtable.js';
 import { ACCOUNT_LABELS, DELEGATION_CHOICES } from '../lib/config.js';
 
-const CACHE_KEY = 'jeexpert:accounts:v2';
-
-function readCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.prospects) || !Array.isArray(parsed.accounts)) {
-      return null;
-    }
-    return {
-      prospects: parsed.prospects,
-      accounts: parsed.accounts,
-      labelChoices: Array.isArray(parsed.labelChoices) ? parsed.labelChoices : [],
-      delegationChoices: Array.isArray(parsed.delegationChoices)
-        ? parsed.delegationChoices
-        : [],
-      lastUpdated: parsed.lastUpdated ? new Date(parsed.lastUpdated) : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(prospects, accounts, labelChoices, delegationChoices, lastUpdated) {
-  try {
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        prospects,
-        accounts,
-        labelChoices,
-        delegationChoices,
-        lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
-      })
-    );
-  } catch {
-    /* best-effort */
-  }
-}
 
 export function useAccountsData() {
-  const cached = typeof window !== 'undefined' ? readCache() : null;
+  const cached = null; // Protected data lives only in this mounted authenticated view.
 
   const [prospects, setProspects] = useState(cached?.prospects ?? []);
   const [accounts, setAccounts] = useState(cached?.accounts ?? []);
@@ -90,7 +50,6 @@ export function useAccountsData() {
       setDelegationChoices(nextDelegations);
       setLastUpdated(now);
       setStatus('ready');
-      writeCache(nextProspects, nextAccounts, nextLabels, nextDelegations, now);
     } catch (err) {
       setError(err.message || 'Erreur inconnue');
       setStatus('error');
@@ -108,7 +67,6 @@ export function useAccountsData() {
       const created = await createAccount(input);
       setAccounts((prev) => {
         const next = [created, ...prev];
-        writeCache(prospects, next, labelChoices, delegationChoices, new Date());
         return next;
       });
       return created;
@@ -121,7 +79,6 @@ export function useAccountsData() {
       const updated = await updateAccount(recordId, input);
       setAccounts((prev) => {
         const next = prev.map((a) => (a.id === recordId ? updated : a));
-        writeCache(prospects, next, labelChoices, delegationChoices, new Date());
         return next;
       });
       return updated;
@@ -134,7 +91,6 @@ export function useAccountsData() {
       await deleteAccount(recordId);
       setAccounts((prev) => {
         const next = prev.filter((a) => a.id !== recordId);
-        writeCache(prospects, next, labelChoices, delegationChoices, new Date());
         return next;
       });
     },

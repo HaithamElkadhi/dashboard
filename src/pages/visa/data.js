@@ -105,7 +105,7 @@ export const CLASSEMENT_DOCS = [
   },
   {
     title: 'Copie du certificat linguistique B2',
-    sub: 'PLIDA, TOEFL, IELTS, DANTE… copie simple, sans traduction.',
+    sub: 'PLIDA, TOEFL, IELTS, DANTE… copie simple. Si l’étudiant est admis après un entretien et que l’université mentionne explicitement avoir vérifié son niveau de langue dans la lettre d’admission ou sur Universitaly, joindre cette preuve : un certificat séparé peut ne pas être nécessaire, à confirmer pour le dépôt. Un EF Test peut être ajouté en complément optionnel ; il ne remplace pas un certificat exigé. L’Ambassade peut vérifier le niveau lors d’un entretien.',
   },
   {
     title: 'Éventuelle copie du résultat du test d’évaluation en ligne',
@@ -179,8 +179,8 @@ export const CHECKLIST_GROUPS = [
       },
       {
         id: 's4',
-        title: 'Photo d’identité récente pour le visa',
-        sub: 'Norme ICAO, moins de ~6 mois. Une photo trop ancienne est refusée sur place.',
+        title: '2 photos d’identité récentes pour le visa',
+        sub: 'Prépare deux photos au format ICAO, datant de moins de ~6 mois. La liste officielle de l’Ambassade en demande une ; garde la deuxième en réserve pour le dépôt.',
       },
       {
         id: 's5',
@@ -226,7 +226,7 @@ export const CHECKLIST_GROUPS = [
       {
         id: 's11',
         title: 'Certificat de langue — copie',
-        sub: 'Anglais : IELTS / TOEFL (copie simple). Italien : PLIDA, CELI, CILS — niveau B2 minimum.',
+        sub: 'Anglais : IELTS / TOEFL (copie simple). Italien : PLIDA, CELI, CILS — niveau B2 minimum. Si l’étudiant est admis après un entretien et que l’université mentionne explicitement avoir vérifié son niveau de langue dans la lettre d’admission ou sur Universitaly, joindre cette preuve : un certificat séparé peut ne pas être nécessaire, à confirmer pour le dépôt. Un EF Test peut être ajouté en complément optionnel ; il ne remplace pas un certificat exigé. L’Ambassade peut vérifier le niveau lors d’un entretien.',
       },
       {
         id: 's12',

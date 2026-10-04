@@ -3,8 +3,8 @@ import './visa.css';
 
 const SUBNAV = [
   { path: '/visa', label: 'Guide' },
-  { path: '/visa/classement', label: 'Classement' },
-  { path: '/visa/modeles', label: 'Modèles' },
+  { path: '/visa/classement', label: 'Document Order' },
+  { path: '/visa/modeles', label: 'Templates' },
 ];
 
 /**

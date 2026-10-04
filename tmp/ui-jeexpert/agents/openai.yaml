@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI JEEXPERT"
+  short_description: "Interfaces JEEXPERT selon les chartes marque et ERP"
+  default_prompt: "Utilise $ui-jeexpert pour concevoir ou améliorer cette interface selon les chartes JEEXPERT et JXP ERP."

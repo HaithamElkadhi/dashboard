@@ -16,7 +16,6 @@ import {
 } from '../lib/config.js';
 import { softChipStyle } from '../lib/colors.js';
 
-const CACHE_KEY = 'jeexpert:finance:v3';
 
 const FALLBACK_CHOICES = {
   statuses: PAYMENT_STATUSES.map((name) => ({ name, color: null })),
@@ -46,41 +45,8 @@ function buildStatusColors(statuses) {
   return map;
 }
 
-function readCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.paiements)) return null;
-    return {
-      paiements: parsed.paiements,
-      people: Array.isArray(parsed.people) ? parsed.people : [],
-      choices: parsed.choices || null,
-      lastUpdated: parsed.lastUpdated ? new Date(parsed.lastUpdated) : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(paiements, people, choices, lastUpdated) {
-  try {
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        paiements,
-        people,
-        choices,
-        lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
-      })
-    );
-  } catch {
-    /* best-effort */
-  }
-}
-
 export function useFinanceData() {
-  const cached = typeof window !== 'undefined' ? readCache() : null;
+  const cached = null; // Protected data lives only in this mounted authenticated view.
 
   const [paiements, setPaiements] = useState(cached?.paiements ?? []);
   const [people, setPeople] = useState(cached?.people ?? []);
@@ -105,7 +71,6 @@ export function useFinanceData() {
       setChoices(nextChoices);
       setLastUpdated(now);
       setStatus('ready');
-      writeCache(nextPaiements, nextPeople, nextChoices, now);
     } catch (err) {
       setError(err.message || 'Erreur inconnue');
       setStatus('error');
@@ -123,7 +88,6 @@ export function useFinanceData() {
       const created = await createPaiement(input);
       setPaiements((prev) => {
         const next = [created, ...prev];
-        writeCache(next, people, choices, new Date());
         return next;
       });
       return created;
@@ -146,7 +110,6 @@ export function useFinanceData() {
         const updated = await updatePaiement(recordId, input);
         setPaiements((prev) => {
           const next = prev.map((p) => (p.id === recordId ? updated : p));
-          writeCache(next, people, choices, new Date());
           return next;
         });
         return updated;
@@ -163,7 +126,6 @@ export function useFinanceData() {
       await deletePaiement(recordId);
       setPaiements((prev) => {
         const next = prev.filter((p) => p.id !== recordId);
-        writeCache(next, people, choices, new Date());
         return next;
       });
     },

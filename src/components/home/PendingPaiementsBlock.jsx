@@ -36,7 +36,7 @@ export default function PendingPaiementsBlock({ items, loading }) {
                 {formatTND(totalTnd)}
               </p>
             )}
-            <h2 className="text-sm font-semibold text-text-strong">Pending Paiement</h2>
+            <h2 className="text-sm font-semibold text-text-strong">Pending payments</h2>
           </div>
         </div>
         {!loading && (

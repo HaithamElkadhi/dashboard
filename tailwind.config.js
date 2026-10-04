@@ -14,9 +14,11 @@ export default {
         navy: 'var(--navy)',
         'navy-strong': 'var(--navy-strong)',
         gold: 'var(--gold)',
+        accent: 'var(--accent)',
       },
+      borderRadius: { '2xl': '12px' },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Poppins', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
     },
   },

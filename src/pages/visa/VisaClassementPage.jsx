@@ -111,8 +111,8 @@ function downloadClassementPdf(checks) {
   <p class="lead">Ordre exact du dossier au dépôt ALMAVIVA / AVS — Ambassade d’Italie à Tunis.</p>
   ${rows}
   <div class="extra">
-    <strong>+ Une photo d’identité récente</strong>
-    <span>Norme ICAO, moins de ~6 mois.</span>
+    <strong>+ Deux photos d’identité récentes</strong>
+    <span>Norme ICAO, moins de ~6 mois. Une photo demandée officiellement ; la deuxième en réserve.</span>
   </div>
   <div class="footer">Source : classement affiché au centre de dépôt, campagne 2026/2027. En cas de divergence, l’affichage du centre et l’Ambassade font foi.</div>
   <script>
@@ -235,8 +235,8 @@ export default function VisaClassementPage() {
         </div>
 
         <div className="doc-extra">
-          <div className="doc-extra-title">+ Une photo d’identité récente</div>
-          <p>Norme ICAO, moins de ~6 mois.</p>
+          <div className="doc-extra-title">+ Deux photos d’identité récentes</div>
+          <p>Norme ICAO, moins de ~6 mois. Une photo demandée officiellement ; la deuxième en réserve.</p>
         </div>
 
         <div className="source-note">

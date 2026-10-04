@@ -25,7 +25,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const [currentUser] = useCurrentUser();
   const { pathname } = useLocation();
   // Pages where the global "Nouvelle tâche" button is hidden.
-  const hideNewTask = ['/', '/finance', '/performance', '/operations/proposal-italy'].includes(
+  const hideNewTask = ['/', '/finance', '/performance', '/operations/proposal-italy', '/admin/users'].includes(
     pathname
   );
 
@@ -54,18 +54,18 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   };
 
   return (
-    <header className="z-20 shrink-0 border-b border-border bg-surface px-4 py-2.5 sm:px-6">
+    <header className="z-20 shrink-0 border-b border-border bg-surface px-4 py-4 sm:px-8">
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onOpenMobileSidebar}
-          className="rounded-lg p-1.5 text-text-muted hover:bg-canvas lg:hidden"
-          aria-label="Ouvrir le menu"
+          className="min-h-11 min-w-11 rounded-lg p-2.5 text-text-muted hover:bg-canvas lg:hidden"
+          aria-label="Open menu"
         >
           <MenuIcon size={18} />
         </button>
 
-        <h1 className="min-w-0 shrink truncate text-sm font-semibold text-text-strong sm:text-base">
+        <h1 className="min-w-0 shrink truncate text-xl font-semibold text-navy sm:text-2xl">
           {title}
         </h1>
 
@@ -76,7 +76,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
               onClick={refresh}
               disabled={loading}
               title="Actualiser"
-              className="hidden items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-text-muted transition hover:bg-canvas disabled:opacity-60 md:inline-flex"
+              className="hidden items-center gap-1.5 min-h-11 rounded-lg px-3 py-2 text-xs text-text-muted transition hover:bg-canvas disabled:opacity-60 md:inline-flex"
             >
               <RefreshIcon size={12} className={loading ? 'animate-spin' : ''} />
               {lastUpdated ? `Mis à jour ${relativeTime(lastUpdated)}` : 'Actualiser'}
@@ -89,7 +89,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
               onClick={() => setNotifOpen((v) => !v)}
               title="Notifications"
               aria-label="Notifications"
-              className="relative rounded-lg p-1.5 text-text-muted transition hover:bg-canvas hover:text-text-strong"
+              className="relative min-h-11 min-w-11 rounded-lg p-2.5 text-text-muted transition hover:bg-canvas hover:text-text-strong"
             >
               <BellIcon size={18} />
               {notifications.length > 0 && (
@@ -99,7 +99,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
               )}
             </button>
             {notifOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1.5 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+              <div className="absolute right-0 top-full z-30 mt-1.5 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
                 <div className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
                   En retard et échéance aujourd’hui
                 </div>
@@ -146,10 +146,10 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
             <button
               type="button"
               onClick={() => openCreate()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
+              className="inline-flex items-center min-h-11 min-w-11 justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
             >
-              <PlusIcon size={15} />
-              <span className="hidden sm:inline">Nouvelle tâche</span>
+              <PlusIcon size={18} />
+              <span className="hidden sm:inline">New task</span>
             </button>
           )}
         </div>

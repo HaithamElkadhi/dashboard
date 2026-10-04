@@ -14,7 +14,7 @@ const PRINT_STYLES = `
   .pc-sign-line { width: 160px; border-bottom: 1px solid #ccc; padding-bottom: 28px; }
   .pc-sign-line.w120 { width: 120px; }
   .pc-sign-line.w200 { width: 180px; }
-  .pc-checkbox { display: flex; gap: 1.5rem; margin: .5rem 0; }
+  .pc-checkbox { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: .5rem 0; }
   .bloc-header { text-align: center; font-size: 11px; font-weight: 600; color: #666; letter-spacing: .08em; text-transform: uppercase; border: 1px solid #ccc; padding: .5rem; margin-bottom: 1.25rem; }
   .bloc-blank { display: inline-block; border-bottom: 1px solid #333; min-width: 140px; margin: 0 3px; }
   .bloc-blank.lg { min-width: 200px; }
@@ -45,10 +45,11 @@ function printSection(id) {
   setTimeout(() => w.print(), 500);
 }
 
-function ModeleHeader({ note, id }) {
+function ModeleHeader({ note, id, download }) {
   return (
     <div className="modele-header">
       <span className="modele-note">{note}</span>
+      {download && <a className="print-btn" href={download} download>Télécharger le modèle Word</a>}
       <button type="button" className="print-btn" onClick={() => printSection(id)}>
         Imprimer ce modèle
       </button>
@@ -117,63 +118,69 @@ export default function VisaModelesPage() {
         <div className="modele-section" id="prise-en-charge">
           <ModeleHeader
             id="prise-en-charge"
+            download="/modeles/engagement-prise-en-charge-visa-etudes-italie.docx"
             note="À signer par le garant, légaliser (~1 semaine avant le RDV), apostiller puis traduire en italien."
           />
           <h2>
-            Engagement pour la prise en charge d’étudiant
+            Engagement de prise en charge financière
             <br />
             <span className="modele-sub">(pour visa d’études en Italie)</span>
           </h2>
           <div className="doc-card" id="print-prise-en-charge">
             <p className="pc-doc-title">
-              ENGAGEMENT POUR LA PRISE EN CHARGE D’ÉTUDIANT
+              ENGAGEMENT DE PRISE EN CHARGE FINANCIÈRE
               <br />
-              <span>(pour visa d’études en Italie)</span>
+              <span>POUR UNE DEMANDE DE VISA D’ÉTUDES EN ITALIE</span>
             </p>
             <p className="pc-intro">Je soussigné/e :</p>
 
-            <PcField label="NOM :" />
-            <PcField label="Prénoms :" />
+            <PcField label="Nom et prénom :" />
             <PcField label="Lieu et date de naissance :" />
             <PcField label="Nationalité :" />
-            <PcField label="Adresse :" />
-            <PcField label="N° tél. :" />
+            <PcField label="N° CIN / Passeport :" />
+            <PcField label="Adresse complète :" />
+            <PcField label="Téléphone :" />
+            <PcField label="E-mail :" />
             <PcField label="Profession :" />
-            <PcField label="Date d’embauche / début d’activité :" />
-            <PcField label="Nom de l’entreprise :" />
+            <PcField label="Employeur / Nom de l’entreprise :" />
+            <PcField label="Adresse de l’employeur :" />
 
             <div className="pc-checkbox-wrap">
               <div className="pc-checkbox">
                 <label>
-                  <input type="checkbox" disabled /> Salarié
+                  <input type="checkbox" disabled /> Salarié(e)
                 </label>
                 <label>
-                  <input type="checkbox" disabled /> À son compte
+                  <input type="checkbox" disabled /> Travailleur indépendant
                 </label>
+                <label><input type="checkbox" disabled /> Commerçant(e)</label>
                 <label>
-                  <input type="checkbox" disabled /> Retraité
+                  <input type="checkbox" disabled /> Retraité(e)
                 </label>
+                <label><input type="checkbox" disabled /> Autre : ………………</label>
               </div>
             </div>
 
-            <PcField label="Adresse de l’employeur :" />
-            <PcField label="En qualité de (père / mère / autre) :" />
+            <PcField label="Lien de parenté avec l’étudiant(e) :" />
 
-            <p className="pc-separator">de l’étudiant/e bénéficiaire sous-indiqué/e :</p>
+            <p className="pc-separator">Déclare par la présente prendre en charge :</p>
 
-            <PcField label="NOM :" />
-            <PcField label="Prénoms :" />
+            <PcField label="Nom et prénom :" />
             <PcField label="Lieu et date de naissance :" />
             <PcField label="Nationalité :" />
-            <PcField label="Université en Italie :" />
+            <PcField label="N° de passeport :" />
+            <PcField label="Université / Établissement en Italie :" />
+            <PcField label="Formation / Cursus :" />
 
             <p className="pc-body">
-              Je m’engage à payer tous les frais relatifs à l’étudiant/e susmentionné/e
-              pendant toute la durée de ses études en Italie (hébergement, taxes et livres
-              universitaires, frais divers, soins médicaux, éventuel rapatriement, et tout
-              autre frais qui devrait se révéler nécessaire et non expressément mentionné)
-              et pour toute la durée de sa permanence en Italie.
+              Par la présente, je m’engage à assurer, pendant toute la durée de ses études
+              et de son séjour en Italie, les moyens financiers nécessaires à M./Mme
+              ……………………………………………………, afin de lui permettre de poursuivre ses études
+              dans de bonnes conditions.
             </p>
+            <p className="pc-body">Je déclare disposer de ressources financières suffisantes et régulières pour assurer cette prise en charge et m’engage à maintenir cette aide financière pendant toute la durée du séjour d’études de l’étudiant(e) en Italie.</p>
+            <p className="pc-body">À l’appui de cet engagement, je joins les documents permettant de justifier mon identité, mon lien de parenté avec l’étudiant(e), ma situation professionnelle et ma capacité financière, conformément aux exigences des autorités italiennes compétentes.</p>
+            <p className="pc-body">Je certifie sur l’honneur que les informations mentionnées dans la présente déclaration sont exactes et sincères.</p>
 
             <div className="pc-sign">
               <div className="pc-sign-item">
@@ -189,6 +196,8 @@ export default function VisaModelesPage() {
                 <div className="pc-sign-line w200" />
               </div>
             </div>
+            <PcField label="Nom et prénom du garant :" />
+            <PcField label="Cachet / légalisation :" />
           </div>
         </div>
 

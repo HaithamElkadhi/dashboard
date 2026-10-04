@@ -9,45 +9,9 @@ import {
 } from '../lib/airtable.js';
 import { BOOKING_STATUSES, MEETING_TYPES } from '../lib/config.js';
 
-const CACHE_KEY = 'jeexpert:bookings:v2';
-
-function readCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.bookings)) return null;
-    return {
-      bookings: parsed.bookings,
-      people: Array.isArray(parsed.people) ? parsed.people : [],
-      statuses: Array.isArray(parsed.statuses) ? parsed.statuses : [],
-      meetingTypes: Array.isArray(parsed.meetingTypes) ? parsed.meetingTypes : [],
-      lastUpdated: parsed.lastUpdated ? new Date(parsed.lastUpdated) : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(bookings, people, statuses, meetingTypes, lastUpdated) {
-  try {
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        bookings,
-        people,
-        statuses,
-        meetingTypes,
-        lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
-      })
-    );
-  } catch {
-    /* best-effort */
-  }
-}
 
 export function useBookingsData() {
-  const cached = typeof window !== 'undefined' ? readCache() : null;
+  const cached = null; // Protected data lives only in this mounted authenticated view.
 
   const [bookings, setBookings] = useState(cached?.bookings ?? []);
   const [people, setPeople] = useState(cached?.people ?? []);
@@ -86,7 +50,6 @@ export function useBookingsData() {
       setMeetingTypes(nextTypes);
       setLastUpdated(now);
       setStatus('ready');
-      writeCache(nextBookings, nextPeople, nextStatuses, nextTypes, now);
     } catch (err) {
       setError(err.message || 'Erreur inconnue');
       setStatus('error');
@@ -103,7 +66,6 @@ export function useBookingsData() {
       const created = await createBooking(input);
       setBookings((prev) => {
         const next = [created, ...prev];
-        writeCache(next, people, statuses, meetingTypes, new Date());
         return next;
       });
       return created;
@@ -122,7 +84,6 @@ export function useBookingsData() {
         const updated = await updateBooking(recordId, input);
         setBookings((prev) => {
           const next = prev.map((b) => (b.id === recordId ? updated : b));
-          writeCache(next, people, statuses, meetingTypes, new Date());
           return next;
         });
         return updated;
@@ -139,7 +100,6 @@ export function useBookingsData() {
       await deleteBooking(recordId);
       setBookings((prev) => {
         const next = prev.filter((b) => b.id !== recordId);
-        writeCache(next, people, statuses, meetingTypes, new Date());
         return next;
       });
       return recordId;

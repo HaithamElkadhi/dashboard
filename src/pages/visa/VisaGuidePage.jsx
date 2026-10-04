@@ -2,11 +2,13 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import VisaLayout from './VisaLayout.jsx';
 import useChecks from './useChecks.js';
+import useDocumentSettings from './useDocumentSettings.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
+import { visaNoteError } from '../../lib/visaNoteText.js';
 import {
   ASSURANCE_ADDRESSES,
   BUDGET_ROWS,
   CHECKLIST_GROUPS,
-  CHECKLIST_TOTAL,
   DATES,
   ERREURS,
   GARANT_COMMON_DOCS,
@@ -33,175 +35,14 @@ function parseTag(spec) {
   return { kind, label };
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function downloadChecklistPdf(checks) {
-  let done = 0;
-  let total = 0;
-  let bodyHtml = '';
-
-  CHECKLIST_GROUPS.forEach((group) => {
-    let groupDone = 0;
-    let itemsHtml = '';
-
-    group.items.forEach((item) => {
-      const checked = Boolean(checks[item.id]);
-      if (checked) groupDone += 1;
-      total += 1;
-      if (checked) done += 1;
-
-      const tagsHtml = (item.tags || [])
-        .map((spec) => {
-          const { kind, label } = parseTag(spec);
-          return `<span class="tag tag-${escapeHtml(kind)}">${escapeHtml(label)}</span>`;
-        })
-        .join(' ');
-
-      itemsHtml += `
-        <div class="row${checked ? ' done' : ''}">
-          <div class="box">${checked ? '✓' : ''}</div>
-          <div>
-            <div class="title">${escapeHtml(item.title)}${
-              item.note
-                ? ` <span class="note">${escapeHtml(item.note)}</span>`
-                : ''
-            }${tagsHtml ? ` ${tagsHtml}` : ''}</div>
-            ${item.sub ? `<div class="sub">${escapeHtml(item.sub)}</div>` : ''}
-          </div>
-        </div>`;
-    });
-
-    bodyHtml += `
-      <section class="group">
-        <h2>${escapeHtml(group.title)} <span>${groupDone}/${group.items.length}</span></h2>
-        ${itemsHtml}
-      </section>`;
-  });
-
-  const today = new Date().toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Checklist visa étudiant Italie — ${done}/${total}</title>
-<style>
-  @page { size: A4; margin: 14mm 16mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    color: #1a1a1a;
-    font-size: 11.5px;
-    line-height: 1.45;
-  }
-  .header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    border-bottom: 2px solid #1a6b3c; padding-bottom: 10px; margin-bottom: 18px;
-  }
-  .header h1 { font-size: 18px; font-weight: 700; line-height: 1.25; }
-  .header h1 span { color: #1a6b3c; }
-  .meta { text-align: right; font-size: 11px; color: #666; }
-  .meta strong { display: block; color: #1a1a1a; font-size: 13px; margin-bottom: 2px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .pill { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
-  .pill-tr { background: #fff3cd; color: #7a5200; }
-  .pill-x2 { background: #e8eaf6; color: #3949ab; }
-  .pill-ma { background: #fce4ec; color: #ad1457; }
-  .pill-op { background: #f3e5f5; color: #7b1fa2; }
-  .group { margin-bottom: 14px; break-inside: avoid; }
-  .group h2 {
-    font-size: 11px; font-weight: 700; color: #5a5a5a;
-    text-transform: uppercase; letter-spacing: .04em;
-    border-bottom: 1px solid #e2e2de; padding-bottom: 5px; margin-bottom: 6px;
-  }
-  .group h2 span { font-weight: 500; color: #888; text-transform: none; letter-spacing: 0; }
-  .row {
-    display: grid; grid-template-columns: 14px 1fr; gap: 8px;
-    padding: 5px 0; border-bottom: 1px solid #f0f0ec; align-items: start;
-  }
-  .row:last-child { border-bottom: none; }
-  .box {
-    width: 12px; height: 12px; margin-top: 2px;
-    border: 1.5px solid #1a6b3c; border-radius: 2px;
-    font-size: 9px; line-height: 10px; text-align: center; color: #1a6b3c;
-  }
-  .row.done .title { text-decoration: line-through; color: #888; }
-  .row.done { opacity: .7; }
-  .title { font-size: 11.5px; font-weight: 600; line-height: 1.35; }
-  .title .note { font-size: 10px; color: #888; font-weight: 400; }
-  .title .tag {
-    display: inline-block; font-size: 9px; padding: 1px 6px;
-    border-radius: 999px; font-weight: 500; margin-left: 4px; vertical-align: middle;
-  }
-  .title .tag-translate { background: #fff3cd; color: #7a5200; }
-  .title .tag-x2 { background: #e8eaf6; color: #3949ab; }
-  .title .tag-master { background: #fce4ec; color: #ad1457; }
-  .title .tag-opt { background: #f3e5f5; color: #7b1fa2; }
-  .sub { font-size: 10px; color: #666; margin-top: 1px; }
-  .footer {
-    margin-top: 18px; padding-top: 8px; border-top: 1px solid #e2e2de;
-    font-size: 9.5px; color: #888;
-  }
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-</style>
-</head>
-<body>
-  <div class="header">
-    <div>
-      <h1>Checklist — dossier <span>visa étudiant</span></h1>
-      <div style="font-size:11px;color:#666;margin-top:3px;">Italie · 2026/2027 · Tunisie</div>
-    </div>
-    <div class="meta">
-      <strong>${done} / ${total} documents</strong>
-      ${today}
-    </div>
-  </div>
-  <div class="legend">
-    <span class="pill pill-tr">à traduire + apostille</span>
-    <span class="pill pill-x2">×2 exemplaires</span>
-    <span class="pill pill-ma">master</span>
-    <span class="pill pill-op">optionnel</span>
-  </div>
-  ${bodyHtml}
-  <div class="footer">Guide visa étudiant Italie — à titre indicatif. Vérifie toujours les exigences officielles avant le dépôt.</div>
-  <script>
-    window.onload = function () {
-      window.focus();
-      window.print();
-    };
-  <\/script>
-</body>
-</html>`;
-
-  const win = window.open('', '_blank');
-  if (!win) {
-    window.alert('Autorise les pop-ups pour télécharger le PDF.');
-    return;
-  }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-}
-
 /** `spec` is either "kind" or "kind:custom label". */
 function Tag({ spec, inline = false }) {
   const { kind, label } = parseTag(spec);
   return <span className={`tag tag-${kind}${inline ? ' tag-inline' : ''}`}>{label}</span>;
 }
 
-function ChecklistItem({ item, checked, onToggle }) {
+function ChecklistItem({ item, checked, onToggle, preference = {}, onHide, onNote }) {
+  const [noteOpen, setNoteOpen] = useState(Boolean(preference.note));
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -210,6 +51,7 @@ function ChecklistItem({ item, checked, onToggle }) {
   };
 
   return (
+    <div className={`document-editor${preference.hidden ? ' document-hidden' : ''}`}>
     <div
       className={`checklist-item${checked ? ' checked' : ''}`}
       role="button"
@@ -232,6 +74,17 @@ function ChecklistItem({ item, checked, onToggle }) {
         </div>
         {item.sub ? <div className="item-sub">{item.sub}</div> : null}
       </div>
+    </div>
+    {onHide && <div className="document-actions">
+      <button type="button" aria-label={`${preference.hidden ? 'Réafficher' : 'Masquer'} : ${item.title}`} onClick={() => onHide(item.id)}>{preference.hidden ? 'Réafficher le document' : 'Masquer le document'}</button>
+      {!preference.hidden && <button type="button" aria-label={`${preference.note ? 'Modifier la note' : 'Ajouter une note'} : ${item.title}`} aria-expanded={noteOpen} onClick={() => setNoteOpen(value => !value)}>{preference.note ? 'Modifier la note' : 'Ajouter une note'}</button>}
+      {preference.hidden && <span>Exclu du PDF</span>}
+    </div>}
+    {onNote && noteOpen && !preference.hidden && <label className="document-note">
+      <span>Note pour ce document — incluse dans le PDF</span>
+      <textarea rows={3} maxLength={2000} value={preference.note || ''} onChange={event => onNote(item.id, event.target.value)} placeholder="Ex. : apporter l’original et deux copies…" />
+      {visaNoteError(preference.note) && <span role="alert" style={{ color: '#b42318' }}>{visaNoteError(preference.note)}</span>}
+    </label>}
     </div>
   );
 }
@@ -268,6 +121,11 @@ function AddressCard({ address }) {
 export default function VisaGuidePage() {
   const { hash } = useLocation();
   const { checks, toggle, clearAll } = useChecks(STORAGE_KEY);
+  const { user } = useAuth();
+  const { settings, setNote, toggleHidden, restoreAll } = useDocumentSettings(`jeexpert:visa-documents:${user.id}`);
+  const [showHidden, setShowHidden] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState('');
   const [garantTab, setGarantTab] = useState(GARANT_TABS[0].id);
   const [translatorFilter, setTranslatorFilter] = useState('');
 
@@ -281,10 +139,10 @@ export default function VisaGuidePage() {
   const checkedCount = useMemo(
     () =>
       CHECKLIST_GROUPS.reduce(
-        (total, group) => total + group.items.filter((item) => checks[item.id]).length,
+        (total, group) => total + group.items.filter((item) => !settings[item.id]?.hidden && checks[item.id]).length,
         0
       ),
-    [checks]
+    [checks, settings]
   );
 
   const translators = useMemo(
@@ -296,6 +154,19 @@ export default function VisaGuidePage() {
   );
 
   const activeGarant = GARANT_TABS.find((tab) => tab.id === garantTab) || GARANT_TABS[0];
+  const visibleTotal = CHECKLIST_GROUPS.reduce((total, group) => total + group.items.filter(item => !settings[item.id]?.hidden).length, 0);
+  const hiddenCount = Object.values(settings).filter(value => value.hidden).length;
+  const commonItems = GARANT_COMMON_DOCS.map((title, index) => ({ id: `g-common-${index}`, title }));
+  const visibleItems = items => items.filter(item => showHidden || !settings[item.id]?.hidden);
+  const downloadPdf = async () => {
+    setPdfBusy(true); setPdfError('');
+    try {
+      const { buildVisaChecklistPdf } = await import('../../lib/visaChecklistPdf.js');
+      const groups = [...CHECKLIST_GROUPS, { id: 'garant-selected', title: activeGarant.title, items: activeGarant.items }, { id: 'garant-common', title: 'Garant — documents communs', items: commonItems }];
+      buildVisaChecklistPdf(groups, checks, settings).save('JEExpert-checklist-visa-italie.pdf');
+    } catch (error) { setPdfError(error.message || 'Le PDF n’a pas pu être créé. Réessayez.'); }
+    finally { setPdfBusy(false); }
+  };
 
   const scrollTo = (event, id) => {
     event.preventDefault();
@@ -423,12 +294,12 @@ export default function VisaGuidePage() {
           </div>
           <div className="checklist-progress">
             <span>
-              {checkedCount} / {CHECKLIST_TOTAL}
+              {checkedCount} / {visibleTotal}
             </span>
             <div className="progress-bar">
               <div
                 className="progress-fill"
-                style={{ width: `${(checkedCount / CHECKLIST_TOTAL) * 100}%` }}
+                style={{ width: `${visibleTotal ? (checkedCount / visibleTotal) * 100 : 0}%` }}
               />
             </div>
             <span className="checklist-actions">
@@ -438,7 +309,8 @@ export default function VisaGuidePage() {
               <button
                 type="button"
                 className="btn btn-pdf"
-                onClick={() => downloadChecklistPdf(checks)}
+                onClick={downloadPdf}
+                disabled={pdfBusy}
                 title="Télécharger la checklist en PDF"
               >
                 <svg
@@ -456,24 +328,38 @@ export default function VisaGuidePage() {
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Télécharger PDF
+                {pdfBusy ? 'Création du PDF…' : 'Télécharger PDF'}
               </button>
             </span>
           </div>
 
+          <div className="document-settings-toolbar">
+            <p>Masquez les documents non concernés et ajoutez vos notes. Le PDF inclut uniquement les documents visibles et le profil du garant sélectionné.</p>
+            {hiddenCount > 0 && <div className="document-settings-buttons">
+              <button type="button" className="btn" onClick={() => setShowHidden(value => !value)}>{showHidden ? 'Cacher les documents masqués' : `Voir les documents masqués (${hiddenCount})`}</button>
+              <button type="button" className="btn" onClick={restoreAll}>Tout réafficher</button>
+            </div>}
+            {pdfError && <p role="alert" className="document-pdf-error">{pdfError}</p>}
+          </div>
+
           {CHECKLIST_GROUPS.map((group) => {
-            const done = group.items.filter((item) => checks[item.id]).length;
+            const visible = group.items.filter(item => !settings[item.id]?.hidden);
+            const done = visible.filter((item) => checks[item.id]).length;
+            if (!visibleItems(group.items).length) return null;
             return (
               <div className="checklist-group" key={group.id}>
                 <div className="checklist-group-title">
-                  {group.title} — {done}/{group.items.length}
+                  {group.title} — {done}/{visible.length}
                 </div>
-                {group.items.map((item) => (
+                {visibleItems(group.items).map((item) => (
                   <ChecklistItem
                     key={item.id}
                     item={item}
                     checked={Boolean(checks[item.id])}
                     onToggle={toggle}
+                    preference={settings[item.id]}
+                    onHide={toggleHidden}
+                    onNote={setNote}
                   />
                 ))}
               </div>
@@ -526,23 +412,22 @@ export default function VisaGuidePage() {
           <div>
             <div className="tab-title">{activeGarant.title}</div>
             <div className="checklist-group tight">
-              {activeGarant.items.map((item) => (
+              {visibleItems(activeGarant.items).map((item) => (
                 <ChecklistItem
                   key={item.id}
                   item={item}
                   checked={Boolean(checks[item.id])}
                   onToggle={toggle}
+                  preference={settings[item.id]}
+                  onHide={toggleHidden}
+                  onNote={setNote}
                 />
               ))}
             </div>
           </div>
           <div className="common-docs">
             <h4>Commun à tous les profils</h4>
-            <ul>
-              {GARANT_COMMON_DOCS.map((doc) => (
-                <li key={doc}>{doc}</li>
-              ))}
-            </ul>
+            {visibleItems(commonItems).map(item => <ChecklistItem key={item.id} item={item} checked={Boolean(checks[item.id])} onToggle={toggle} preference={settings[item.id]} onHide={toggleHidden} onNote={setNote} />)}
           </div>
           <div className="garant-note">
             <p>

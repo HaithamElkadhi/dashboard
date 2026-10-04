@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { AuthProvider } from './contexts/AuthContext.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
 import AppShell from './components/layout/AppShell.jsx';
@@ -18,11 +19,12 @@ import VisaClassementPage from './pages/visa/VisaClassementPage.jsx';
 import VisaModelesPage from './pages/visa/VisaModelesPage.jsx';
 import OperationsPage from './pages/OperationsPage.jsx';
 import ProposalItalyPage from './pages/operations/ProposalItalyPage.jsx';
+import AdminUsersPage from './pages/AdminUsersPage.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Routes>
+      <AuthProvider><Routes>
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/prospects" element={<ProspectsPage />} />
@@ -31,6 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/finance/paiements/:paiementId/document" element={<FinanceDocumentPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/visa" element={<VisaGuidePage />} />
@@ -40,7 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/operations/proposal-italy" element={<ProposalItalyPage />} />
           <Route path="*" element={<ComingSoonPage title="Page introuvable" />} />
         </Route>
-      </Routes>
+      </Routes></AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
