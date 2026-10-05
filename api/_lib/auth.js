@@ -70,7 +70,7 @@ export function setSessionCookie(req, res, token, env = process.env) {
   const secure = env.NODE_ENV === 'production' || env.VERCEL ? '; Secure' : '';
   res.setHeader('Set-Cookie', `${COOKIE}=${token || ''}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${token ? HOURS * 3600 : 0}${secure}`);
 }
-export async function requireUser(req, env = process.env) {
+export async function requireUser(req, env = process.env, { allowViewContactAppend = false } = {}) {
   const token = cookieToken(req);
   if (!token) throw authError(401, 'Connexion requise.');
   const key = digest(token);
@@ -81,7 +81,7 @@ export async function requireUser(req, env = process.env) {
     const path = new URL(req.url || '/', 'http://internal').pathname;
     // Login/logout are session operations; all business mutations require write access.
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method || 'GET') && path !== '/api/auth/logout') {
-      assertCanWrite(identity.user);
+      if (!(allowViewContactAppend && identity.user.role === 'View')) assertCanWrite(identity.user);
     }
     return identity;
   } finally { pendingSessions.delete(key); }

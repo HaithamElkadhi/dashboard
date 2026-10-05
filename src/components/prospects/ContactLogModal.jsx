@@ -66,7 +66,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
     setSaving(true);
     setError('');
     try {
-      const saved = await addContactLog(prospect.id, { date, reason });
+      const saved = await addContactLog(prospect.id, { date, reason, expectedHistory: prospect.contactHistory || '' });
       onSaved?.(prospect.id, saved);
       onClose();
     } catch (err) {
@@ -92,7 +92,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
             >
               Annuler
             </button>
-            <button data-write=""
+            <button data-view-contact=""
               type="submit"
               form="contact-log-form"
               disabled={saving}
@@ -105,7 +105,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
         </div>
       }
     >
-      <form id="contact-log-form" onSubmit={handleSubmit} className="space-y-4">
+      <form data-view-contact="" id="contact-log-form" onSubmit={handleSubmit} className="space-y-4">
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-text-muted">Date du contact</span>
           <input
@@ -121,6 +121,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
           <span className="text-xs font-medium text-text-muted">Motif</span>
           <textarea
             rows={3}
+            maxLength={5000}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ex. Appel : intéressé par un Master en informatique, rappeler lundi"

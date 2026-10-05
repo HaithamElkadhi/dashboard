@@ -1,5 +1,6 @@
 import ticketing from '../ticketing.js';
 import studentDocuments from '../student-documents.js';
+import studentContact from '../student-contact.js';
 import login from '../auth/login.js';
 import me from '../auth/me.js';
 import logout from '../auth/logout.js';
@@ -13,7 +14,7 @@ export function devApi(env) {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url, 'http://localhost');
-        let handler = { '/api/student-documents': studentDocuments, '/api/ticketing': ticketing, '/api/auth/login': login, '/api/auth/me': me, '/api/auth/logout': logout, '/api/admin/users': adminUsers, '/api/send-email': sendEmail, '/api/proxy': proxy }[url.pathname];
+        let handler = { '/api/student-contact': studentContact, '/api/student-documents': studentDocuments, '/api/ticketing': ticketing, '/api/auth/login': login, '/api/auth/me': me, '/api/auth/logout': logout, '/api/admin/users': adminUsers, '/api/send-email': sendEmail, '/api/proxy': proxy }[url.pathname];
         for (const [prefix, host] of [['/api/airtable/', null], ['/api/at-content/', 'content']]) {
           if (url.pathname.startsWith(prefix)) {
             const path = url.pathname.slice(prefix.length);

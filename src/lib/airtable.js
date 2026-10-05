@@ -1695,43 +1695,20 @@ export function parseContactHistory(text) {
     });
 }
 
-function formatContactLine({ date, reason }) {
-  const [y, m, d] = date.split('-');
-  return `${d}/${m}/${y} — ${reason.replace(/\s*\n\s*/g, ' ').trim()}`;
-}
-
 /**
  * Add one contact to the prospect: a new line in Historique contacts (never
  * overwrites) and Dernier contact moved to that date if it's the most recent.
  * Re-reads the record first so a stale cached history is never written back.
  */
-export async function addContactLog(recordId, { date, reason }) {
-  if (!date) throw new Error('Choose a date.');
-  if (!reason?.trim()) throw new Error('Write the reason of the contact.');
-  const res = await fetch(
-    `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
-  );
-  if (!res.ok) await parseError(res);
-  const f = (await res.json()).fields || {};
-
-  const entries = [{ date, reason: reason.trim() }, ...parseContactHistory(f[PF.contactHistory])];
-  // Newest first; lines without a parsable date keep their place at the end.
-  entries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const history = entries.map((e) => (e.date ? formatContactLine(e) : e.reason)).join('\n');
-
-  const current = f[PF.lastContact] || '';
-  const lastContact = current && current > date ? current : date;
-
-  const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {
-    fields: { [PF.contactHistory]: history, [PF.lastContact]: lastContact },
-    returnFieldsByFieldId: true,
+export async function addContactLog(recordId, { date, reason, expectedHistory }) {
+  const response = await fetch('/api/student-contact', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recordId, date, reason, expectedHistory }),
   });
-  return {
-    lastContact: data.fields?.[PF.lastContact] || lastContact,
-    contactHistory: data.fields?.[PF.contactHistory] || history,
-  };
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Unable to add contact.');
+  return data;
 }
-
 /** Set (or clear with '') the prospect's Niveau d'intérêt. */
 export async function updateInterestLevel(recordId, value) {
   const data = await airtableWrite('PATCH', `${BASE_ID}/${TABLES.prospects}/${recordId}`, {

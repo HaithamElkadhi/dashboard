@@ -155,7 +155,7 @@ function LastContactCell({ p, onClick }) {
   const latest = parseContactHistory(p.contactHistory)[0];
   if (!p.lastContact) {
     return (
-      <button data-write=""
+      <button
         type="button"
         onClick={() => onClick(p)}
         className="rounded-lg border border-dashed border-border px-2.5 py-1 text-xs font-medium text-text-muted transition hover:border-border-strong hover:text-text-strong"

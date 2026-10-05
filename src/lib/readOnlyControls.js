@@ -5,6 +5,7 @@ export function installReadOnlyControls(document, Observer = MutationObserver) {
   const selector = 'form input, form select, textarea, input[type="file"], form button[type="submit"], form button:not([type]), [data-write], [data-write] input, [data-write] select, [data-write] textarea, [data-write] button, [contenteditable="true"]';
   const apply = () => {
     for (const node of document.querySelectorAll(selector)) {
+      if (node.closest('[data-view-contact]')) continue;
       if (!originals.has(node)) originals.set(node, { disabled: node.disabled, editable: node.getAttribute('contenteditable'), aria: node.getAttribute('aria-disabled') });
       if ('disabled' in node && !node.disabled) node.disabled = true;
       if (node.getAttribute('aria-disabled') !== 'true') node.setAttribute('aria-disabled', 'true');
@@ -12,7 +13,7 @@ export function installReadOnlyControls(document, Observer = MutationObserver) {
     }
   };
   const block = (event) => {
-    if (event.type === 'submit' || event.target.closest?.('[data-write]')) {
+    if (!event.target.closest?.('[data-view-contact]') && (event.type === 'submit' || event.target.closest?.('[data-write]'))) {
       event.preventDefault(); event.stopImmediatePropagation();
     }
   };

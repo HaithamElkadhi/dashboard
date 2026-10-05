@@ -33,7 +33,8 @@ export function AuthProvider({ children }) {
       const url = new URL(input instanceof Request ? input.url : input, window.location.href);
       const protectedApi = url.origin === window.location.origin && url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/');
       const method = (init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
-      if (protectedApi && userRef.current?.role === 'View' && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+      const contactAppend = url.pathname === '/api/student-contact' && method === 'POST';
+      if (protectedApi && userRef.current?.role === 'View' && !contactAppend && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
         throw new Error('View access: changes are not allowed.');
       }
       const started = generation.current;
