@@ -23,6 +23,14 @@ import OperationsPage from './pages/OperationsPage.jsx';
 import ProposalItalyPage from './pages/operations/ProposalItalyPage.jsx';
 import AdminUsersPage from './pages/AdminUsersPage.jsx';
 
+// Production only: keep the worker away from Vite's development server.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+      .catch((error) => console.warn('PWA registration failed:', error));
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
