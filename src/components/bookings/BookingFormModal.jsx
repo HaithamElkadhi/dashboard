@@ -122,7 +122,7 @@ export default function BookingFormModal({
           </Field>
 
           <Field label="Nom étudiant" required>
-            <input
+            <input data-write=""
               className={inputClass}
               value={form.studentName}
               onChange={set('studentName')}
@@ -132,7 +132,7 @@ export default function BookingFormModal({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Email">
-              <input
+              <input data-write=""
                 type="email"
                 className={inputClass}
                 value={form.email}
@@ -140,7 +140,7 @@ export default function BookingFormModal({
               />
             </Field>
             <Field label="Téléphone">
-              <input
+              <input data-write=""
                 type="tel"
                 className={inputClass}
                 value={form.phone}
@@ -148,7 +148,7 @@ export default function BookingFormModal({
               />
             </Field>
             <Field label="Date & heure" required>
-              <input
+              <input data-write=""
                 type="datetime-local"
                 className={inputClass}
                 value={form.dateTime}
@@ -157,7 +157,7 @@ export default function BookingFormModal({
               />
             </Field>
             <Field label="Type de meeting">
-              <select
+              <select data-write=""
                 className={inputClass}
                 value={form.meetingType}
                 onChange={set('meetingType')}
@@ -171,7 +171,7 @@ export default function BookingFormModal({
               </select>
             </Field>
             <Field label="Statut">
-              <select
+              <select data-write=""
                 className={inputClass}
                 value={form.bookingStatus}
                 onChange={set('bookingStatus')}
@@ -187,7 +187,7 @@ export default function BookingFormModal({
           </div>
 
           <Field label="Lien meeting">
-            <input
+            <input data-write=""
               type="url"
               className={inputClass}
               value={form.meetingLink}
@@ -197,7 +197,7 @@ export default function BookingFormModal({
           </Field>
 
           <Field label="Notes">
-            <textarea
+            <textarea data-write=""
               rows={3}
               className={inputClass}
               value={form.notes}
@@ -216,7 +216,7 @@ export default function BookingFormModal({
             >
               Annuler
             </button>
-            <button
+            <button data-write=""
               type="submit"
               disabled={saving}
               className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"

@@ -188,7 +188,7 @@ export default function PaiementModal({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Montant" required>
-              <input
+              <input data-write=""
                 type="number"
                 step="0.01"
                 className={inputClass}
@@ -198,7 +198,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Devise">
-              <select className={inputClass} value={form.currency} onChange={set('currency')}>
+              <select data-write="" className={inputClass} value={form.currency} onChange={set('currency')}>
                 {withCurrent(currencyChoices, form.currency).map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -207,7 +207,7 @@ export default function PaiementModal({
               </select>
             </Field>
             <Field label="Statut">
-              <select className={inputClass} value={form.status} onChange={set('status')}>
+              <select data-write="" className={inputClass} value={form.status} onChange={set('status')}>
                 {withCurrent(statusChoices, form.status).map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -216,7 +216,7 @@ export default function PaiementModal({
               </select>
             </Field>
             <Field label="Méthode de paiement">
-              <input
+              <input data-write=""
                 className={inputClass}
                 value={form.paymentMethod}
                 onChange={set('paymentMethod')}
@@ -224,7 +224,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Taxe %">
-              <input
+              <input data-write=""
                 type="number"
                 step="0.01"
                 className={inputClass}
@@ -234,7 +234,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Commission Commercial">
-              <input
+              <input data-write=""
                 type="number"
                 step="0.01"
                 className={inputClass}
@@ -244,7 +244,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Commission Moez — Type">
-              <select className={inputClass} value={form.moezType} onChange={set('moezType')}>
+              <select data-write="" className={inputClass} value={form.moezType} onChange={set('moezType')}>
                 {withCurrent(moezTypeChoices, form.moezType).map((t) => (
                   <option key={t} value={t}>
                     {t}
@@ -253,7 +253,7 @@ export default function PaiementModal({
               </select>
             </Field>
             <Field label="Commission Moez — Valeur">
-              <input
+              <input data-write=""
                 type="number"
                 step="0.01"
                 className={inputClass}
@@ -264,7 +264,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Date d'échéance">
-              <input
+              <input data-write=""
                 type="date"
                 className={inputClass}
                 value={form.dueDate || ''}
@@ -272,7 +272,7 @@ export default function PaiementModal({
               />
             </Field>
             <Field label="Date de paiement">
-              <input
+              <input data-write=""
                 type="date"
                 className={inputClass}
                 value={form.paymentDate || ''}
@@ -305,7 +305,7 @@ export default function PaiementModal({
 
           {form.status === 'Exonéré' && (
             <Field label="Raison d'exonération">
-              <textarea
+              <textarea data-write=""
                 rows={2}
                 className={inputClass}
                 value={form.exemptionReason}
@@ -315,7 +315,7 @@ export default function PaiementModal({
           )}
 
           <Field label="Adresse de facturation">
-            <input
+            <input data-write=""
               className={inputClass}
               value={form.billingAddress}
               onChange={set('billingAddress')}
@@ -323,7 +323,7 @@ export default function PaiementModal({
           </Field>
 
           <Field label="Commentaire">
-            <textarea
+            <textarea data-write=""
               rows={3}
               className={inputClass}
               value={form.comment}
@@ -351,7 +351,7 @@ export default function PaiementModal({
           )}
 
           <div className="flex items-center gap-2 pt-1">
-            <button
+            <button data-write=""
               type="submit"
               disabled={saving}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"

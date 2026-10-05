@@ -72,7 +72,7 @@ export default function StudyPreferencesSection({ data, onChange }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <FieldLabel>Primary Field</FieldLabel>
-              <input
+              <input data-write=""
                 placeholder="e.g. Engineering, Economics, Medicine"
                 value={data.fieldOfStudyPrimary}
                 onChange={(e) => onChange({ ...data, fieldOfStudyPrimary: e.target.value })}
@@ -84,7 +84,7 @@ export default function StudyPreferencesSection({ data, onChange }) {
                 Alternative Field{' '}
                 <span className="font-normal normal-case tracking-normal text-text-muted">(optional)</span>
               </FieldLabel>
-              <input
+              <input data-write=""
                 placeholder="e.g. Data Science, International Relations"
                 value={data.alternativeField}
                 onChange={(e) => onChange({ ...data, alternativeField: e.target.value })}

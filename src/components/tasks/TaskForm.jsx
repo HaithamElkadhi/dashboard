@@ -151,7 +151,7 @@ export default function TaskForm({
       className={compact ? 'space-y-4' : 'space-y-5'}
     >
       <Field label="Titre" required>
-        <input
+        <input data-write=""
           autoFocus={!initial}
           className={inputClass}
           value={form.name}
@@ -218,7 +218,7 @@ export default function TaskForm({
           </Field>
         ) : (
           <Field label="Date d’échéance">
-            <input
+            <input data-write=""
               type="date"
               className={inputClass}
               value={form.ddl}
@@ -230,7 +230,7 @@ export default function TaskForm({
 
       {showStatus && (
         <Field label="Date d’échéance" className="sm:max-w-xs">
-          <input
+          <input data-write=""
             type="date"
             className={inputClass}
             value={form.ddl}
@@ -253,7 +253,7 @@ export default function TaskForm({
       </div>
 
       <Field label="Description / notes">
-        <textarea
+        <textarea data-write=""
           rows={compact ? 3 : 4}
           className={`${inputClass} resize-y`}
           value={form.notes}
@@ -279,7 +279,7 @@ export default function TaskForm({
           </button>
         )}
         {showCreateAnother && (
-          <button
+          <button data-write=""
             type="button"
             disabled={saving}
             onClick={() => submit(true)}
@@ -288,7 +288,7 @@ export default function TaskForm({
             Créer et ajouter une autre
           </button>
         )}
-        <button
+        <button data-write=""
           type="submit"
           disabled={saving}
           className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:opacity-60"

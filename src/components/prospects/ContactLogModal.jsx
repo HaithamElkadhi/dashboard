@@ -92,7 +92,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
             >
               Annuler
             </button>
-            <button
+            <button data-write=""
               type="submit"
               form="contact-log-form"
               disabled={saving}

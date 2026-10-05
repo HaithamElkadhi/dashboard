@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import Avatar from './Avatar.jsx';
 import Badge from './Badge.jsx';
 import Pagination from './Pagination.jsx';
@@ -6,7 +7,7 @@ import { EmptyState, SkeletonRows } from './states.jsx';
 import { usePagination } from '../hooks/usePagination.js';
 import { chipStyle, dotStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
-import { FileTextIcon, PencilIcon, TrashIcon, UserIcon, WalletIcon, WhatsAppIcon } from './icons.jsx';
+import { EyeIcon, FileTextIcon, PencilIcon, TrashIcon, UserIcon, WalletIcon, WhatsAppIcon } from './icons.jsx';
 import { formatShortDate } from '../lib/taskDates.js';
 import { parseContactHistory } from '../lib/airtable.js';
 import { INTEREST_LEVELS } from '../lib/config.js';
@@ -58,7 +59,7 @@ function IntakeCell({ p, years, onChange }) {
   const current = p.intakes || [];
   const value = current.length === 1 ? current[0] : current.length > 1 ? '__multi__' : '';
   return (
-    <select
+    <select data-write=""
       value={value}
       onChange={(e) => onChange?.(p, e.target.value ? [e.target.value] : [])}
       disabled={!onChange}
@@ -93,7 +94,7 @@ function StageDateCell({ p, field, onChange }) {
     if (value !== saved) onChange?.(p, field, value);
   };
   return (
-    <input
+    <input data-write=""
       type="date"
       value={value}
       onChange={(e) => setValue(e.target.value)}
@@ -122,7 +123,7 @@ function InterestCell({ p, onChange }) {
   const value = p.interestLevel || '';
   const tone = INTEREST_TONES[value] || 'border-dashed border-border bg-surface text-text-muted';
   return (
-    <select
+    <select data-write=""
       value={value}
       onChange={(e) => onChange?.(p, e.target.value)}
       disabled={!onChange}
@@ -154,7 +155,7 @@ function LastContactCell({ p, onClick }) {
   const latest = parseContactHistory(p.contactHistory)[0];
   if (!p.lastContact) {
     return (
-      <button
+      <button data-write=""
         type="button"
         onClick={() => onClick(p)}
         className="rounded-lg border border-dashed border-border px-2.5 py-1 text-xs font-medium text-text-muted transition hover:border-border-strong hover:text-text-strong"
@@ -290,6 +291,7 @@ function Field({ label, children }) {
 }
 
 function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
+  const { readOnly } = useAuth();
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -327,15 +329,15 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
                   <WhatsAppIcon size={13} />
                 </button>
               )}
-              
+
               {onEdit && (
-                <button
+                <button data-write={readOnly ? undefined : ''}
                   type="button"
                   onClick={() => onEdit(p)}
-                  title="Modifier"
+                  title={readOnly ? 'Details' : 'Modifier'}
                   className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
                 >
-                  <PencilIcon size={13} />
+                  {readOnly ? <EyeIcon size={13} /> : <PencilIcon size={13} />}
                 </button>
               )}
               {onFiche && (
@@ -369,7 +371,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
                 </button>
               )}
               {onDelete && (
-                <button
+                <button data-write=""
                   type="button"
                   onClick={() => onDelete(p)}
                   title="Supprimer"
@@ -483,6 +485,7 @@ function SkeletonCards({ count = 6 }) {
 }
 
 function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
+  const { readOnly } = useAuth();
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
       <td className="px-4 py-3">
@@ -609,13 +612,13 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
           )}
           <a href={`/students/${p.id}/documents`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
               {onEdit && (
-            <button
+            <button data-write={readOnly ? undefined : ''}
               type="button"
               onClick={() => onEdit(p)}
-              title="Modifier"
+              title={readOnly ? 'Details' : 'Modifier'}
               className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
             >
-              <PencilIcon size={14} />
+              {readOnly ? <EyeIcon size={14} /> : <PencilIcon size={14} />}
             </button>
           )}
           {onFiche && (
@@ -649,7 +652,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
             </button>
           )}
           {onDelete && (
-            <button
+            <button data-write=""
               type="button"
               onClick={() => onDelete(p)}
               title="Supprimer"

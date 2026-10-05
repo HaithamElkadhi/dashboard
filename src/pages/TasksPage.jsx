@@ -78,14 +78,14 @@ function ArchivedSection({ tasks, onOpen, onRestore, onDelete }) {
                     </p>
                   </button>
                   <div className="flex shrink-0 items-center gap-2">
-                    <button
+                    <button data-write=""
                       type="button"
                       onClick={() => onRestore(task)}
                       className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
                     >
                       Restaurer
                     </button>
-                    <button
+                    <button data-write=""
                       type="button"
                       title="Supprimer"
                       onClick={() => onDelete(task)}

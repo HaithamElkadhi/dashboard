@@ -188,7 +188,7 @@ export default function VisaClassementPage() {
             <div className="pfill" style={{ width: `${(done / total) * 100}%` }} />
           </div>
           <span className="checklist-actions">
-            <button type="button" className="btn" onClick={clearAll}>
+            <button data-write="" type="button" className="btn" onClick={clearAll}>
               Tout décocher
             </button>
             <button
@@ -220,7 +220,7 @@ export default function VisaClassementPage() {
                 role="button"
                 tabIndex={0}
                 aria-pressed={checked}
-                onClick={() => toggle(id)}
+                data-write="" onClick={() => toggle(id)}
                 onKeyDown={handleKeyDown}
               >
                 <div className="doc-num">{index + 1}</div>

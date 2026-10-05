@@ -21,10 +21,10 @@ export default function InvoiceForm({ data, onChange }) {
       <Section title="Facture">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="N° de facture">
-            <input value={data.invoiceNumber} onChange={set('invoiceNumber')} className={inputClass} />
+            <input data-write="" value={data.invoiceNumber} onChange={set('invoiceNumber')} className={inputClass} />
           </Field>
           <Field label="Devise">
-            <select value={data.currency} onChange={set('currency')} className={inputClass}>
+            <select data-write="" value={data.currency} onChange={set('currency')} className={inputClass}>
               {DOC_CURRENCIES.map((c) => (
                 <option key={c} value={c}>
                   {CURRENCY_LABELS[c]}
@@ -33,10 +33,10 @@ export default function InvoiceForm({ data, onChange }) {
             </select>
           </Field>
           <Field label="Date">
-            <input type="date" value={data.date} onChange={set('date')} className={inputClass} />
+            <input data-write="" type="date" value={data.date} onChange={set('date')} className={inputClass} />
           </Field>
           <Field label="Échéance">
-            <input type="date" value={data.dueDate} onChange={set('dueDate')} className={inputClass} />
+            <input data-write="" type="date" value={data.dueDate} onChange={set('dueDate')} className={inputClass} />
           </Field>
         </div>
       </Section>
@@ -44,14 +44,14 @@ export default function InvoiceForm({ data, onChange }) {
       <Section title="Client">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nom complet">
-            <input value={data.clientName} onChange={set('clientName')} className={inputClass} />
+            <input data-write="" value={data.clientName} onChange={set('clientName')} className={inputClass} />
           </Field>
           <Field label="Email">
-            <input type="email" value={data.clientEmail} onChange={set('clientEmail')} className={inputClass} />
+            <input data-write="" type="email" value={data.clientEmail} onChange={set('clientEmail')} className={inputClass} />
           </Field>
         </div>
         <Field label="Adresse de facturation">
-          <textarea
+          <textarea data-write=""
             rows={2}
             value={data.clientAddress}
             onChange={set('clientAddress')}
@@ -65,14 +65,14 @@ export default function InvoiceForm({ data, onChange }) {
           {data.items.map((item) => (
             <div key={item.id} className="grid grid-cols-[1fr_4.5rem_7rem_auto] items-end gap-2">
               <Field label="Description">
-                <input
+                <input data-write=""
                   value={item.description}
                   onChange={(e) => setItem(item.id, { description: e.target.value })}
                   className={inputClass}
                 />
               </Field>
               <Field label="Qté">
-                <input
+                <input data-write=""
                   type="number"
                   min="0"
                   value={item.quantity}
@@ -81,7 +81,7 @@ export default function InvoiceForm({ data, onChange }) {
                 />
               </Field>
               <Field label="Prix unitaire">
-                <input
+                <input data-write=""
                   type="number"
                   min="0"
                   step="0.01"
@@ -90,7 +90,7 @@ export default function InvoiceForm({ data, onChange }) {
                   className={inputClass}
                 />
               </Field>
-              <button
+              <button data-write=""
                 type="button"
                 aria-label="Supprimer la ligne"
                 disabled={data.items.length === 1}
@@ -102,7 +102,7 @@ export default function InvoiceForm({ data, onChange }) {
             </div>
           ))}
         </div>
-        <button
+        <button data-write=""
           type="button"
           onClick={() => onChange({ ...data, items: [...data.items, newInvoiceItem()] })}
           className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-strong transition hover:border-border-strong"
@@ -114,7 +114,7 @@ export default function InvoiceForm({ data, onChange }) {
 
       <Section title="Remise">
         <label className="flex items-center gap-2 text-sm text-text-strong">
-          <input
+          <input data-write=""
             type="checkbox"
             checked={data.discountEnabled}
             onChange={(e) => onChange({ ...data, discountEnabled: e.target.checked })}
@@ -125,7 +125,7 @@ export default function InvoiceForm({ data, onChange }) {
         {data.discountEnabled && (
           <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
             <Field label="Remise (%)">
-              <input
+              <input data-write=""
                 type="number"
                 min="0"
                 max="100"
@@ -137,7 +137,7 @@ export default function InvoiceForm({ data, onChange }) {
               />
             </Field>
             <Field label="Motif">
-              <input value={data.discountReason} onChange={set('discountReason')} className={inputClass} />
+              <input data-write="" value={data.discountReason} onChange={set('discountReason')} className={inputClass} />
             </Field>
           </div>
         )}
@@ -162,7 +162,7 @@ export default function InvoiceForm({ data, onChange }) {
       <Section title="Moyens de paiement">
         {PAYMENT_METHOD_OPTIONS.map((opt) => (
           <label key={opt.key} className="flex items-center gap-2 text-sm text-text-strong">
-            <input
+            <input data-write=""
               type="checkbox"
               checked={data.paymentMethods[opt.key]}
               onChange={(e) =>

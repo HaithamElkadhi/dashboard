@@ -8,14 +8,15 @@ const originalFetch = globalThis.fetch;
 test.afterEach(() => { globalThis.fetch = originalFetch; });
 const req = (extra = {}) => ({ method: 'GET', headers: { host: 'dashboard.example', origin: 'https://dashboard.example', cookie: 'jeexpert_session=' + 'ab'.repeat(32) }, ...extra });
 function response() { return { code: 200, headers: {}, setHeader(k,v) { this.headers[k]=v; }, status(code) { this.code=code; return this; }, json(body) { this.body=body; } }; }
-function mock({ admin = true, existing = false, pages = [], onCreate } = {}) {
+function mock({ admin = true, role, existing = false, pages = [], onCreate } = {}) {
   const calls = [];
   let created = false;
   globalThis.fetch = async (url, init) => {
     calls.push({ url: String(url), init });
     let body;
     if (String(url).includes('tblJ85bJE0loqwNvU')) body = { records: [{ id: 'recSession', fields: { user: ['recAdmin'], expires_at: new Date(Date.now()+60000).toISOString() } }] };
-    else if (String(url).endsWith('/recAdmin')) body = { id:'recAdmin', fields:{ username:'jeexpert', is_active:true, is_admin:admin } };
+    else if (String(url).endsWith('/recAdmin')) body = { id:'recAdmin', fields:{ username:'jeexpert', is_active:true, is_admin:admin, role } };
+    else if (init.method === 'PATCH') body = { id: 'recOther', fields: { username: 'other', is_active: true, ...JSON.parse(init.body).fields } };
     else if (init.method === 'POST') {
       const payload = JSON.parse(init.body); onCreate?.(payload);
       created = true;
@@ -75,4 +76,35 @@ test('admin mutations require a trusted origin', async () => {
   const calls=mock(); const res=response();
   await handler(req({method:'POST',headers:{...req().headers,origin:'https://evil.example'}}),res,env);
   assert.equal(res.code,403); assert.equal(calls.length,0);
+});
+
+test('admin can create a View account; roles are explicit and no admin checkbox can override View', async () => {
+  let payload;
+  mock({ onCreate: body => { payload = body; } });
+  const res = response();
+  await handler(req({ method: 'POST', body: { username: 'reader', displayName: 'Reader', password: 'test-view-password-123', role: 'View', is_admin: true } }), res, env);
+  assert.equal(res.code, 201);
+  assert.equal(payload.fields.role, 'View');
+  assert.equal(payload.fields.is_admin, false);
+  assert.equal(res.body.user.canWrite, false);
+});
+
+test('View can read the public users list, without password hashes', async () => {
+  mock({ role: 'View', pages: [{ records: [{ id: 'recOther', fields: { username: 'other', role: 'Admin', password_hash: 'hidden-secret' } }] }] });
+  const res = response(); await handler(req(), res, env);
+  assert.equal(res.code, 200);
+  assert.equal(res.body.users[0].role, 'Admin');
+  assert.ok(!JSON.stringify(res.body).includes('hidden-secret'));
+});
+
+test('admin changes another account role but cannot remove their own admin access', async () => {
+  const calls = mock();
+  const res = response();
+  await handler(req({ method: 'PATCH', body: { id: 'recOther', role: 'View' } }), res, env);
+  assert.equal(res.code, 200); assert.equal(res.body.user.role, 'View');
+  assert.equal(JSON.parse(calls.find(call => call.init.method === 'PATCH').init.body).fields.is_admin, false);
+  const self = response();
+  await handler(req({ method: 'PATCH', body: { id: 'recAdmin', role: 'View' } }), self, env);
+  assert.equal(self.code, 400);
+  assert.equal(calls.filter(call => call.init.method === 'PATCH').length, 1);
 });

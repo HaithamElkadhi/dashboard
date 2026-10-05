@@ -4,6 +4,7 @@ import TaskCard from './TaskCard.jsx';
 import { STATUS_COLORS } from '../../lib/config.js';
 import { statusLabel } from '../../lib/taskLabels.js';
 import { InboxIcon, PlusIcon } from '../icons.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
 const EMPTY_COPY = {
   Todo: 'Aucune tâche en attente — tout est pris en charge.',
@@ -22,7 +23,9 @@ function ColumnEmpty({ status }) {
 }
 
 function DraggableTaskCard({ task, cardProps }) {
+  const { readOnly } = useAuth();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    disabled: readOnly,
     id: task.id,
   });
   const style = {
@@ -56,7 +59,7 @@ export default function KanbanColumn({ status, tasks, onQuickAdd, ...cardProps }
         </span>
         <div className="flex items-center gap-1">
           <span className="text-xs tabular-nums text-text-muted">{tasks.length}</span>
-          <button
+          <button data-write=""
             type="button"
             onClick={() => onQuickAdd(status)}
             title={`Ajouter une tâche · ${statusLabel(status)}`}

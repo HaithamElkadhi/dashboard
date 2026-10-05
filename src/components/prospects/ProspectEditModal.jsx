@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import Modal from '../Modal.jsx';
 import { SITUATION_CHOICES } from '../../lib/config.js';
 import { normalizeIntake } from '../../lib/airtable.js';
@@ -34,7 +35,7 @@ function ChipPicker({ choices, value, onToggle }) {
       {choices.map((choice) => {
         const active = value.includes(choice);
         return (
-          <button
+          <button data-write=""
             key={choice}
             type="button"
             onClick={() => onToggle(choice)}
@@ -53,6 +54,7 @@ function ChipPicker({ choices, value, onToggle }) {
 }
 
 export default function ProspectEditModal({ prospect, choices, onClose, onSubmit }) {
+  const { readOnly } = useAuth();
   const [form, setForm] = useState(() => ({
     name: prospect.firstName || '',
     surname: prospect.lastName || '',
@@ -135,12 +137,12 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
 
   return (
     <Modal
-      title="Modifier le prospect"
+      title={readOnly ? 'Student details' : 'Modifier le prospect'}
       subtitle={prospect.fullName || prospect.prospectId}
       onClose={onClose}
       footer={
         <div className="flex items-center gap-2">
-          <button
+          <button data-write=""
             type="submit"
             form="prospect-edit-form"
             disabled={saving}
@@ -161,7 +163,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
       <form id="prospect-edit-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Prénom">
-            <input
+            <input data-write=""
               className={inputClass}
               value={form.name}
               onChange={set('name')}
@@ -169,7 +171,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
             />
           </Field>
           <Field label="Nom">
-            <input
+            <input data-write=""
               className={inputClass}
               value={form.surname}
               onChange={set('surname')}
@@ -187,7 +189,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
         </Field>
 
         <Field label="Université (validée)">
-          <input
+          <input data-write=""
             className={inputClass}
             value={form.approvedUniversity}
             onChange={set('approvedUniversity')}
@@ -205,7 +207,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Scholarship">
-            <select
+            <select data-write=""
               className={inputClass}
               value={form.scholarshipStatus}
               onChange={set('scholarshipStatus')}
@@ -219,7 +221,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
             </select>
           </Field>
           <Field label="Visa">
-            <select className={inputClass} value={form.visaStatus} onChange={set('visaStatus')}>
+            <select data-write="" className={inputClass} value={form.visaStatus} onChange={set('visaStatus')}>
               <option value="">—</option>
               {visaChoices.map((c) => (
                 <option key={c} value={c}>
@@ -232,7 +234,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Date de rendez-vous visa">
-            <input
+            <input data-write=""
               type="date"
               className={inputClass}
               value={form.visaAppointmentDate}
@@ -240,7 +242,7 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
             />
           </Field>
           <Field label="Universitaly Validation">
-            <select
+            <select data-write=""
               className={inputClass}
               value={form.universitalyValidation}
               onChange={set('universitalyValidation')}

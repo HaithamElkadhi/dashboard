@@ -214,7 +214,7 @@ export default function ClientFicheModal({ prospect, onClose, onSaved }) {
     fiche &&
     (mode === 'view' ? (
       <div className="flex justify-end">
-        <button type="button" onClick={startEdit} className={primaryBtn}>
+        <button data-write="" type="button" onClick={startEdit} className={primaryBtn}>
           <PencilIcon size={14} />
           Modify
         </button>
@@ -226,7 +226,7 @@ export default function ClientFicheModal({ prospect, onClose, onSaved }) {
           <button type="button" onClick={() => setMode('view')} disabled={saving} className={secondaryBtn}>
             Cancel
           </button>
-          <button type="button" onClick={handleSave} disabled={saving} className={primaryBtn}>
+          <button data-write="" type="button" onClick={handleSave} disabled={saving} className={primaryBtn}>
             <SaveIcon size={14} />
             {saving ? 'Saving…' : 'Save to Airtable'}
           </button>

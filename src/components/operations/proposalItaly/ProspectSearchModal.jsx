@@ -33,6 +33,7 @@ export default function ProspectSearchModal({ onSelect, onClose }) {
       onClose={onClose}
     >
       <TextInput
+        data-write={undefined}
         placeholder="Search by name or email…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

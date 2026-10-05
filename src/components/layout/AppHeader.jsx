@@ -145,7 +145,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
           <Avatar fullName={currentUser} seed={currentUser} />
 
           {!hideNewTask && (
-            <button
+            <button data-write=""
               type="button"
               aria-label={pathname === '/ticketing' ? 'New ticket' : 'New task'}
               onClick={() => pathname === '/ticketing' ? navigate('/ticketing?new=1') : openCreate()}

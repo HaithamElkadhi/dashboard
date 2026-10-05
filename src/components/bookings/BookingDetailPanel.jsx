@@ -141,7 +141,7 @@ export default function BookingDetailPanel({
                 Annuler
               </button>
             )}
-            <button
+            <button data-write=""
               type="button"
               onClick={() => onDelete(booking)}
               className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
@@ -152,7 +152,7 @@ export default function BookingDetailPanel({
           <div className="flex gap-2">
             {editing ? (
               <>
-                <button
+                <button data-write=""
                   type="button"
                   onClick={() => {
                     setForm(formFromBooking(booking, people));
@@ -164,7 +164,7 @@ export default function BookingDetailPanel({
                 >
                   Annuler l’édition
                 </button>
-                <button
+                <button data-write=""
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
@@ -174,7 +174,7 @@ export default function BookingDetailPanel({
                 </button>
               </>
             ) : (
-              <button
+              <button data-write=""
                 type="button"
                 onClick={() => setEditing(true)}
                 className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white transition hover:opacity-90"
@@ -196,7 +196,7 @@ export default function BookingDetailPanel({
         {editing ? (
           <div className="space-y-4">
             <Field label="Nom étudiant">
-              <input
+              <input data-write=""
                 className={inputClass}
                 value={form.studentName}
                 onChange={set('studentName')}
@@ -204,7 +204,7 @@ export default function BookingDetailPanel({
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Email">
-                <input
+                <input data-write=""
                   type="email"
                   className={inputClass}
                   value={form.email}
@@ -212,7 +212,7 @@ export default function BookingDetailPanel({
                 />
               </Field>
               <Field label="Téléphone">
-                <input
+                <input data-write=""
                   type="tel"
                   className={inputClass}
                   value={form.phone}
@@ -220,7 +220,7 @@ export default function BookingDetailPanel({
                 />
               </Field>
               <Field label="Date & heure">
-                <input
+                <input data-write=""
                   type="datetime-local"
                   className={inputClass}
                   value={form.dateTime}
@@ -228,7 +228,7 @@ export default function BookingDetailPanel({
                 />
               </Field>
               <Field label="Type de meeting">
-                <select
+                <select data-write=""
                   className={inputClass}
                   value={form.meetingType}
                   onChange={set('meetingType')}
@@ -242,7 +242,7 @@ export default function BookingDetailPanel({
                 </select>
               </Field>
               <Field label="Statut">
-                <select
+                <select data-write=""
                   className={inputClass}
                   value={form.bookingStatus}
                   onChange={set('bookingStatus')}
@@ -257,7 +257,7 @@ export default function BookingDetailPanel({
               </Field>
             </div>
             <Field label="Lien meeting">
-              <input
+              <input data-write=""
                 type="url"
                 className={inputClass}
                 value={form.meetingLink}
@@ -279,7 +279,7 @@ export default function BookingDetailPanel({
               />
             </Field>
             <Field label="Notes">
-              <textarea
+              <textarea data-write=""
                 rows={4}
                 className={inputClass}
                 value={form.notes}
@@ -297,7 +297,7 @@ export default function BookingDetailPanel({
               </ReadRow>
               <ReadRow label="Type">{booking.meetingType || '—'}</ReadRow>
               <ReadRow label="Statut">
-                <select
+                <select data-write=""
                   className={`${inputClass} mt-0.5`}
                   value={form.bookingStatus}
                   onChange={handleStatusChange}
@@ -360,7 +360,7 @@ export default function BookingDetailPanel({
                   <span className="text-xs text-text-muted">Enregistrement…</span>
                 )}
               </div>
-              <textarea
+              <textarea data-write=""
                 rows={4}
                 className={inputClass}
                 value={notes}

@@ -192,7 +192,7 @@ function GoalCard({ goal, actuals, onEdit, onDelete }) {
             >
               Annuler
             </button>
-            <button
+            <button data-write=""
               type="button"
               disabled={deleting}
               onClick={async () => {
@@ -211,7 +211,7 @@ function GoalCard({ goal, actuals, onEdit, onDelete }) {
           </>
         ) : (
           <>
-            <button
+            <button data-write=""
               type="button"
               onClick={() => onEdit(goal)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
@@ -219,7 +219,7 @@ function GoalCard({ goal, actuals, onEdit, onDelete }) {
               <PencilIcon size={12} />
               Modifier
             </button>
-            <button
+            <button data-write=""
               type="button"
               onClick={() => setConfirming(true)}
               title="Supprimer"
@@ -321,7 +321,7 @@ export default function GoalsSection() {
             </button>
           ))}
         </div>
-        <button
+        <button data-write=""
           type="button"
           onClick={() => setEditing({})}
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90"
@@ -349,7 +349,7 @@ export default function GoalsSection() {
             <p className="mt-1 text-sm text-text-muted">
               Fixe des cibles de leads, prospects, candidates ou de chiffre d’affaires pour une période.
             </p>
-            <button
+            <button data-write=""
               type="button"
               onClick={() => setEditing({})}
               className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90"

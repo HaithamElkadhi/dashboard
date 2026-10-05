@@ -24,8 +24,8 @@ export default function TicketTimeline({ ticket, onComment, comment, onCommentCh
   };
   return <section className="space-y-4 border-t border-border pt-6">
     <div className="flex items-center justify-between gap-3"><h3 className="font-semibold text-navy">Comments & history</h3><button type="button" onClick={load} disabled={loading} className="min-h-11 px-3 text-sm text-navy underline">Refresh history</button></div>
-    <label className="block space-y-2 text-sm font-medium"><span>Add a comment</span><textarea value={comment} disabled={busy} maxLength={10000} onChange={(e) => setComment(e.target.value)} rows={3} className="w-full rounded-lg border border-border-strong px-3 py-2" placeholder="Contact with the student, next action, or follow-up…" /></label>
-    <button type="button" disabled={busy || !comment.trim()} onClick={submit} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? 'Adding comment…' : 'Add comment'}</button>
+    <label className="block space-y-2 text-sm font-medium"><span>Add a comment</span><textarea data-write="" value={comment} disabled={busy} maxLength={10000} onChange={(e) => setComment(e.target.value)} rows={3} className="w-full rounded-lg border border-border-strong px-3 py-2" placeholder="Contact with the student, next action, or follow-up…" /></label>
+    <button data-write="" type="button" disabled={busy || !comment.trim()} onClick={submit} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? 'Adding comment…' : 'Add comment'}</button>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
     {loading && <p className="text-sm text-text-muted">Loading history…</p>}
     {!loading && !error && !events.length && <p className="rounded-lg border border-dashed border-border p-4 text-sm text-text-muted">No history recorded yet. Earlier changes are not reconstructed.</p>}

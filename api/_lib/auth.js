@@ -13,12 +13,15 @@ const pendingSessions = new Map();
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export function authError(status, message) { return Object.assign(new Error(message), { status }); }
 export function publicUser(record) {
+  const role = record.fields.role || (record.fields.is_admin === true ? 'Admin' : 'Editor');
   return {
     id: record.id,
     username: record.fields.username,
     displayName: record.fields.display_name || record.fields.username,
     isActive: record.fields.is_active === true,
-    isAdmin: record.fields.is_admin === true,
+    role,
+    canWrite: role === 'Admin' || role === 'Editor',
+    isAdmin: role === 'Admin',
   };
 }
 async function airtableRequest(path, { method = 'GET', body, env = process.env } = {}) {
@@ -71,10 +74,20 @@ export async function requireUser(req, env = process.env) {
   const token = cookieToken(req);
   if (!token) throw authError(401, 'Connexion requise.');
   const key = digest(token);
-  if (pendingSessions.has(key)) return pendingSessions.get(key);
-  const pending = resolveSession(token, env);
+  const pending = pendingSessions.get(key) || resolveSession(token, env);
   pendingSessions.set(key, pending);
-  try { return await pending; } finally { pendingSessions.delete(key); }
+  try {
+    const identity = await pending;
+    const path = new URL(req.url || '/', 'http://internal').pathname;
+    // Login/logout are session operations; all business mutations require write access.
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method || 'GET') && path !== '/api/auth/logout') {
+      assertCanWrite(identity.user);
+    }
+    return identity;
+  } finally { pendingSessions.delete(key); }
+}
+export function assertCanWrite(user) {
+  if (!user.canWrite) throw authError(403, 'View access: changes are not allowed.');
 }
 async function resolveSession(token, env) {
   const params = new URLSearchParams({ filterByFormula: `{token_hash}='${digest(token)}'`, maxRecords: '2' });

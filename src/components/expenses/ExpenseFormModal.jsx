@@ -176,7 +176,7 @@ export default function ExpenseFormModal({
           >
             Cancel
           </button>
-          <button
+          <button data-write=""
             type="submit"
             form="expense-form"
             disabled={saving}
@@ -189,7 +189,7 @@ export default function ExpenseFormModal({
     >
       <form id="expense-form" onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Field label="Description" required error={errors.description}>
-          <input
+          <input data-write=""
             type="text"
             value={form.description}
             onChange={set('description')}
@@ -201,7 +201,7 @@ export default function ExpenseFormModal({
 
         <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
           <Field label="Amount" required error={errors.amount}>
-            <input
+            <input data-write=""
               type="number"
               min="0"
               step="0.01"
@@ -212,7 +212,7 @@ export default function ExpenseFormModal({
             />
           </Field>
           <Field label="Currency" error={errors.currency}>
-            <select
+            <select data-write=""
               value={form.currency}
               onChange={set('currency')}
               className={errors.currency ? inputErrorClass : inputClass}
@@ -228,7 +228,7 @@ export default function ExpenseFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Date" required error={errors.date}>
-            <input
+            <input data-write=""
               type="date"
               value={form.date}
               onChange={set('date')}
@@ -236,7 +236,7 @@ export default function ExpenseFormModal({
             />
           </Field>
           <Field label="Paid by">
-            <input
+            <input data-write=""
               type="text"
               value={form.paidBy}
               onChange={set('paidBy')}
@@ -248,7 +248,7 @@ export default function ExpenseFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Category" error={errors.category}>
-            <select
+            <select data-write=""
               value={form.category}
               onChange={set('category')}
               className={errors.category ? inputErrorClass : inputClass}
@@ -262,7 +262,7 @@ export default function ExpenseFormModal({
             </select>
           </Field>
           <Field label="Payment method" error={errors.paymentMethod}>
-            <select
+            <select data-write=""
               value={form.paymentMethod}
               onChange={set('paymentMethod')}
               className={errors.paymentMethod ? inputErrorClass : inputClass}
@@ -278,7 +278,7 @@ export default function ExpenseFormModal({
         </div>
 
         <Field label="Status" error={errors.status}>
-          <select
+          <select data-write=""
             value={form.status}
             onChange={set('status')}
             className={errors.status ? inputErrorClass : inputClass}
@@ -292,7 +292,7 @@ export default function ExpenseFormModal({
         </Field>
 
         <Field label="Notes">
-          <textarea
+          <textarea data-write=""
             value={form.notes}
             onChange={set('notes')}
             rows={3}

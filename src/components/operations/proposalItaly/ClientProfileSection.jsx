@@ -51,7 +51,7 @@ function DescriptionField({ label, value, onChange, onRegenerate, canRegenerate 
         {canRegenerate && (
           <button
             type="button"
-            onClick={onRegenerate}
+            data-write="" onClick={onRegenerate}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-text-muted transition hover:bg-canvas hover:text-text-strong"
           >
             <RefreshIcon size={12} />

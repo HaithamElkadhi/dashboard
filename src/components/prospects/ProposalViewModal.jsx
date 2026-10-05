@@ -158,7 +158,7 @@ export default function ProposalViewModal({ prospect, onClose, onSaved }) {
           <button type="button" onClick={() => setMode('view')} disabled={busy === 'save'} className={secondaryBtn}>
             Cancel
           </button>
-          <button type="button" onClick={handleSave} disabled={busy === 'save'} className={primaryBtn}>
+          <button data-write="" type="button" onClick={handleSave} disabled={busy === 'save'} className={primaryBtn}>
             <SaveIcon size={14} />
             {busy === 'save' ? 'Saving…' : 'Save to Airtable'}
           </button>
@@ -170,7 +170,7 @@ export default function ProposalViewModal({ prospect, onClose, onSaved }) {
           <ArrowLeftIcon size={14} />
           Back
         </button>
-        <button type="submit" form="proposal-view-email" disabled={busy === 'send'} className={primaryBtn}>
+        <button data-write="" type="submit" form="proposal-view-email" disabled={busy === 'send'} className={primaryBtn}>
           <MailIcon size={14} />
           {busy === 'send' ? 'Sending…' : 'Send'}
         </button>

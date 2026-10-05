@@ -95,7 +95,7 @@ export default function AppSidebar({
             </div>
           );
         })}
-        {user.isAdmin && <div>
+        {(user.isAdmin || user.role === 'View') && <div>
           {!collapsed && <div className="px-3 pb-1.5 pt-3 text-[10px] font-semibold uppercase tracking-wider text-white/70">Administration</div>}
           <NavItem item={{ path: '/admin/users', label: 'Users', icon: UsersIcon }} collapsed={collapsed} active={location.pathname === '/admin/users'} onNavigate={onCloseMobile} />
         </div>}

@@ -74,7 +74,7 @@ export default function BookingEmailPreviewModal({
           >
             Annuler
           </button>
-          <button
+          <button data-write=""
             type="button"
             onClick={handleSend}
             disabled={sending}

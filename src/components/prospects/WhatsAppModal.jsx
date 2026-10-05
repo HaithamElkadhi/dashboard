@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from '../Modal.jsx';
 import { updateWhatsappNumber } from '../../lib/airtable.js';
 import { WhatsAppIcon } from '../icons.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
 // Before opening WhatsApp: show the number that will be used, let the operator
 // correct it (and optionally save it on the prospect), then open wa.me.
@@ -21,6 +22,7 @@ function defaultNumber(p) {
 }
 
 export default function WhatsAppModal({ prospect, onClose, onSaved }) {
+  const { readOnly } = useAuth();
   const initial = defaultNumber(prospect);
   const [number, setNumber] = useState(initial);
   const [save, setSave] = useState(false);
@@ -39,7 +41,7 @@ export default function WhatsAppModal({ prospect, onClose, onSaved }) {
     }
     // Open first (inside the click) so the browser doesn't block the tab.
     window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
-    if (save && changed) {
+    if (!readOnly && save && changed) {
       setBusy(true);
       try {
         const saved = await updateWhatsappNumber(prospect.id, number);
@@ -52,6 +54,18 @@ export default function WhatsAppModal({ prospect, onClose, onSaved }) {
     }
     onClose();
   };
+
+  if (readOnly) return (
+    <Modal title={`WhatsApp — ${prospect.fullName || 'Student'}`} subtitle="Open the student’s WhatsApp conversation." onClose={onClose} size="sm">
+      <p className="text-sm text-text-muted">WhatsApp number</p>
+      <p className="mt-2 text-base tabular-nums text-text-strong">{initial || 'No number available'}</p>
+      {!valid && <p role="alert" className="mt-3 text-sm text-red-600">A valid phone number with country code is required.</p>}
+      <div className="mt-5 flex justify-end gap-2">
+        <button type="button" onClick={onClose} className="rounded-lg border border-border px-3.5 py-2 text-sm text-text-strong">Cancel</button>
+        {valid && <a href={`https://wa.me/${digits}`} target="_blank" rel="noopener noreferrer" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3.5 py-2 text-sm font-semibold text-white"><WhatsAppIcon size={15} />Open WhatsApp</a>}
+      </div>
+    </Modal>
+  );
 
   return (
     <Modal
@@ -68,7 +82,7 @@ export default function WhatsAppModal({ prospect, onClose, onSaved }) {
           >
             Annuler
           </button>
-          <button
+          <button data-write=""
             type="submit"
             form="whatsapp-form"
             disabled={busy || !valid}

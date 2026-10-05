@@ -9,31 +9,31 @@ export default function ReceiptForm({ data, onChange }) {
       <Section title="Reçu">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Référence">
-            <input value={data.invoiceId} onChange={set('invoiceId')} className={inputClass} />
+            <input data-write="" value={data.invoiceId} onChange={set('invoiceId')} className={inputClass} />
           </Field>
           <Field label="Date de paiement">
-            <input type="date" value={data.paymentDate} onChange={set('paymentDate')} className={inputClass} />
+            <input data-write="" type="date" value={data.paymentDate} onChange={set('paymentDate')} className={inputClass} />
           </Field>
         </div>
         <Field label="Objet">
-          <input value={data.paymentReason} onChange={set('paymentReason')} className={inputClass} />
+          <input data-write="" value={data.paymentReason} onChange={set('paymentReason')} className={inputClass} />
         </Field>
       </Section>
 
       <Section title="Client">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nom complet">
-            <input value={data.clientName} onChange={set('clientName')} className={inputClass} />
+            <input data-write="" value={data.clientName} onChange={set('clientName')} className={inputClass} />
           </Field>
           <Field label="Email">
-            <input type="email" value={data.clientEmail} onChange={set('clientEmail')} className={inputClass} />
+            <input data-write="" type="email" value={data.clientEmail} onChange={set('clientEmail')} className={inputClass} />
           </Field>
           <Field label="Téléphone">
-            <input value={data.clientPhone} onChange={set('clientPhone')} className={inputClass} />
+            <input data-write="" value={data.clientPhone} onChange={set('clientPhone')} className={inputClass} />
           </Field>
         </div>
         <Field label="Adresse">
-          <textarea
+          <textarea data-write=""
             rows={2}
             value={data.clientAddress}
             onChange={set('clientAddress')}
@@ -45,7 +45,7 @@ export default function ReceiptForm({ data, onChange }) {
       <Section title="Paiement">
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Montant">
-            <input
+            <input data-write=""
               type="number"
               min="0"
               step="0.01"
@@ -55,7 +55,7 @@ export default function ReceiptForm({ data, onChange }) {
             />
           </Field>
           <Field label="Devise">
-            <select value={data.currency} onChange={set('currency')} className={inputClass}>
+            <select data-write="" value={data.currency} onChange={set('currency')} className={inputClass}>
               {DOC_CURRENCIES.map((c) => (
                 <option key={c} value={c}>
                   {CURRENCY_LABELS[c]}
@@ -64,7 +64,7 @@ export default function ReceiptForm({ data, onChange }) {
             </select>
           </Field>
           <Field label="Moyen de paiement">
-            <select value={data.paymentMethod} onChange={set('paymentMethod')} className={inputClass}>
+            <select data-write="" value={data.paymentMethod} onChange={set('paymentMethod')} className={inputClass}>
               {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
@@ -74,7 +74,7 @@ export default function ReceiptForm({ data, onChange }) {
           </Field>
         </div>
         <Field label="Commentaire">
-          <textarea
+          <textarea data-write=""
             rows={3}
             value={data.comment}
             onChange={set('comment')}

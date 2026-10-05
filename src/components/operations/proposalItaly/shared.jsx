@@ -40,12 +40,12 @@ const inputBase =
   'h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong';
 
 export function TextInput(props) {
-  return <input {...props} className={`${inputBase} ${props.className || ''}`} />;
+  return <input data-write="" {...props} className={`${inputBase} ${props.className || ''}`} />;
 }
 
 export function TextArea(props) {
   return (
-    <textarea
+    <textarea data-write=""
       {...props}
       className={`w-full resize-y rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong ${props.className || ''}`}
     />
@@ -54,7 +54,7 @@ export function TextArea(props) {
 
 export function Select({ options, placeholder, ...props }) {
   return (
-    <select {...props} className={`${inputBase} ${props.className || ''}`}>
+    <select data-write="" {...props} className={`${inputBase} ${props.className || ''}`}>
       <option value="">{placeholder || 'Select…'}</option>
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -67,7 +67,7 @@ export function Select({ options, placeholder, ...props }) {
 
 export function PillButton({ selected, onClick, children }) {
   return (
-    <button
+    <button data-write=""
       type="button"
       onClick={onClick}
       className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium transition ${

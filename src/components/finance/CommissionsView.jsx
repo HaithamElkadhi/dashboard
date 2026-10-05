@@ -95,7 +95,7 @@ function MoezRow({ p, onSave, moezTypeChoices }) {
       </div>
       {editing ? (
         <div className="flex items-center gap-1.5">
-          <select
+          <select data-write=""
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="rounded-lg border border-border bg-surface px-1.5 py-1 text-xs"
@@ -106,7 +106,7 @@ function MoezRow({ p, onSave, moezTypeChoices }) {
               </option>
             ))}
           </select>
-          <input
+          <input data-write=""
             type="number"
             step="0.01"
             value={value}
@@ -114,7 +114,7 @@ function MoezRow({ p, onSave, moezTypeChoices }) {
             disabled={type === 'Aucune'}
             className="w-20 rounded-lg border border-border bg-surface px-1.5 py-1 text-xs"
           />
-          <button
+          <button data-write=""
             type="button"
             onClick={save}
             disabled={saving}
@@ -141,7 +141,7 @@ function MoezRow({ p, onSave, moezTypeChoices }) {
           {!p.soldeConfirme && (
             <span className="text-xs font-medium text-text-muted">⏸ Suspendu</span>
           )}
-          <button
+          <button data-write=""
             type="button"
             onClick={() => setEditing(true)}
             className="rounded-lg border border-border px-2 py-1 text-xs text-text-muted transition hover:border-border-strong hover:text-text-strong"

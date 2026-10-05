@@ -254,7 +254,7 @@ export default function ExpensesList({
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button
+                          <button data-write=""
                             type="button"
                             onClick={() => onEdit(e)}
                             className="rounded-lg p-1.5 text-text-muted transition hover:bg-canvas hover:text-text-strong"
@@ -263,7 +263,7 @@ export default function ExpensesList({
                           >
                             <PencilIcon size={14} />
                           </button>
-                          <button
+                          <button data-write=""
                             type="button"
                             onClick={() => onDelete(e)}
                             className="rounded-lg p-1.5 text-text-muted transition hover:bg-red-50 hover:text-red-600"

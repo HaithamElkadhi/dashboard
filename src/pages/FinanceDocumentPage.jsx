@@ -316,7 +316,7 @@ export default function FinanceDocumentPage() {
               >
                 Annuler
               </button>
-              <button
+              <button data-write=""
                 type="submit"
                 form="finance-doc-email"
                 disabled={busy === 'send'}

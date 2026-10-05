@@ -78,3 +78,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .skeleton::after { animation: none; }
 }
+button[data-write][aria-disabled="true"], [data-write][aria-disabled="true"] button {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+input[aria-disabled="true"], select[aria-disabled="true"], textarea[aria-disabled="true"] {
+  cursor: default;
+}

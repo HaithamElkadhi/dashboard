@@ -101,7 +101,7 @@ export default function GoalModal({ goal, onClose, onSave }) {
             >
               Annuler
             </button>
-            <button
+            <button data-write=""
               type="submit"
               form="goal-form"
               disabled={saving}

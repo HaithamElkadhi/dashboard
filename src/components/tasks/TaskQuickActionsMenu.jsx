@@ -31,7 +31,7 @@ export default function TaskQuickActionsMenu({ done, onToggleDone, onDuplicate, 
   );
 
   return (
-    <div ref={ref} className="relative shrink-0">
+    <div data-write="" ref={ref} className="relative shrink-0">
       <button
         type="button"
         onClick={(e) => {

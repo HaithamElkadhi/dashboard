@@ -10,6 +10,8 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState('');
   const generation = useRef(0);
   const channel = useRef(null);
+  const userRef = useRef(user);
+  userRef.current = user;
   const invalidate = useCallback((broadcast = true) => {
     generation.current += 1;
     clearCache();
@@ -30,6 +32,10 @@ export function AuthProvider({ children }) {
     window.fetch = async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : input, window.location.href);
       const protectedApi = url.origin === window.location.origin && url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/');
+      const method = (init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+      if (protectedApi && userRef.current?.role === 'View' && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+        throw new Error('View access: changes are not allowed.');
+      }
       const started = generation.current;
       const response = await originalFetch(input, init);
       if (protectedApi && response.status === 401 && started === generation.current) invalidate();
@@ -53,6 +59,26 @@ export function AuthProvider({ children }) {
     } finally { setLoading(false); }
   }, [invalidate]);
   useEffect(() => { checkSession(); }, [checkSession]);
+  useEffect(() => {
+    const refreshPermissions = async () => {
+      if (!userRef.current || document.visibilityState === 'hidden') return;
+      const started = generation.current;
+      try {
+        const response = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (started !== generation.current) return;
+        if (response.status === 401) { invalidate(); return; }
+        if (!response.ok) return;
+        const data = await response.json();
+        if (started === generation.current) setUser(data.user);
+      } catch { /* API authorization remains authoritative if offline. */ }
+    };
+    window.addEventListener('focus', refreshPermissions);
+    document.addEventListener('visibilitychange', refreshPermissions);
+    return () => {
+      window.removeEventListener('focus', refreshPermissions);
+      document.removeEventListener('visibilitychange', refreshPermissions);
+    };
+  }, [invalidate]);
   const login = async (username, password) => {
     const response = await fetch('/api/auth/login', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
     const data = await response.json();
@@ -65,7 +91,7 @@ export function AuthProvider({ children }) {
     if (!response.ok && response.status !== 401) throw new Error('Déconnexion impossible. Réessayez.');
     invalidate();
   };
-  return <AuthContext.Provider value={{ user, login, logout }}>
+  return <AuthContext.Provider value={{ user, canWrite: user?.canWrite === true, readOnly: !!user && user.canWrite !== true, login, logout }}>
     {loading ? <div className="flex min-h-screen items-center justify-center bg-canvas text-text-muted">Vérification de la session…</div>
       : error ? <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas"><p role="alert">{error}</p><button className="rounded-lg bg-navy px-5 py-2 text-white" onClick={checkSession}>Réessayer</button></div>
         : user ? children : <LoginPage />}

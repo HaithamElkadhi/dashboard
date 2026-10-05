@@ -38,7 +38,7 @@ function ActionIcon({ label, to, onClick, danger = false, children }) {
       {tooltip}
     </Link>
   ) : (
-    <button type="button" onClick={onClick} aria-label={label} className={className}>
+    <button data-write="" type="button" onClick={onClick} aria-label={label} className={className}>
       {children}
       {tooltip}
     </button>
@@ -487,7 +487,7 @@ export default function PaiementsTable({
                         <Badge label={p.status || '—'} bg={color.bg} text={color.text} />
                       </td>
                       <td className="px-4 py-3">
-                        <input
+                        <input data-write=""
                           type="checkbox"
                           checked={p.soldeConfirme}
                           onChange={(e) => onToggleConfirmed(p, e.target.checked)}

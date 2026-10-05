@@ -445,7 +445,7 @@ export default function BookingsTable({
                             booking={b}
                             onChoose={(kind) => onEmail?.(b, kind)}
                           />
-                          <button
+                          <button data-write=""
                             type="button"
                             onClick={() => onEdit(b)}
                             className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-text-strong transition hover:border-border-strong"
@@ -463,7 +463,7 @@ export default function BookingsTable({
                               Annuler
                             </button>
                           )}
-                          <button
+                          <button data-write=""
                             type="button"
                             onClick={() => onDelete(b)}
                             className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-red-700 transition hover:border-red-300"

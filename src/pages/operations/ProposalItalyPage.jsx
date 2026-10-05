@@ -191,7 +191,7 @@ export default function ProposalItalyPage() {
           </button>
           <button
             type="button"
-            onClick={handleSaveAirtable}
+            data-write="" onClick={handleSaveAirtable}
             disabled={savingAirtable}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
           >
@@ -206,9 +206,9 @@ export default function ProposalItalyPage() {
             <EyeIcon size={14} />
             Preview
           </button>
-          <button
+          <button data-write=""
             type="button"
-            onClick={openEmail}
+             onClick={openEmail}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-strong transition hover:border-border-strong"
           >
             <MailIcon size={14} />
@@ -305,7 +305,7 @@ export default function ProposalItalyPage() {
               >
                 Close
               </button>
-              <button
+              <button data-write=""
                 type="button"
                 onClick={() => {
                   setPreviewOpen(false);
@@ -385,7 +385,7 @@ export default function ProposalItalyPage() {
               >
                 Cancel
               </button>
-              <button
+              <button data-write=""
                 type="submit"
                 disabled={sending}
                 className="rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white disabled:opacity-60"

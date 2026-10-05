@@ -87,7 +87,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
       onClose={onClose}
       footer={
         <div className="flex items-center gap-2">
-          <button
+          <button data-write=""
             type="submit"
             form="scholarship-edit-form"
             disabled={saving}
@@ -108,7 +108,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
       <form id="scholarship-edit-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Scholarship Type">
-            <select
+            <select data-write=""
               className={inputClass}
               value={form.scholarshipType}
               onChange={set('scholarshipType')}
@@ -122,7 +122,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
             </select>
           </Field>
           <Field label="Region/Authority">
-            <select
+            <select data-write=""
               className={inputClass}
               value={form.regionAuthority}
               onChange={set('regionAuthority')}
@@ -138,7 +138,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
         </div>
 
         <Field label="Scholarship Payment">
-          <select
+          <select data-write=""
             className={inputClass}
             value={form.scholarshipPayment}
             onChange={set('scholarshipPayment')}
@@ -154,7 +154,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Scholarship Submission Date">
-            <input
+            <input data-write=""
               type="date"
               className={inputClass}
               value={form.scholarshipSubmissionDate}
@@ -162,7 +162,7 @@ export default function ScholarshipModal({ prospect, choices, onClose, onSubmit 
             />
           </Field>
           <Field label="Scholarship DDL">
-            <input
+            <input data-write=""
               type="date"
               className={inputClass}
               value={form.scholarshipDDL}

@@ -26,7 +26,7 @@ export default function TaskRow({
       }}
       className="flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 transition hover:bg-canvas focus:bg-canvas focus:outline-none"
     >
-      <button
+      <button data-write=""
         type="button"
         title={done ? 'Rouvrir la tâche' : 'Marquer comme terminée'}
         onClick={(e) => {

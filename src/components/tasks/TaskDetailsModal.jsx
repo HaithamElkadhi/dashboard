@@ -7,7 +7,7 @@ import { ArchiveIcon, CheckIcon, CopyIcon, TrashIcon } from '../icons.jsx';
 
 function QuickAction({ icon: Icon, label, onClick, danger, disabled }) {
   return (
-    <button
+    <button data-write=""
       type="button"
       onClick={onClick}
       disabled={disabled}

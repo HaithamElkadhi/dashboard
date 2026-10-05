@@ -36,7 +36,7 @@ export default function TaskCard({
       />
       <div className="flex items-start justify-between gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
-          <button
+          <button data-write=""
             type="button"
             title={done ? 'Rouvrir la tâche' : 'Marquer comme terminée'}
             onClick={(e) => {

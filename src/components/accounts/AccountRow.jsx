@@ -99,7 +99,7 @@ export default function AccountRow({
             <ExternalLinkIcon size={14} />
           </a>
         )}
-        <button
+        <button data-write=""
           type="button"
           onClick={() => setEditing(true)}
           title="Modifier"
@@ -107,7 +107,7 @@ export default function AccountRow({
         >
           <PencilIcon size={14} />
         </button>
-        <button
+        <button data-write=""
           type="button"
           onClick={onDelete}
           title="Supprimer"

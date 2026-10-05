@@ -8,6 +8,7 @@ import { PageRefreshProvider } from '../../contexts/PageRefreshContext.jsx';
 import TaskCreateModal from '../tasks/TaskCreateModal.jsx';
 import TaskDetailsModal from '../tasks/TaskDetailsModal.jsx';
 import Toast from '../Toast.jsx';
+import ReadOnlyAccess from '../ReadOnlyAccess.jsx';
 
 const COLLAPSE_KEY = 'jeexpert:sidebar:collapsed';
 
@@ -90,6 +91,7 @@ export default function AppShell() {
           />
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <AppHeader title={title} onOpenMobileSidebar={() => setMobileOpen(true)} />
+            <ReadOnlyAccess />
             <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
               <Outlet />
             </main>

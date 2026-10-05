@@ -69,13 +69,13 @@ export default function AccountForm({
         {isEdit ? 'Modifier le compte' : 'Assigner un compte'}
       </p>
       <div className="grid gap-2.5 sm:grid-cols-2">
-        <input
+        <input data-write=""
           className={inputClass}
           value={form.mailUser}
           onChange={set('mailUser')}
           placeholder="Email ou identifiant"
         />
-        <select className={inputClass} value={form.label} onChange={set('label')}>
+        <select data-write="" className={inputClass} value={form.label} onChange={set('label')}>
           <option value="">Type de compte…</option>
           {labels.map((l) => (
             <option key={l} value={l}>
@@ -83,7 +83,7 @@ export default function AccountForm({
             </option>
           ))}
         </select>
-        <input
+        <input data-write=""
           type="password"
           className={inputClass}
           value={form.password}
@@ -91,7 +91,7 @@ export default function AccountForm({
           placeholder="Mot de passe"
           autoComplete="new-password"
         />
-        <select className={inputClass} value={form.delegation} onChange={set('delegation')}>
+        <select data-write="" className={inputClass} value={form.delegation} onChange={set('delegation')}>
           <option value="">Délégation…</option>
           {delegations.map((d) => (
             <option key={d} value={d}>
@@ -99,7 +99,7 @@ export default function AccountForm({
             </option>
           ))}
         </select>
-        <input
+        <input data-write=""
           className={`${inputClass} sm:col-span-2`}
           value={form.link}
           onChange={set('link')}
@@ -114,7 +114,7 @@ export default function AccountForm({
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <button data-write=""
           type="submit"
           disabled={saving}
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"

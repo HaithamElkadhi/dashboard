@@ -76,13 +76,13 @@ function ChecklistItem({ item, checked, onToggle, preference = {}, onHide, onNot
       </div>
     </div>
     {onHide && <div className="document-actions">
-      <button type="button" aria-label={`${preference.hidden ? 'Réafficher' : 'Masquer'} : ${item.title}`} onClick={() => onHide(item.id)}>{preference.hidden ? 'Réafficher le document' : 'Masquer le document'}</button>
-      {!preference.hidden && <button type="button" aria-label={`${preference.note ? 'Modifier la note' : 'Ajouter une note'} : ${item.title}`} aria-expanded={noteOpen} onClick={() => setNoteOpen(value => !value)}>{preference.note ? 'Modifier la note' : 'Ajouter une note'}</button>}
+      <button data-write="" type="button" aria-label={`${preference.hidden ? 'Réafficher' : 'Masquer'} : ${item.title}`} onClick={() => onHide(item.id)}>{preference.hidden ? 'Réafficher le document' : 'Masquer le document'}</button>
+      {!preference.hidden && <button data-write="" type="button" aria-label={`${preference.note ? 'Modifier la note' : 'Ajouter une note'} : ${item.title}`} aria-expanded={noteOpen} onClick={() => setNoteOpen(value => !value)}>{preference.note ? 'Modifier la note' : 'Ajouter une note'}</button>}
       {preference.hidden && <span>Exclu du PDF</span>}
     </div>}
     {onNote && noteOpen && !preference.hidden && <label className="document-note">
       <span>Note pour ce document — incluse dans le PDF</span>
-      <textarea rows={3} maxLength={2000} value={preference.note || ''} onChange={event => onNote(item.id, event.target.value)} placeholder="Ex. : apporter l’original et deux copies…" />
+      <textarea data-write="" rows={3} maxLength={2000} value={preference.note || ''} onChange={event => onNote(item.id, event.target.value)} placeholder="Ex. : apporter l’original et deux copies…" />
       {visaNoteError(preference.note) && <span role="alert" style={{ color: '#b42318' }}>{visaNoteError(preference.note)}</span>}
     </label>}
     </div>
@@ -303,7 +303,7 @@ export default function VisaGuidePage() {
               />
             </div>
             <span className="checklist-actions">
-              <button type="button" className="btn" onClick={clearAll}>
+              <button data-write="" type="button" className="btn" onClick={clearAll}>
                 Tout décocher
               </button>
               <button
@@ -337,7 +337,7 @@ export default function VisaGuidePage() {
             <p>Masquez les documents non concernés et ajoutez vos notes. Le PDF inclut uniquement les documents visibles et le profil du garant sélectionné.</p>
             {hiddenCount > 0 && <div className="document-settings-buttons">
               <button type="button" className="btn" onClick={() => setShowHidden(value => !value)}>{showHidden ? 'Cacher les documents masqués' : `Voir les documents masqués (${hiddenCount})`}</button>
-              <button type="button" className="btn" onClick={restoreAll}>Tout réafficher</button>
+              <button data-write="" type="button" className="btn" onClick={restoreAll}>Tout réafficher</button>
             </div>}
             {pdfError && <p role="alert" className="document-pdf-error">{pdfError}</p>}
           </div>
