@@ -54,5 +54,8 @@ export const PAGE_TITLES = {
   '/visa/classement': 'Visa',
   '/visa/modeles': 'Visa',
   '/operations': 'Operations',
+  '/operations/application': 'Application',
+  '/operations/admission-documents': 'Admission documents',
+  '/operations/integration': 'Integration',
   '/operations/proposal-italy': 'Proposal — Italy',
 };

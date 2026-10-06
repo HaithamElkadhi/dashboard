@@ -26,7 +26,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   // Pages where the global "Nouvelle tâche" button is hidden.
-  const hideNewTask = pathname.startsWith('/students/') || ['/', '/finance', '/performance', '/operations/proposal-italy', '/admin/users'].includes(
+  const hideNewTask = pathname.startsWith('/students/') || ['/', '/finance', '/performance', '/operations/proposal-italy', '/operations/application', '/operations/integration', '/operations/admission-documents', '/admin/users'].includes(
     pathname
   );
 
