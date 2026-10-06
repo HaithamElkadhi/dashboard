@@ -77,7 +77,7 @@ function MoneyKPICard({ label, eur, tnd, loading }) {
 }
 
 export default function ProspectsPage() {
-  const { prospects, schema, status, error, lastUpdated, refresh, update, remove, patchLocal } =
+  const { prospects, schema, status, error, lastUpdated, activityWarnings, refresh, update, remove, patchLocal } =
     useDashboardData();
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
   const [searchParams, setSearchParams] = useSearchParams();
@@ -547,6 +547,7 @@ export default function ProspectsPage() {
                   : `${filtered.length} client${filtered.length > 1 ? 's' : ''}`}
             </span>
           </div>
+          {activityWarnings.length > 0 && <p role="alert" className="mb-3 text-xs text-amber-800">{activityWarnings.join(" ")}</p>}
           {status === 'idle' ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <RefreshIcon size={26} className="text-text-muted" />
@@ -604,7 +605,7 @@ export default function ProspectsPage() {
 
       {contactFor && (
         <ContactLogModal
-          prospect={contactFor}
+          prospect={prospects.find(p => p.id === contactFor.id) || contactFor}
           onClose={() => setContactFor(null)}
           onSaved={(id, saved) => {
             patchLocal(id, saved);

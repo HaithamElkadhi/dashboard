@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { fetchDashboardData, updateProspect, deleteProspect } from '../lib/airtable.js';
+import { fetchContactActivity, mergeContactActivity } from '../lib/contactActivity.js';
 
 export function useDashboardData() {
   // Protected data lives only in this mounted authenticated view.
@@ -10,25 +11,35 @@ export function useDashboardData() {
   const [status, setStatus] = useState(cached ? 'ready' : 'idle'); // idle | loading | ready | error
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(cached?.lastUpdated ?? null);
+  const [activityWarnings, setActivityWarnings] = useState([]);
 
+  const generation = useRef(0);
   // Fetch fresh protected data after this view mounts.
   const load = useCallback(async () => {
+    const current = ++generation.current;
     setStatus('loading');
     setError(null);
     try {
       const { prospects, schema } = await fetchDashboardData();
+      if (current !== generation.current) return;
       const now = new Date();
       setProspects(prospects);
       setSchema(schema);
       setLastUpdated(now);
       setStatus('ready');
+      try {
+        const activity = await fetchContactActivity();
+        if (current !== generation.current) return;
+        setProspects(previous => mergeContactActivity(previous, activity.events));
+        setActivityWarnings(activity.warnings);
+      } catch (err) { if (current === generation.current) setActivityWarnings([err.message]); }
     } catch (err) {
       setError(err.message || 'Erreur inconnue');
       setStatus('error');
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); return () => { generation.current++; }; }, [load]);
 
   // Patch fields edited by the popup without changing unrelated values.
   const update = useCallback(
@@ -95,5 +106,5 @@ export function useDashboardData() {
     [schema, lastUpdated]
   );
 
-  return { prospects, schema, status, error, lastUpdated, refresh: load, update, remove, patchLocal };
+  return { prospects, schema, status, error, lastUpdated, activityWarnings, refresh: load, update, remove, patchLocal };
 }

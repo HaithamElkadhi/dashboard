@@ -160,7 +160,7 @@ export default function ProposalItalyPage() {
         return;
       }
       setEmailOpen(false);
-      window.alert('Email sent successfully.');
+      window.alert(json.warning || 'Email sent successfully.');
     } catch {
       setSendError('Failed to send email. Please try again.');
     } finally {

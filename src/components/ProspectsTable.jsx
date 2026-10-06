@@ -152,7 +152,10 @@ function daysSince(iso) {
 // Latest contact (date + motif); click to add a new one. Turns amber after a
 // week and red after two weeks without contact.
 function LastContactCell({ p, onClick }) {
-  const latest = parseContactHistory(p.contactHistory)[0];
+  const manual = parseContactHistory(p.contactHistory)[0];
+  const automatic = p.activity?.find(event => event.countsAsContact);
+  const latest = automatic && automatic.at.slice(0, 10) >= (manual?.date || '') ? { reason: `${automatic.kind === 'email' ? 'Email' : automatic.kind === 'appointment' ? 'Appointment' : 'Ticket'} · ${automatic.title}` } : manual;
+  const ticketChip = p.openTicketCount > 0 ? <span className="mt-1 inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{p.openTicketCount} open ticket{p.openTicketCount > 1 ? 's' : ''}</span> : null;
   if (!p.lastContact) {
     return (
       <button
@@ -180,7 +183,7 @@ function LastContactCell({ p, onClick }) {
         </span>
         <span className={`text-xs font-medium ${tone}`}>{ago}</span>
       </span>
-      {latest?.reason && <span className="block truncate text-xs text-text-muted">{latest.reason}</span>}
+      {latest?.reason && <span className="block truncate text-xs text-text-muted">{latest.reason}</span>}{ticketChip}
     </button>
   );
 }

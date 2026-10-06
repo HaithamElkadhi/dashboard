@@ -58,8 +58,9 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
       ...h,
     }));
     const changes = (logs || []).map((l) => ({ key: l.id, kind: 'log', sort: l.at, ...l }));
-    return [...contacts, ...changes].sort((a, b) => b.sort.localeCompare(a.sort));
-  }, [prospect.contactHistory, logs]);
+    const activity = (prospect.activity || []).map(event => ({ ...event, sort: event.at }));
+    return [...contacts, ...changes, ...activity].sort((a, b) => b.sort.localeCompare(a.sort));
+  }, [prospect.contactHistory, prospect.activity, logs]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +68,7 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
     setError('');
     try {
       const saved = await addContactLog(prospect.id, { date, reason, expectedHistory: prospect.contactHistory || '' });
-      onSaved?.(prospect.id, saved);
+      onSaved?.(prospect.id, { ...saved, manualLastContact: saved.lastContact, lastContact: [saved.lastContact, prospect.lastContact].filter(Boolean).sort().at(-1) });
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to save to Airtable.');
@@ -151,7 +152,14 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
                     h.kind === 'log' ? 'bg-violet-500' : i === 0 ? 'bg-brand' : 'bg-border-strong'
                   }`}
                 />
-                {h.kind === 'log' ? (
+                {['ticket', 'appointment', 'email'].includes(h.kind) ? (
+                  <>
+                    <p className="flex flex-wrap items-center gap-2 text-xs text-text-muted"><span className="rounded-full bg-blue-50 px-2 py-1 font-medium text-navy">{h.kind === 'ticket' ? 'Ticket' : h.kind === 'email' ? 'Email' : 'Appointment'}</span>{formatLogDateTime(h.at)}<span>{h.status}</span></p>
+                    <p className="mt-1 text-sm font-medium text-text-strong">{h.title}</p>
+                    {h.appointmentAt && <p className="text-xs text-text-muted">Appointment: {formatLogDateTime(h.appointmentAt)}</p>}
+                    {h.href && <a href={h.href} target="_blank" rel="noopener noreferrer" className="text-xs text-navy underline">Open details ↗</a>}
+                  </>
+                ) : h.kind === 'log' ? (
                   <>
                     <p className="text-xs font-semibold tabular-nums text-text-muted">
                       {formatLogDateTime(h.at)}

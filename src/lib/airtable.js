@@ -227,6 +227,7 @@ function normalizeProspect(record, payMap) {
   return {
     id: record.id,
     fullName: f[PF.fullName] || '',
+    email: f[PF.email] || '',
     firstName: f[PF.name] || '',
     lastName: f[PF.surname] || '',
     prospectId,
@@ -394,6 +395,7 @@ export async function deleteProspect(recordId) {
 
 export async function fetchDashboardData() {
   const prospectFields = [
+    PF.email,
     PF.fullName,
     PF.name,
     PF.surname,
