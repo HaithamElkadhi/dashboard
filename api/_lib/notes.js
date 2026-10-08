@@ -1,7 +1,7 @@
-import { requireUser, checkOrigin, authError, sendAuthError, airtable, USERS_TABLE } from './_lib/auth.js';
-import { BASE_ID, TABLES } from '../src/lib/config.js';
-import { NOTES_TABLE, NOTE_STATUSES, normalizeNote } from '../src/lib/notes.js';
-import ticketing from './ticketing.js';
+import { requireUser, checkOrigin, authError, sendAuthError, airtable, USERS_TABLE } from './auth.js';
+import { BASE_ID, TABLES } from '../../src/lib/config.js';
+import { NOTES_TABLE, NOTE_STATUSES, normalizeNote } from '../../src/lib/notes.js';
+import ticketing from '../ticketing.js';
 const pending = new Map();
 const id = value => /^rec[A-Za-z0-9]+$/.test(value || '');
 const date = value => !value || /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value;

@@ -1,6 +1,6 @@
-import { requireUser, checkOrigin, authError, sendAuthError } from './_lib/auth.js';
-import { BASE_ID, TABLES, PF } from '../src/lib/config.js';
-import { APPLICATION_TABLE, APPLICATION_LINK, APPLICATION_FIELDS as F, APPLICATION_LANGUAGES, APPLICATION_STATUSES, normalizeApplication, sameApplication } from '../src/lib/applications.js';
+import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
+import { BASE_ID, TABLES, PF } from '../../src/lib/config.js';
+import { APPLICATION_TABLE, APPLICATION_LINK, APPLICATION_FIELDS as F, APPLICATION_LANGUAGES, APPLICATION_STATUSES, normalizeApplication, sameApplication } from '../../src/lib/applications.js';
 
 const validId = value => /^rec[A-Za-z0-9]+$/.test(value || '');
 let queue = Promise.resolve();

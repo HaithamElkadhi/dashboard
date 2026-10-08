@@ -5,6 +5,10 @@
     { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }, { "key": "Cache-Control", "value": "no-cache" }] }
   ],
   "rewrites": [
+    { "source": "/api/applications", "destination": "/api/operations?__route=applications" },
+    { "source": "/api/admission-documents", "destination": "/api/operations?__route=admission-documents" },
+    { "source": "/api/integration", "destination": "/api/operations?__route=integration" },
+    { "source": "/api/notes", "destination": "/api/operations?__route=notes" },
     {
       "source": "/api/at-content/:path*",
       "destination": "/api/proxy?__p=:path*&__host=content"

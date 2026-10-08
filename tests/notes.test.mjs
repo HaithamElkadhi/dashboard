@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/notes.js';
+import handler from '../api/_lib/notes.js';
 import { NOTES_TABLE, normalizeNote, filterNotes } from '../src/lib/notes.js';
 import { TICKET_FIELDS } from '../src/lib/ticketing.js';
 const originalFetch=globalThis.fetch;

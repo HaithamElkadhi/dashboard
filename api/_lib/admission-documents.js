@@ -1,6 +1,6 @@
-import { requireUser, checkOrigin, authError, sendAuthError } from './_lib/auth.js';
-import { BASE_ID, TABLES, PF } from '../src/lib/config.js';
-import { ADMISSION_DOCUMENTS, REQUESTED_DOCUMENTS_FIELD as F, mergeRequestedDocuments } from '../src/lib/admissionDocuments.js';
+import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
+import { BASE_ID, TABLES, PF } from '../../src/lib/config.js';
+import { ADMISSION_DOCUMENTS, REQUESTED_DOCUMENTS_FIELD as F, mergeRequestedDocuments } from '../../src/lib/admissionDocuments.js';
 const pending = new Map();
 export default async function handler(req, res, env = process.env) {
   res.setHeader('Cache-Control', 'no-store');

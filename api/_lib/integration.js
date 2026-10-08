@@ -1,6 +1,6 @@
-import { requireUser, checkOrigin, authError, sendAuthError } from './_lib/auth.js';
-import { BASE_ID, TABLES, PF } from '../src/lib/config.js';
-import { INTEGRATION_TABLE as TABLE, IF as F, INTEGRATION_STEPS, HOUSING_TYPES, normalizeIntegration } from '../src/lib/integration.js';
+import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
+import { BASE_ID, TABLES, PF } from '../../src/lib/config.js';
+import { INTEGRATION_TABLE as TABLE, IF as F, INTEGRATION_STEPS, HOUSING_TYPES, normalizeIntegration } from '../../src/lib/integration.js';
 const pending = new Map();
 let queue = Promise.resolve();
 const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;

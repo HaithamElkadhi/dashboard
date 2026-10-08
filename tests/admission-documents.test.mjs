@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/admission-documents.js';
+import handler from '../api/_lib/admission-documents.js';
 import { ADMISSION_DOCUMENTS, REQUESTED_DOCUMENTS_FIELD as F, mergeRequestedDocuments } from '../src/lib/admissionDocuments.js';
 const original = globalThis.fetch;
 test.afterEach(() => { globalThis.fetch = original; });
