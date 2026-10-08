@@ -24,6 +24,7 @@ import ProposalItalyPage from './pages/operations/ProposalItalyPage.jsx';
 import ApplicationPage from './pages/operations/ApplicationPage.jsx';
 import AdmissionDocumentsPage from './pages/operations/AdmissionDocumentsPage.jsx';
 import IntegrationPage from './pages/operations/IntegrationPage.jsx';
+import NotesPage from './pages/NotesPage.jsx';
 import AdminUsersPage from './pages/AdminUsersPage.jsx';
 
 // Production only: keep the worker away from Vite's development server.
@@ -58,6 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/operations/application" element={<ApplicationPage />} />
           <Route path="/operations/admission-documents" element={<AdmissionDocumentsPage />} />
           <Route path="/operations/integration" element={<IntegrationPage />} />
+          <Route path="/notes" element={<NotesPage />} />
           <Route path="/operations/proposal-italy" element={<ProposalItalyPage />} />
           <Route path="*" element={<ComingSoonPage title="Page introuvable" />} />
         </Route>

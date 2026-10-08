@@ -2,6 +2,7 @@ import { requireUser, sendAuthError, authError } from './_lib/auth.js';
 import { BASE_ID, TABLES, BK } from '../src/lib/config.js';
 import { DOCUMENT_TABLES } from '../src/lib/studentDocuments.js';
 import { EMAIL_HISTORY_TABLE } from '../src/lib/contactActivity.js';
+import { NOTES_TABLE } from '../src/lib/notes.js';
 let queue = Promise.resolve();
 export default async function handler(req, res, env = process.env) {
   res.setHeader('Cache-Control', 'no-store');
@@ -43,6 +44,10 @@ export default async function handler(req, res, env = process.env) {
     await source('Platform email', async () => {
       const records = await list(EMAIL_HISTORY_TABLE, ['Provider ID', 'Recipient', 'Subject', 'Sent At']);
       for (const r of records) { const f = r.fields; events.push({ key: `email:${f['Provider ID'] || r.id}`, kind: 'email', at: f['Sent At'] || r.createdTime, studentIds: [], recipient: f.Recipient || '', title: f.Subject || 'Email sent', status: 'Sent', countsAsContact: true, href: '' }); }
+    });
+    await source('Note', async () => {
+      const records = await list(NOTES_TABLE, ['Title', 'Student', 'Call Date', 'Status']);
+      for (const r of records) { const f=r.fields; if(f.Student?.length) events.push({key:`note:${r.id}`,kind:'note',at:f['Call Date'] || r.createdTime,studentIds:f.Student,recipient:'',title:f.Title || 'Call note',status:f.Status || 'Open',countsAsContact:!!f['Call Date'],href:`/notes?note=${r.id}`}); }
     });
     res.json({ events, warnings });
   } catch (error) { sendAuthError(res, error); }

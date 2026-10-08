@@ -152,9 +152,9 @@ export default function ContactLogModal({ prospect, onClose, onSaved }) {
                     h.kind === 'log' ? 'bg-violet-500' : i === 0 ? 'bg-brand' : 'bg-border-strong'
                   }`}
                 />
-                {['ticket', 'appointment', 'email'].includes(h.kind) ? (
+                {['ticket', 'appointment', 'email', 'note'].includes(h.kind) ? (
                   <>
-                    <p className="flex flex-wrap items-center gap-2 text-xs text-text-muted"><span className="rounded-full bg-blue-50 px-2 py-1 font-medium text-navy">{h.kind === 'ticket' ? 'Ticket' : h.kind === 'email' ? 'Email' : 'Appointment'}</span>{formatLogDateTime(h.at)}<span>{h.status}</span></p>
+                    <p className="flex flex-wrap items-center gap-2 text-xs text-text-muted"><span className="rounded-full bg-blue-50 px-2 py-1 font-medium text-navy">{h.kind === 'ticket' ? 'Ticket' : h.kind === 'email' ? 'Email' : h.kind === 'note' ? 'Note' : 'Appointment'}</span>{formatLogDateTime(h.at)}<span>{h.status}</span></p>
                     <p className="mt-1 text-sm font-medium text-text-strong">{h.title}</p>
                     {h.appointmentAt && <p className="text-xs text-text-muted">Appointment: {formatLogDateTime(h.appointmentAt)}</p>}
                     {h.href && <a href={h.href} target="_blank" rel="noopener noreferrer" className="text-xs text-navy underline">Open details ↗</a>}

@@ -154,7 +154,7 @@ function daysSince(iso) {
 function LastContactCell({ p, onClick }) {
   const manual = parseContactHistory(p.contactHistory)[0];
   const automatic = p.activity?.find(event => event.countsAsContact);
-  const latest = automatic && automatic.at.slice(0, 10) >= (manual?.date || '') ? { reason: `${automatic.kind === 'email' ? 'Email' : automatic.kind === 'appointment' ? 'Appointment' : 'Ticket'} · ${automatic.title}` } : manual;
+  const latest = automatic && automatic.at.slice(0, 10) >= (manual?.date || '') ? { reason: `${automatic.kind === 'note' ? 'Note' : automatic.kind === 'email' ? 'Email' : automatic.kind === 'appointment' ? 'Appointment' : 'Ticket'} · ${automatic.title}` } : manual;
   const ticketChip = p.openTicketCount > 0 ? <span className="mt-1 inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{p.openTicketCount} open ticket{p.openTicketCount > 1 ? 's' : ''}</span> : null;
   if (!p.lastContact) {
     return (
