@@ -1,64 +1,62 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { fetchProspectsForSearch, fetchTicketChoices } from '../lib/airtable.js';
-import { notesApi, noteInput, blankNote, NOTE_STATUSES, filterNotes, actionOverdue } from '../lib/notes.js';
-import { tunisToday } from '../lib/ticketing.js';
-const control='min-h-11 w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm outline-none focus:border-navy disabled:bg-canvas';
-const secondary='min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-medium text-navy hover:bg-canvas disabled:opacity-50';
-const primary='min-h-11 rounded-lg bg-navy px-5 py-2 text-sm font-medium text-white disabled:opacity-50';
-function Status({status}) {return <span className={`rounded-full px-3 py-1 text-xs font-medium ${status==='Completed'?'bg-green-100 text-green-800':status==='In progress'?'bg-blue-50 text-blue-800':'bg-canvas text-text-muted'}`}>{status==='Completed'?'✓ ':''}{status}</span>;}
-function Editor({note,students,users,choices,canWrite,save,refresh,onClose}){
-  const [form,setForm]=useState(()=>note?noteInput(note):blankNote()),[busy,setBusy]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState(''),[studentQuery,setStudentQuery]=useState(''),[ticketFor,setTicketFor]=useState(null),[type,setType]=useState(''),[priority,setPriority]=useState('Medium');
-  const original=note?noteInput(note):blankNote();const dirty=JSON.stringify(form)!==JSON.stringify(original);
-  useEffect(()=>{if(note)setForm(noteInput(note));},[note]);
-  useEffect(()=>{const warn=e=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[dirty]);
-  const close=()=>{if(!busy&&(!dirty||window.confirm('Discard unsaved note changes?')))onClose();};
-  const change=(key,value)=>{setForm(previous=>({...previous,[key]:value}));setError('');setSuccess('');};
-  const actionChange=(id,key,value)=>change('actions',form.actions.map(a=>a.id===id?{...a,[key]:value}:a));
-  const submit=async e=>{e.preventDefault();if(busy||!canWrite)return;setBusy(true);setError('');try{await save({action:'save',input:form,...(note?{id:note.id,expected:note}:{})});setSuccess('Note saved.');}catch(err){setError(err.message);}finally{setBusy(false);}};
-  const createTicket=async()=>{if(busy||!type)return;setBusy(true);setError('');try{const result=await save({action:'ticket',id:note.id,expected:note,actionId:ticketFor.id,type,priority});setTicketFor(null);setSuccess(result.warning||'Ticket created and linked to this action.');}catch(err){setError(err.message);}finally{setBusy(false);}};
-  const name=id=>users.find(u=>u.id===id)?.displayName||'Unavailable user';
-  const matching=students.filter(s=>`${s.fullName} ${s.email}`.toLowerCase().includes(studentQuery.toLowerCase())).slice(0,20);
-  return <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
-    <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-navy">{note?'Note details':'New note'}</h2><button disabled={busy} className={secondary} onClick={close}>Close</button></div>
-    <form onSubmit={submit}><fieldset disabled={busy||!canWrite} className="space-y-5">
-      <label className="block text-sm font-medium">Title *<input required maxLength={200} className={`${control} mt-2`} value={form.title} onChange={e=>change('title',e.target.value)} placeholder="e.g. Call — next steps for admission"/></label>
-      <div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium">Call date<input type="date" className={`${control} mt-2`} value={form.callDate} onChange={e=>change('callDate',e.target.value)}/></label><label className="block text-sm font-medium">Status<select className={`${control} mt-2`} value={form.status} onChange={e=>change('status',e.target.value)}>{NOTE_STATUSES.map(status=><option key={status}>{status}</option>)}</select></label></div>
-      <div><p className="text-sm font-medium">Student (optional)</p>{form.studentId?<div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-canvas p-3"><span className="text-sm text-navy">{students.find(s=>s.id===form.studentId)?.fullName||'Linked student'}</span>{canWrite&&<button type="button" className="text-xs underline" disabled={form.actions.some(a=>a.ticketId)} onClick={()=>change('studentId','')}>Change</button>}</div>:<><input aria-label="Search student for note" className={`${control} mt-2`} placeholder="Search by name or email…" value={studentQuery} onChange={e=>setStudentQuery(e.target.value)}/>{studentQuery&&<div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-border">{matching.map(s=><button type="button" key={s.id} className="block min-h-11 w-full px-3 py-2 text-left text-sm hover:bg-canvas" onClick={()=>{change('studentId',s.id);setStudentQuery('');}}>{s.fullName}<span className="block text-xs text-text-muted">{s.email}</span></button>)}</div>}</>}</div>
-      <label className="block text-sm font-medium">Call notes & decisions *<textarea required rows={7} maxLength={20000} className={`${control} mt-2`} value={form.content} onChange={e=>change('content',e.target.value)} placeholder="What was discussed? What did you decide?"/></label>
-      <div className="border-t border-border pt-5"><div className="mb-3 flex items-center justify-between"><h3 className="font-semibold text-navy">Follow-up actions</h3>{canWrite&&<button type="button" className={secondary} disabled={form.actions.length>=30} onClick={()=>change('actions',[...form.actions,{id:crypto.randomUUID(),text:'',assignedTo:'',dueDate:'',done:false,ticketId:''}])}>+ Add action</button>}</div>
-        <div className="space-y-3">{form.actions.map(a=><div key={a.id} className={`space-y-3 rounded-lg border p-4 ${a.done?'border-green-200 bg-green-50/50':'border-border'}`}>
-          <div className="flex items-start gap-3"><label className="flex min-h-11 items-center"><input aria-label={`Mark action done: ${a.text||'New action'}`} type="checkbox" checked={a.done} onChange={e=>actionChange(a.id,'done',e.target.checked)}/></label><input required aria-label="Action description" maxLength={1000} className={`${control} ${a.done?'line-through text-text-muted':''}`} placeholder="Action to do…" value={a.text} onChange={e=>actionChange(a.id,'text',e.target.value)}/>{canWrite&&!a.ticketId&&<button type="button" aria-label="Remove action" className="min-h-11 px-2 text-sm text-red-700" onClick={()=>change('actions',form.actions.filter(x=>x.id!==a.id))}>×</button>}</div>
-          <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs text-text-muted">Responsible<select className={`${control} mt-1`} value={a.assignedTo} onChange={e=>actionChange(a.id,'assignedTo',e.target.value)}><option value="">Unassigned</option>{a.assignedTo&&!users.some(u=>u.id===a.assignedTo)&&<option value={a.assignedTo}>{name(a.assignedTo)}</option>}{users.map(u=><option key={u.id} value={u.id}>{u.displayName} ({u.username})</option>)}</select></label><label className="text-xs text-text-muted">Due date<input type="date" className={`${control} mt-1`} value={a.dueDate} onChange={e=>actionChange(a.id,'dueDate',e.target.value)}/></label></div>
-          {actionOverdue(a,tunisToday())&&<p className="text-xs font-medium text-red-700">Overdue</p>}
-          {a.ticketId?<p className="text-xs text-text-muted">Linked ticket: {a.ticketId}</p>:canWrite&&note&&form.studentId&&!a.done&&<button type="button" disabled={dirty||!choices} className="text-xs font-medium text-navy underline disabled:opacity-50" onClick={()=>setTicketFor(a)}>Create ticket</button>}
-        </div>)}{!form.actions.length&&<p className="rounded-lg bg-canvas p-4 text-sm text-text-muted">No follow-up actions yet.</p>}</div>
-      </div>
-      {canWrite&&<div className="flex justify-end border-t border-border pt-5"><button className={primary} disabled={busy||!dirty}>{busy?'Saving…':'Save note'}</button></div>}
-    </fieldset></form>
-    {form.actions.filter(a=>a.ticketId).map(a=><a key={a.id} href={`/ticketing?ticket=${a.ticketId}`} target="_blank" rel="noopener noreferrer" className="mt-3 block text-sm text-navy underline">Open ticket — {a.text} ↗</a>)}
-    {ticketFor&&<div className="mt-4 space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4"><h3 className="text-sm font-semibold text-navy">Create ticket: {ticketFor.text}</h3><label className="block text-sm">Category<select className={`${control} mt-2`} value={type} onChange={e=>setType(e.target.value)}><option value="">Select category…</option>{choices?.type?.map(v=><option key={v}>{v}</option>)}</select></label><label className="block text-sm">Priority<select className={`${control} mt-2`} value={priority} onChange={e=>setPriority(e.target.value)}>{choices?.priority?.map(v=><option key={v}>{v}</option>)}</select></label><div className="flex gap-2"><button disabled={busy} className={secondary} onClick={()=>setTicketFor(null)}>Cancel</button><button data-write="" disabled={busy||!type} className={primary} onClick={createTicket}>Create ticket</button></div></div>}
-    {error&&<p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error} <button disabled={busy} className="underline" onClick={()=>{if(!dirty||window.confirm('Discard changes and refresh?'))refresh();}}>Refresh</button></p>}{success&&<p role="status" className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{success}</p>}
-    {note&&<p className="mt-5 text-xs text-text-muted">Created by {note.createdBy} · Updated by {note.updatedBy}</p>}{note?.history&&<details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium text-navy">History</summary><p className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap text-xs text-text-muted">{note.history}</p></details>}
+import { notesApi, noteInput, blankNote } from '../lib/notes.js';
+
+const button = 'min-h-11 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-navy hover:bg-canvas disabled:opacity-50';
+function NoteEditor({ note, canWrite, onSave, onClose }) {
+  const [form, setForm] = useState(() => note ? noteInput(note) : blankNote());
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [saved, setSaved] = useState(false);
+  const baseline = note ? noteInput(note) : blankNote();
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
+  useEffect(() => { if (note) setForm(noteInput(note)); }, [note]);
+  useEffect(() => {
+    const warn = event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+  const change = (key, value) => { setForm(prev => ({ ...prev, [key]: value })); setSaved(false); setError(''); };
+  const close = () => { if (!busy && (!dirty || window.confirm('Discard unsaved changes?'))) onClose(); };
+  const submit = async event => {
+    event.preventDefault(); if (busy || !canWrite) return;
+    setBusy(true); setError('');
+    try { await onSave({ action: 'save', input: form, ...(note ? { id: note.id, expected: note } : {}) }); setSaved(true); }
+    catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  };
+  return <section className="min-w-0 rounded-xl border border-border bg-white">
+    <div className="flex items-center justify-end gap-3 border-b border-border px-5 py-3">
+      {saved && <span role="status" className="text-sm text-green-700">Saved</span>}
+      <button className={button} disabled={busy} onClick={close}>Close</button>
+      {canWrite && <button data-write="" form="plain-note" type="submit" disabled={busy || !dirty} className="min-h-11 rounded-lg bg-navy px-5 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>}
+    </div>
+    <form id="plain-note" onSubmit={submit} className="p-6 sm:p-10">
+      <fieldset disabled={busy || !canWrite}>
+        <input aria-label="Title" required maxLength={200} placeholder="Title" value={form.title} onChange={event => change('title', event.target.value)} className="w-full border-0 bg-transparent py-3 text-2xl font-semibold text-navy outline-none placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-border" />
+        <textarea aria-label="Note" required maxLength={20000} placeholder="Write your note…" value={form.content} onChange={event => change('content', event.target.value)} className="mt-4 min-h-[60vh] w-full resize-y border-0 bg-transparent py-2 text-base leading-8 text-text-strong outline-none placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-border" />
+      </fieldset>
+      {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
+    </form>
   </section>;
 }
-export default function NotesPage(){
-  const {user,canWrite}=useAuth();const [params,setParams]=useSearchParams();
-  const [notes,setNotes]=useState([]),[students,setStudents]=useState([]),[users,setUsers]=useState([]),[choices,setChoices]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[resourceError,setResourceError]=useState('');
-  const [filters,setFilters]=useState({query:'',status:'',studentId:'',mine:false,overdue:false});const [selection,setSelection]=useState(params.get('note')||''),[creating,setCreating]=useState(false),[revision,setRevision]=useState(0);const generation=useRef(0);
-  const load=async()=>{const current=++generation.current;setLoading(true);setError('');try{const data=await notesApi();if(current===generation.current){setNotes(data.notes);setRevision(r=>r+1);}}catch(err){if(current===generation.current)setError(err.message);}finally{if(current===generation.current)setLoading(false);}};
-  const resources=async()=>{setResourceError('');try{const [s,u,c]=await Promise.all([fetchProspectsForSearch(),fetch('/api/ticketing?users=1',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error('Unable to load platform users.');return r.json();}),fetchTicketChoices()]);setStudents(s);setUsers(u.users);setChoices(c);}catch(err){setResourceError(err.message);}};
-  useEffect(()=>{load();resources();return()=>{generation.current++;};},[]);
-  useEffect(()=>{if(params.get('note')){setSelection(params.get('note'));setCreating(false);}},[params]);
-  const selected=notes.find(n=>n.id===selection);const rows=useMemo(()=>filterNotes(notes,filters,user.id,tunisToday()),[notes,filters,user.id]);
-  const save=async body=>{const result=await notesApi(body);setNotes(previous=>[result.note,...previous.filter(n=>n.id!==result.note.id)]);setCreating(false);setSelection(result.note.id);setParams({note:result.note.id});return result;};
-  const close=()=>{setSelection('');setCreating(false);setParams({});};
-  return <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-8"><div className="flex items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold text-navy">Notes</h1><p className="mt-2 text-sm text-text-muted">Keep call decisions and follow-up actions together.</p></div>{canWrite&&<button data-write="" className={primary} disabled={!!selected||creating} onClick={()=>{setCreating(true);setSelection('');}}>+ New note</button>}</div>
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface p-4"><input aria-label="Search notes" className={`${control} flex-1 sm:min-w-52`} placeholder="Search notes and actions…" value={filters.query} onChange={e=>setFilters({...filters,query:e.target.value})}/><select aria-label="Filter note status" className={`${control} sm:w-40`} value={filters.status} onChange={e=>setFilters({...filters,status:e.target.value})}><option value="">All statuses</option>{NOTE_STATUSES.map(v=><option key={v}>{v}</option>)}</select><select aria-label="Filter student" className={`${control} sm:w-48`} value={filters.studentId} onChange={e=>setFilters({...filters,studentId:e.target.value})}><option value="">All students</option>{students.map(s=><option key={s.id} value={s.id}>{s.fullName}</option>)}</select><label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={filters.mine} onChange={e=>setFilters({...filters,mine:e.target.checked})}/>My notes</label><label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={filters.overdue} onChange={e=>setFilters({...filters,overdue:e.target.checked})}/>Overdue</label>{!selected&&!creating&&<button disabled={loading} className={secondary} onClick={load}>Refresh</button>}</div>
-    {error&&<p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error} <button className="underline" onClick={load}>Retry</button></p>}{resourceError&&<p role="alert" className="text-sm text-amber-800">{resourceError} <button className="underline" onClick={resources}>Retry options</button></p>}
-    <div className={`grid items-start gap-5 ${selected||creating?'lg:grid-cols-[360px_minmax(0,1fr)]':''}`}><section className="overflow-hidden rounded-xl border border-border bg-surface"><div className="border-b border-border px-5 py-4 text-sm font-semibold text-navy">{loading?'Loading notes…':`${rows.length} notes`}</div><div className="max-h-[70vh] divide-y divide-border overflow-y-auto">{rows.map(n=><button key={n.id} disabled={!!selected||creating} onClick={()=>{setSelection(n.id);setParams({note:n.id});}} className={`block w-full space-y-3 p-5 text-left hover:bg-canvas ${selection===n.id?'bg-blue-50':''}`}><div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-navy">{n.title}</span><Status status={n.status}/></div><p className="line-clamp-2 text-sm text-text-muted">{n.content}</p><div className="flex flex-wrap gap-3 text-xs text-text-muted"><span>{n.callDate||'No call date'}</span>{n.studentId&&<span>{students.find(s=>s.id===n.studentId)?.fullName||'Linked student'}</span>}<span>{n.actions.filter(a=>a.done).length}/{n.actions.length} actions done</span>{n.actions.some(a=>actionOverdue(a,tunisToday()))&&<span className="text-red-700">Overdue</span>}</div></button>)}{!loading&&!rows.length&&<p className="p-8 text-center text-sm text-text-muted">No notes match these filters.</p>}</div></section>
-      {(selected||creating)&&<Editor key={`${selection||'new'}-${revision}`} note={selected||null} students={students} users={users} choices={choices} canWrite={canWrite} save={save} refresh={load} onClose={close}/>}
-    </div>{selection&&!selected&&!loading&&<p className="text-sm text-red-700">Note unavailable. <button onClick={close} className="underline">Close</button></p>}
+export default function NotesPage() {
+  const { canWrite } = useAuth(); const [params, setParams] = useSearchParams();
+  const [notes, setNotes] = useState([]), [loading, setLoading] = useState(true), [error, setError] = useState(''), [creating, setCreating] = useState(false);
+  const generation = useRef(0);
+  const load = async () => {
+    const current = ++generation.current; setLoading(true); setError('');
+    try { const result = await notesApi(); if (current === generation.current) setNotes(result.notes); }
+    catch (err) { if (current === generation.current) setError(err.message); }
+    finally { if (current === generation.current) setLoading(false); }
+  };
+  useEffect(() => { load(); return () => { generation.current++; }; }, []);
+  const selected = notes.find(note => note.id === params.get('note'));
+  const save = async body => { const result = await notesApi(body); setNotes(prev => [result.note, ...prev.filter(note => note.id !== result.note.id)]); setCreating(false); setParams({ note: result.note.id }); };
+  const close = () => { setCreating(false); setParams({}); };
+  return <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-8">
+    <div className="flex items-center justify-between"><h1 className="text-2xl font-semibold text-navy">Notes</h1>{canWrite && !selected && !creating && <button data-write="" className={button} onClick={() => setCreating(true)}>+ New note</button>}</div>
+    {error && <p role="alert" className="text-sm text-red-700">{error} <button onClick={load} className="underline">Retry</button></p>}
+    {selected || creating ? <NoteEditor key={selected?.id || 'new'} note={selected} canWrite={canWrite} onSave={save} onClose={close} /> : loading ? <p className="text-sm text-text-muted">Loading…</p> : <div className="divide-y divide-border rounded-xl border border-border bg-white">{notes.map(note => <button key={note.id} className="block min-h-14 w-full px-6 py-5 text-left font-medium text-navy hover:bg-canvas" onClick={() => setParams({ note: note.id })}>{note.title}</button>)}{!notes.length && <p className="p-8 text-sm text-text-muted">No notes yet.</p>}</div>}
+    {params.get('note') && !selected && !loading && <p className="text-sm text-text-muted">Note unavailable. <button className="underline" onClick={close}>Close</button></p>}
   </div>;
 }
