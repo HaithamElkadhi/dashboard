@@ -1,26 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTasksWorkspace } from '../../contexts/TasksWorkspaceContext.jsx';
 import { usePageRefreshInfo } from '../../contexts/PageRefreshContext.jsx';
 import { useCurrentUser } from '../../hooks/useCurrentUser.js';
-import { ARCHIVED_STATUS } from '../../lib/config.js';
-import { formatShortDate, isTaskOverdue, relativeTime, todayISO } from '../../lib/taskDates.js';
+import { relativeTime } from '../../lib/taskDates.js';
 import Avatar from '../Avatar.jsx';
-import { BellIcon, MenuIcon, PlusIcon, RefreshIcon } from '../icons.jsx';
-
-function useOutsideClose(ref, active, onClose) {
-  useEffect(() => {
-    if (!active) return undefined;
-    function handle(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
-    }
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, [ref, active, onClose]);
-}
+import BookingNotificationBell from '../bookings/BookingNotificationBell.jsx';
+import { MenuIcon, PlusIcon, RefreshIcon } from '../icons.jsx';
 
 export default function AppHeader({ title, onOpenMobileSidebar }) {
-  const { tasks, openCreate, openDetails } = useTasksWorkspace();
+  const { openCreate } = useTasksWorkspace();
   const { lastUpdated, refresh, loading } = usePageRefreshInfo();
   const [currentUser] = useCurrentUser();
   const navigate = useNavigate();
@@ -29,31 +17,6 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
   const hideNewTask = pathname.startsWith('/students/') || ['/', '/finance', '/performance', '/operations/proposal-italy', '/operations/application', '/operations/integration', '/operations/admission-documents', '/notes', '/admin/users'].includes(
     pathname
   );
-
-  const [notifOpen, setNotifOpen] = useState(false);
-  const notifRef = useRef(null);
-  useOutsideClose(notifRef, notifOpen, () => setNotifOpen(false));
-
-  const today = todayISO();
-  const notifications = useMemo(
-    () =>
-      tasks
-        .filter(
-          (t) =>
-            t.status !== ARCHIVED_STATUS &&
-            t.status !== 'Done' &&
-            (isTaskOverdue(t, today) || t.ddl === today)
-        )
-        .sort((a, b) => (a.ddl < b.ddl ? -1 : 1))
-        .slice(0, 8),
-    [tasks, today]
-  );
-
-  const openResult = (task) => {
-    if (task.recordKind === 'Ticket') navigate('/ticketing?ticket=' + task.id);
-    else openDetails(task.id);
-    setNotifOpen(false);
-  };
 
   return (
     <header className="z-20 shrink-0 border-b border-border bg-surface px-4 py-4 sm:px-8">
@@ -85,62 +48,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
             </button>
           )}
 
-          <div ref={notifRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setNotifOpen((v) => !v)}
-              title="Notifications"
-              aria-label="Notifications"
-              className="relative min-h-11 min-w-11 rounded-lg p-2.5 text-text-muted transition hover:bg-canvas hover:text-text-strong"
-            >
-              <BellIcon size={18} />
-              {notifications.length > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                  {notifications.length}
-                </span>
-              )}
-            </button>
-            {notifOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1.5 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
-                <div className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                  En retard et échéance aujourd’hui
-                </div>
-                {notifications.length === 0 ? (
-                  <p className="px-3 py-4 text-sm text-text-muted">
-                    Rien à signaler pour le moment.
-                  </p>
-                ) : (
-                  <ul className="max-h-80 divide-y divide-border overflow-y-auto scroll-thin">
-                    {notifications.map((t) => (
-                      <li key={t.id}>
-                        <button
-                          type="button"
-                          onClick={() => openResult(t)}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-canvas"
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium text-text-strong">
-                              {t.recordKind === 'Ticket' ? 'Ticket · ' : ''}{t.name}
-                            </span>
-                            <span className="block truncate text-xs text-text-muted">
-                              {t.assignedTo || '—'}
-                            </span>
-                          </span>
-                          <span
-                            className={`shrink-0 text-xs font-semibold tabular-nums ${
-                              isTaskOverdue(t, today) ? 'text-red-600' : 'text-text-muted'
-                            }`}
-                          >
-                            {formatShortDate(t.ddl)}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
+          <BookingNotificationBell />
 
           <Avatar fullName={currentUser} seed={currentUser} />
 

@@ -1036,6 +1036,7 @@ function normalizeBooking(record) {
   const f = record.fields || {};
   return {
     id: record.id,
+    createdTime: record.createdTime || null,
     name: f[BK.name] || '',
     studentName: f[BK.studentName] || '',
     email: f[BK.email] || '',
@@ -1081,6 +1082,19 @@ export async function fetchBookings() {
   return records.map(normalizeBooking);
 }
 
+export async function fetchBookingNotificationData() {
+  const records = await fetchAll(TABLES.bookings,
+    [BK.name, BK.studentName, BK.dateTime, BK.meetingType, BK.bookingStatus]);
+  return records.map(normalizeBooking);
+}
+
+export async function fetchStudentNotificationData() {
+  const records = await fetchAll(TABLES.prospects, [PF.fullName, PF.name, PF.surname]);
+  return records.map((record) => ({ id: record.id, createdTime: record.createdTime || null,
+    fullName: record.fields?.[PF.fullName] ||
+      [record.fields?.[PF.name], record.fields?.[PF.surname]].filter(Boolean).join(' ') }));
+}
+
 // Live Meeting Type / Booking Status choices from the Airtable schema.
 export async function fetchBookingSelectChoices() {
   const res = await fetch(`${PROXY_BASE}/meta/bases/${BASE_ID}/tables`);
@@ -1103,6 +1117,7 @@ export async function createBooking(input) {
     returnFieldsByFieldId: true,
     typecast: true,
   });
+  window.dispatchEvent(new Event('bookings-changed'));
   return normalizeBooking(data);
 }
 
@@ -1116,11 +1131,13 @@ export async function updateBooking(recordId, input) {
       typecast: true,
     }
   );
+  window.dispatchEvent(new Event('bookings-changed'));
   return normalizeBooking(data);
 }
 
 export async function deleteBooking(recordId) {
   await airtableWrite('DELETE', `${BASE_ID}/${TABLES.bookings}/${recordId}`);
+  window.dispatchEvent(new Event('bookings-changed'));
   return recordId;
 }
 
@@ -1410,6 +1427,7 @@ async function createProspectRecord(fields) {
     returnFieldsByFieldId: true,
     typecast: true,
   });
+  window.dispatchEvent(new Event('students-changed'));
   return data.id;
 }
 

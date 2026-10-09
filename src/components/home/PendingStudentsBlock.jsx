@@ -37,7 +37,7 @@ export default function PendingStudentsBlock({ items, loading }) {
               return (
                 <li key={p.id}>
                   <Link
-                    to="/prospects"
+                    to={`/prospects?open=${encodeURIComponent(p.id)}`}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-canvas"
                   >
                     <div className="min-w-0 flex-1">

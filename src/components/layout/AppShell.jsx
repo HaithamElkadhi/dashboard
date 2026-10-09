@@ -9,6 +9,7 @@ import TaskCreateModal from '../tasks/TaskCreateModal.jsx';
 import TaskDetailsModal from '../tasks/TaskDetailsModal.jsx';
 import Toast from '../Toast.jsx';
 import ReadOnlyAccess from '../ReadOnlyAccess.jsx';
+import { BookingNotificationsProvider } from '../../contexts/BookingNotificationsContext.jsx';
 
 const COLLAPSE_KEY = 'jeexpert:sidebar:collapsed';
 
@@ -82,6 +83,7 @@ export default function AppShell() {
   return (
     <PageRefreshProvider>
       <TasksWorkspaceProvider>
+        <BookingNotificationsProvider>
         <div className="flex h-screen overflow-hidden bg-canvas">
           <AppSidebar
             collapsed={collapsed}
@@ -98,6 +100,7 @@ export default function AppShell() {
           </div>
         </div>
         <GlobalTaskModals />
+        </BookingNotificationsProvider>
       </TasksWorkspaceProvider>
     </PageRefreshProvider>
   );

@@ -80,7 +80,7 @@ export default function ScholarshipAlertBlock({ items, loading }) {
             <BellIcon size={16} />
           </span>
           <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-semibold text-text-strong">Alerte</h2>
+            <h2 className="text-sm font-semibold text-text-strong">Alerts</h2>
             <AlertInfoButton />
           </div>
         </div>

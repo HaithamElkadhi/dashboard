@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDashboardData } from '../hooks/useDashboardData.js';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
@@ -81,6 +81,7 @@ export default function ProspectsPage() {
     useDashboardData();
   usePageRefreshRegistration({ lastUpdated, refresh, loading: status === 'loading' });
   const [searchParams, setSearchParams] = useSearchParams();
+  const refreshedOpenId = useRef(null);
   // Active situation tab — 'all' shows everyone; otherwise filter by that situation.
   const [activeTab, setActiveTab] = useState('all');
   const [proposalFor, setProposalFor] = useState(null);
@@ -157,12 +158,17 @@ export default function ProspectsPage() {
   // Deep-link from Booking (and elsewhere): /prospects?open=<recordId>
   useEffect(() => {
     const openId = searchParams.get('open');
-    if (!openId) return;
+    if (!openId) { refreshedOpenId.current = null; return; }
 
     // Wait for student data, keeping the link intact if loading fails.
     if (status !== 'ready') return;
 
     const match = prospects.find((p) => p.id === openId);
+    if (!match && refreshedOpenId.current !== openId) {
+      refreshedOpenId.current = openId;
+      refresh();
+      return;
+    }
     if (match) setEditing(match);
     else if (status === 'ready') showToast('Prospect introuvable');
 

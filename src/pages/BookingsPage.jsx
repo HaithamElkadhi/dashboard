@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useBookingsData } from '../hooks/useBookingsData.js';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
@@ -12,6 +13,8 @@ import BookingEmailPreviewModal from '../components/bookings/BookingEmailPreview
 import { PlusIcon, RefreshIcon } from '../components/icons.jsx';
 
 export default function BookingsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedBookingId = searchParams.get('booking');
   const {
     bookings,
     people,
@@ -37,6 +40,31 @@ export default function BookingsPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [emailDraft, setEmailDraft] = useState(null); // { booking, kind }
+  const refreshedBookingId = useRef(null);
+
+  useEffect(() => {
+    if (!requestedBookingId) { refreshedBookingId.current = null; return; }
+    if (status !== 'ready' || refreshedBookingId.current === requestedBookingId) return;
+    refreshedBookingId.current = requestedBookingId;
+    // The global feed may have found a booking newer than this mounted page.
+    if (!bookings.some((item) => item.id === requestedBookingId)) refresh();
+  }, [requestedBookingId, status, bookings, refresh]);
+
+  useEffect(() => {
+    if (!requestedBookingId) return;
+    const booking = bookings.find((item) => item.id === requestedBookingId);
+    if (booking) setPanel((previous) => previous?.booking.id === booking.id
+      ? previous : { booking, editMode: false });
+  }, [requestedBookingId, bookings]);
+
+  const closePanel = () => {
+    setPanel(null);
+    if (requestedBookingId) setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete('booking');
+      return next;
+    }, { replace: true });
+  };
 
   const loading = status === 'loading';
 
@@ -139,6 +167,11 @@ export default function BookingsPage() {
       )}
 
       <div className="mt-5">
+        {requestedBookingId && status === 'ready' && !bookings.some((item) => item.id === requestedBookingId) && (
+          <p role="status" className="mb-4 rounded-lg border border-border bg-surface p-4 text-sm text-text-muted">
+            This booking is no longer available.
+          </p>
+        )}
         <BookingsTable
           bookings={bookings}
           loading={loading && bookings.length === 0}
@@ -170,7 +203,7 @@ export default function BookingsPage() {
           statuses={statuses}
           meetingTypes={meetingTypes}
           editMode={panel.editMode}
-          onClose={() => setPanel(null)}
+          onClose={closePanel}
           onSave={(payload) => handleUpdate(panelBooking.id, payload)}
           onCancelBooking={(b) => setCancelTarget(b)}
           onDelete={(b) => setDeleteTarget(b)}
