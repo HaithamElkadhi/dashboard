@@ -26,6 +26,7 @@ import AdmissionDocumentsPage from './pages/operations/AdmissionDocumentsPage.js
 import IntegrationPage from './pages/operations/IntegrationPage.jsx';
 import NotesPage from './pages/NotesPage.jsx';
 import AdminUsersPage from './pages/AdminUsersPage.jsx';
+import EducationPage from './pages/EducationPage.jsx';
 
 // Production only: keep the worker away from Vite's development server.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
@@ -50,6 +51,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/finance/paiements/:paiementId/document" element={<FinanceDocumentPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/education" element={<EducationPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/visa" element={<VisaGuidePage />} />

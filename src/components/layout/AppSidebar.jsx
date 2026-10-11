@@ -12,6 +12,7 @@ const SECTIONS = [
   ['Students', ['Students', 'Bookings', 'Client Accounts', 'Visa']],
   ['Finance', ['Payments', 'Expenses', 'Performance']],
   ['Operations', ['Operations']],
+  ['Education', ['Education']],
 ];
 const SECTION_KEY = 'jeexpert:sidebar:sections';
 function initialSections() {
@@ -61,7 +62,7 @@ export default function AppSidebar({ collapsed, onToggleCollapse, mobileOpen, on
     if (item.path !== '/tasks') return location.pathname === item.path;
     return location.pathname === '/tasks' && (searchParams.get('view') || 'list') === item.taskView;
   };
-  const sections = SECTIONS.map(([label, names]) => ({ label, items: names.map((name) => NAV_ITEMS.find((item) => item.label === name)).filter(Boolean) }));
+  const sections = SECTIONS.map(([label, names]) => ({ label, items: names.map((name) => NAV_ITEMS.find((item) => item.label === name)).filter(item => item && (!item.adminOnly || user.isAdmin)) })).filter(section => section.items.length);
   if (user.isAdmin || user.role === 'View') sections.push({ label: 'Administration', items: [{ path: '/admin/users', label: 'Users', icon: UsersIcon }] });
   const content = (compact, mobile = false) => <div className={`jxp-sidebar ${compact ? 'is-compact' : ''}`}>
     <div className={`jxp-sidebar-brand ${compact ? 'is-compact' : ''}`}>

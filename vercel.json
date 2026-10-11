@@ -5,6 +5,7 @@
     { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }, { "key": "Cache-Control", "value": "no-cache" }] }
   ],
   "rewrites": [
+    { "source": "/api/education", "destination": "/api/operations?__route=education" },
     { "source": "/api/applications", "destination": "/api/operations?__route=applications" },
     { "source": "/api/admission-documents", "destination": "/api/operations?__route=admission-documents" },
     { "source": "/api/integration", "destination": "/api/operations?__route=integration" },

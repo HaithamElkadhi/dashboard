@@ -1,0 +1,449 @@
+{
+  "baseId": "app7PKe025jceS4kQ",
+  "tables": [
+    {
+      "id": "tblZ3KoV9zht2NssP",
+      "name": "Education - Parents",
+      "description": "Responsables légaux et coordonnées. V1 : saisie et consultation par les administrateurs du dashboard.",
+      "primaryFieldId": "fldipQx85VOXqk5yK",
+      "fields": [
+        {
+          "id": "fldipQx85VOXqk5yK",
+          "name": "Nom complet",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldxKdipCQUY8f0Np",
+          "name": "Email",
+          "type": "email"
+        },
+        {
+          "id": "fld4JqtuqurRxdFR6",
+          "name": "Téléphone",
+          "type": "phoneNumber"
+        },
+        {
+          "id": "fldHfwaAHlX1Vg5dM",
+          "name": "Lien avec l’enfant",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldU3QAQYWmmseRdP",
+          "name": "Notes",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldloPfDbJMQ6wPN5",
+          "name": "Education - Élèves",
+          "type": "multipleRecordLinks"
+        }
+      ]
+    },
+    {
+      "id": "tbl84iBtErHduZpDO",
+      "name": "Education - Classes",
+      "description": "Classes par année scolaire.",
+      "primaryFieldId": "fldvLdjJSeum77hzl",
+      "fields": [
+        {
+          "id": "fldvLdjJSeum77hzl",
+          "name": "Classe",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldKJWkuEnrfyxrKH",
+          "name": "Niveau",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldlIxy22q77rCFln",
+          "name": "Année scolaire",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fld7cT3f4yxApHhyS",
+          "name": "Établissement",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldBn9sAuK5U0Z23N",
+          "name": "Enseignant référent",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldSKbt1Te8ljUDin",
+          "name": "Contact enseignant",
+          "type": "email"
+        },
+        {
+          "id": "fldzw7SHU6kom7sMm",
+          "name": "Education - Élèves",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fld3G97Ahq8MdEorX",
+          "name": "Education - Résultats",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldyI5qXiXfSrjF1p",
+          "name": "Education - Présence et discipline",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldGFYRYEjzdP2Mqk",
+          "name": "Education - Appels",
+          "type": "multipleRecordLinks"
+        }
+      ]
+    },
+    {
+      "id": "tblPJ6zr2i0bhjCZb",
+      "name": "Education - Matières",
+      "description": "Référentiel des matières scolaires.",
+      "primaryFieldId": "fldlEAX3sfr6B7u7T",
+      "fields": [
+        {
+          "id": "fldlEAX3sfr6B7u7T",
+          "name": "Matière",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldVWxBaxOJ8mxtCQ",
+          "name": "Description",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldor0w57ObY9sBbr",
+          "name": "Education - Résultats",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fld4UUnYcOnoWtfDJ",
+          "name": "Education - Accompagnement",
+          "type": "multipleRecordLinks"
+        }
+      ]
+    },
+    {
+      "id": "tbl7BPNSj6stTcv1l",
+      "name": "Education - Élèves",
+      "description": "Dossier élève relié à ses responsables et sa classe. Historique scolaire dans les tables liées.",
+      "primaryFieldId": "fldBox7ZkWeM9p1O7",
+      "fields": [
+        {
+          "id": "fldBox7ZkWeM9p1O7",
+          "name": "Nom complet",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldGcMQw1ecfMfkkr",
+          "name": "Identifiant élève",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldn3ttcRP7P4c2RI",
+          "name": "Date de naissance",
+          "type": "date"
+        },
+        {
+          "id": "fld5hnPVEl4zbvNnZ",
+          "name": "Classe",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldpk3QbBgWtaYUpE",
+          "name": "Parents",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldsthRZWVtWAvE3a",
+          "name": "Statut",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fld7VK4Mb6RpnIETT",
+          "name": "Suivi",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fldftRaDbqNPP4fnJ",
+          "name": "Notes administratives",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldGfC67PSj0dws5H",
+          "name": "Education - Résultats",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldDNViRVPcx3dQQl",
+          "name": "Education - Présence et discipline",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldhnKajIQaOE6dxg",
+          "name": "Education - Accompagnement",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldywdTNsXkaA8lSq",
+          "name": "Photo",
+          "type": "multipleAttachments"
+        },
+        {
+          "id": "fldbPvc4jEzi6GiWP",
+          "name": "Education - Appels",
+          "type": "multipleRecordLinks"
+        }
+      ]
+    },
+    {
+      "id": "tblTpZU61LqyGVneM",
+      "name": "Education - Résultats",
+      "description": "Une ligne par élève et examen. Notes, barème et copies photographiées ou PDF.",
+      "primaryFieldId": "fldatl05wCh8qX8JO",
+      "fields": [
+        {
+          "id": "fldatl05wCh8qX8JO",
+          "name": "Examen",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldERG6nk1KZbGUOj",
+          "name": "Élève",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldsq3BTyrDPMKZ2z",
+          "name": "Matière",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldg5PcnA6Inw89vN",
+          "name": "Classe",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "flds4mif0UUODEANI",
+          "name": "Date",
+          "type": "date"
+        },
+        {
+          "id": "fldRsdYaTmrCGfZTO",
+          "name": "Année scolaire",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldZtdy3oRv4zalD0",
+          "name": "Période",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fldQoV2kcRqLptgDq",
+          "name": "Note",
+          "type": "number"
+        },
+        {
+          "id": "fldlJulcylBez0wch",
+          "name": "Barème",
+          "type": "number"
+        },
+        {
+          "id": "fldyE4M617sSobWe9",
+          "name": "Coefficient",
+          "type": "number"
+        },
+        {
+          "id": "fldsTrKAiGAtkvhun",
+          "name": "Copies d’examen",
+          "type": "multipleAttachments"
+        },
+        {
+          "id": "fldgsp7lkjOY4Tyol",
+          "name": "Enseignant",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldsjm2gj8zaU9Y6P",
+          "name": "Commentaire",
+          "type": "multilineText"
+        }
+      ]
+    },
+    {
+      "id": "tblJ73E44hJX8tzvl",
+      "name": "Education - Présence et discipline",
+      "description": "Historique daté des absences, retards et observations disciplinaires.",
+      "primaryFieldId": "fldoJSfr3lw1jwz7L",
+      "fields": [
+        {
+          "id": "fldoJSfr3lw1jwz7L",
+          "name": "Objet",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldyGFSl63IFmEKrg",
+          "name": "Élève",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldFlzkBD3HomW9gj",
+          "name": "Classe",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldYGGSYftQCpVx5A",
+          "name": "Date",
+          "type": "date"
+        },
+        {
+          "id": "fld7HiN3ZmMWf6mtR",
+          "name": "Type",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fldoxuWPw8D6jHR1L",
+          "name": "Durée en minutes",
+          "type": "number"
+        },
+        {
+          "id": "fldCNDNu3cJ2GsioQ",
+          "name": "Justification",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fldtpSxbRXmkLTsHy",
+          "name": "Gravité",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fld92GnXLqnJ63otj",
+          "name": "Observation",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldrU498rpfxE6wmD",
+          "name": "Mesure prise",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldOhCDb0NLUawcmZ",
+          "name": "Auteur",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldM7TtroKkMNxmg0",
+          "name": "Justificatifs",
+          "type": "multipleAttachments"
+        },
+        {
+          "id": "fldO2Man5yvzTOP65",
+          "name": "Catégorie",
+          "type": "singleSelect"
+        }
+      ]
+    },
+    {
+      "id": "tblpAXTk16oh3Tj5b",
+      "name": "Education - Accompagnement",
+      "description": "Difficultés, conseils personnalisés saisis par l’admin et suivi des progrès.",
+      "primaryFieldId": "fldESnHIiK4km2wtY",
+      "fields": [
+        {
+          "id": "fldESnHIiK4km2wtY",
+          "name": "Sujet",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fldX4d1TxhkqjlutS",
+          "name": "Élève",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldwkbIYVxxJ0CAUr",
+          "name": "Matière",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fld9wBMxqiBfx9ag4",
+          "name": "Date",
+          "type": "date"
+        },
+        {
+          "id": "fldyKEer9wV1BQpd9",
+          "name": "Difficulté constatée",
+          "type": "multilineText"
+        },
+        {
+          "id": "fld1QQ1B6srz0NpD8",
+          "name": "Conseils au parent",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldAym8UFeeGECS6T",
+          "name": "Objectif",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldzU22lZ8jtu8WWN",
+          "name": "Actions proposées",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldY8qseO3f7e2UFy",
+          "name": "Prochain suivi",
+          "type": "date"
+        },
+        {
+          "id": "fldOLOt0YI9OX1d5i",
+          "name": "Statut",
+          "type": "singleSelect"
+        },
+        {
+          "id": "fld1NGCOzEM3SFy2Y",
+          "name": "Bilan et progrès",
+          "type": "multilineText"
+        },
+        {
+          "id": "fldnoldRFHObgHyKR",
+          "name": "Référent",
+          "type": "singleLineText"
+        }
+      ]
+    },
+    {
+      "id": "tblpXDtJEDRqE1xBD",
+      "name": "Education - Appels",
+      "description": "Appel quotidien par classe et élève ; présent, absent ou en retard.",
+      "primaryFieldId": "fldNIcLVaJyj7B6Qt",
+      "fields": [
+        {
+          "id": "fldNIcLVaJyj7B6Qt",
+          "name": "Appel",
+          "type": "singleLineText"
+        },
+        {
+          "id": "fld16AH9zYavu6zAO",
+          "name": "Date",
+          "type": "date"
+        },
+        {
+          "id": "fldEANHoJOy1qbNdm",
+          "name": "Classe",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldfaUXdOM0tey350",
+          "name": "Élève",
+          "type": "multipleRecordLinks"
+        },
+        {
+          "id": "fldUZYHCwthkOxB36",
+          "name": "Présence",
+          "type": "singleSelect"
+        }
+      ]
+    }
+  ]
+}
