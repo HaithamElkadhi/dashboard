@@ -3,8 +3,9 @@ import applications from './_lib/applications.js';
 import admissionDocuments from './_lib/admission-documents.js';
 import integration from './_lib/integration.js';
 import notes from './_lib/notes.js';
+import prospection from './_lib/prospection.js';
 
-export const operationHandlers = Object.freeze({ education, applications, 'admission-documents': admissionDocuments, integration, notes });
+export const operationHandlers = Object.freeze({ education, applications, 'admission-documents': admissionDocuments, integration, notes, prospection });
 export default async function handler(req, res, env = process.env) {
   const url = new URL(req.url, 'http://internal');
   const route = url.searchParams.get('__route');

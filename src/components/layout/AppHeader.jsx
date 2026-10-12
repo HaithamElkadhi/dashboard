@@ -32,7 +32,7 @@ export default function AppHeader({ title, onOpenMobileSidebar }) {
           {refresh && (
             <button
               type="button"
-              onClick={refresh}
+              onClick={() => refresh()}
               disabled={loading}
               title="Actualiser"
               className="hidden items-center gap-1.5 min-h-11 rounded-lg px-3 py-2 text-xs text-text-muted transition hover:bg-canvas disabled:opacity-60 md:inline-flex"

@@ -10,10 +10,10 @@ function displayDate(value) {
     ...(dateOnly ? {} : { hour: '2-digit', minute: '2-digit' }) }).format(new Date(value));
 }
 
-export default function LastContactActivityBlock({ prospects, loading, warnings = [], onRetry }) {
+export default function LastContactActivityBlock({ prospects, prospectionEvents, loading, warnings = [], onRetry }) {
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(20);
-  const activity = useMemo(() => homeContactActivity(prospects), [prospects]);
+  const activity = useMemo(() => homeContactActivity(prospects, prospectionEvents), [prospects, prospectionEvents]);
   const search = query.trim().toLowerCase();
   const filtered = useMemo(() => activity.filter((entry) => !search ||
     [entry.studentName, entry.title, entry.status, entry.by, CONTACT_KIND_LABELS[entry.kind]]
@@ -24,12 +24,12 @@ export default function LastContactActivityBlock({ prospects, loading, warnings 
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-navy"><ClockIcon size={20} /></span>
         <div><h2 className="text-base font-semibold text-navy">Last contact activity</h2>
-          <p className="mt-0.5 text-xs text-text-muted">All students · most recent first</p></div>
+          <p className="mt-0.5 text-xs text-text-muted">Students and prospection · most recent first</p></div>
       </div>
       <label className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-border px-3 text-text-muted sm:w-72">
         <SearchIcon size={16} /><span className="sr-only">Search contact activity</span>
         <input type="search" value={query} onChange={(event) => { setQuery(event.target.value); setLimit(20); }}
-          placeholder="Search students or activity…" className="min-w-0 flex-1 bg-transparent py-2 text-sm text-text-strong outline-none" />
+          placeholder="Search students, leads or activity…" className="min-w-0 flex-1 bg-transparent py-2 text-sm text-text-strong outline-none" />
       </label>
     </div>
     {warnings.length > 0 && <div role="status" className="border-b border-border bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:px-6">

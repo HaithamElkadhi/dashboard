@@ -3,6 +3,12 @@ import { GraduationCapIcon } from '../components/icons.jsx';
 
 const TOOLS = [
   {
+    to: '/operations/prospection',
+    icon: GraduationCapIcon,
+    title: 'Prospection',
+    desc: 'Leads à rappeler, import Excel et historique des appels.',
+  },
+  {
     to: '/operations/integration',
     icon: GraduationCapIcon,
     title: 'Integration',

@@ -1,9 +1,9 @@
 import { parseContactHistory } from './airtable.js';
 
-export const CONTACT_KIND_LABELS = { contact: 'Manual contact', email: 'Email', ticket: 'Ticket', appointment: 'Booking', note: 'Note' };
+export const CONTACT_KIND_LABELS = { contact: 'Manual contact', email: 'Email', ticket: 'Ticket', appointment: 'Booking', note: 'Note', prospection: 'Prospection' };
 
-export function homeContactActivity(prospects) {
-  const entries = [];
+export function homeContactActivity(prospects, prospectionEvents = []) {
+  const entries = [...new Map(prospectionEvents.map(event => [event.key, event])).values()];
   for (const student of prospects) {
     const studentName = student.fullName || 'Unnamed student';
     const studentHref = `/prospects?open=${encodeURIComponent(student.id)}`;

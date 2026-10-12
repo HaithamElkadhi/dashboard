@@ -7,6 +7,7 @@ import admissionDocuments from './admission-documents.js';
 import integration from './integration.js';
 import contactActivity from '../contact-activity.js';
 import notes from './notes.js';
+import prospection from './prospection.js';
 import login from '../auth/login.js';
 import me from '../auth/me.js';
 import logout from '../auth/logout.js';
@@ -31,6 +32,7 @@ export function devApi(env) {
             handler = proxy;
           }
         }
+        if (url.pathname === '/api/prospection') handler = prospection;
         if (!handler) return next();
         res.status = (status) => { res.statusCode = status; return res; };
         res.json = (body) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); };

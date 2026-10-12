@@ -63,7 +63,7 @@ export default function HomePage() {
             <PendingPaiementsBlock items={pending} loading={finance.status === 'loading'} />
             <PendingStudentsBlock items={students} loading={dash.status === 'loading'} />
           </div>
-          <LastContactActivityBlock prospects={dash.prospects}
+          <LastContactActivityBlock prospects={dash.prospects} prospectionEvents={dash.prospectionEvents}
             loading={dash.status === 'loading' || dash.activityLoading}
             warnings={dash.activityWarnings} onRetry={refresh} />
         </div>

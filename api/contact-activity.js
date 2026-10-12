@@ -3,13 +3,14 @@ import { BASE_ID, TABLES, BK } from '../src/lib/config.js';
 import { DOCUMENT_TABLES } from '../src/lib/studentDocuments.js';
 import { EMAIL_HISTORY_TABLE } from '../src/lib/contactActivity.js';
 import { NOTES_TABLE } from '../src/lib/notes.js';
+import { PROSPECTION_BASE, CALLS_TABLE } from '../src/lib/prospection.js';
 let queue = Promise.resolve();
 export default async function handler(req, res, env = process.env) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed.' });
   try {
     await requireUser(req, env);
-    const list = async (table, fields, formula, ids = false) => {
+    const list = async (table, fields, formula, ids = false, base = BASE_ID) => {
       let offset; const records = [];
       do {
         const params = new URLSearchParams({ pageSize: '100' });
@@ -18,7 +19,8 @@ export default async function handler(req, res, env = process.env) {
         if (offset) params.set('offset', offset);
         fields.forEach(field => params.append('fields[]', field));
         const operation = queue.then(async () => {
-          const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${table}?${params}`, { headers: { Authorization: `Bearer ${env.AIRTABLE_API_KEY}` }, signal: AbortSignal.timeout(20000) });
+          const token = base === PROSPECTION_BASE ? env.AIRTABLE_PROSPECTION_TOKEN || env.AIRTABLE_API_KEY : env.AIRTABLE_API_KEY;
+          const response = await fetch(`https://api.airtable.com/v0/${base}/${table}?${params}`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20000) });
           if (!response.ok) throw authError(503, 'Activity source unavailable.');
           return response.json();
         });
@@ -49,6 +51,15 @@ export default async function handler(req, res, env = process.env) {
       const records = await list(NOTES_TABLE, ['Title', 'Student', 'Call Date', 'Status']);
       for (const r of records) { const f=r.fields; if(f.Student?.length) events.push({key:`note:${r.id}`,kind:'note',at:f['Call Date'] || r.createdTime,studentIds:f.Student,recipient:'',title:f.Title || 'Call note',status:f.Status || 'Open',countsAsContact:!!f['Call Date'],href:`/notes?note=${r.id}`}); }
     });
-    res.json({ events, warnings });
+    const prospectionEvents = [];
+    await source('Prospection', async () => {
+      const records = await list(CALLS_TABLE, ['Full Name', 'Lead ID', 'Date et Heure', 'Canal of Call', 'Intérêt', 'State', 'Comment', 'Called By'], null, false, PROSPECTION_BASE);
+      for (const r of records) {
+        const f = r.fields;
+        const href = f['Lead ID'] ? `/operations/prospection?lead=${encodeURIComponent(f['Lead ID'])}` : '/operations/prospection';
+        prospectionEvents.push({ key: `prospection:${r.id}`, kind: 'prospection', at: f['Date et Heure'] || r.createdTime || '', studentName: f['Full Name'] || 'Lead', studentHref: href, href, title: [f['Canal of Call'] || 'Appel', f.Comment].filter(Boolean).join(' : '), status: f['Intérêt'] || f.State || '', by: f['Called By'] || '' });
+      }
+    });
+    res.json({ events, prospectionEvents, warnings });
   } catch (error) { sendAuthError(res, error); }
 }

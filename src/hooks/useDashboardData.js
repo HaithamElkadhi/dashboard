@@ -11,6 +11,7 @@ export function useDashboardData() {
   const [status, setStatus] = useState(cached ? 'ready' : 'idle'); // idle | loading | ready | error
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(cached?.lastUpdated ?? null);
+  const [prospectionEvents, setProspectionEvents] = useState([]);
   const [activityWarnings, setActivityWarnings] = useState([]);
   const [activityLoading, setActivityLoading] = useState(false);
 
@@ -33,6 +34,7 @@ export function useDashboardData() {
         const activity = await fetchContactActivity();
         if (current !== generation.current) return;
         setProspects(previous => mergeContactActivity(previous, activity.events));
+        setProspectionEvents(activity.prospectionEvents || []);
         setActivityWarnings(activity.warnings);
       } catch (err) { if (current === generation.current) setActivityWarnings([err.message]); }
       finally { if (current === generation.current) setActivityLoading(false); }
@@ -110,5 +112,5 @@ export function useDashboardData() {
     [schema, lastUpdated]
   );
 
-  return { prospects, schema, status, error, lastUpdated, activityWarnings, activityLoading, refresh: load, update, remove, patchLocal };
+  return { prospectionEvents, prospects, schema, status, error, lastUpdated, activityWarnings, activityLoading, refresh: load, update, remove, patchLocal };
 }

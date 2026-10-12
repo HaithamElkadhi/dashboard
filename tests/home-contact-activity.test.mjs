@@ -36,3 +36,12 @@ test('undated history remains visible; last-contact fallback avoids duplicating 
 test('students without contact activity do not create fictional entries', () => {
   assert.deepEqual(homeContactActivity([{ id: 'recOne' }]), []);
 });
+
+test('prospection calls appear without matching students and sort with existing activity', () => {
+  const call = { key: 'prospection:recCall', kind: 'prospection', studentName: 'Lead Test', at: '2026-10-12T12:00:00Z', title: 'WhatsApp : Suivi', by: 'Agent', href: '/operations/prospection?lead=recLead' };
+  const rows = homeContactActivity([{ id: 'recStudent', manualLastContact: '2026-10-10' }], [call, call]);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].studentName, 'Lead Test');
+  assert.equal(rows[0].by, 'Agent');
+  assert.equal(rows[0].href, '/operations/prospection?lead=recLead');
+});
