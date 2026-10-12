@@ -7,7 +7,7 @@
 // The Authorization header is injected server-side so the token never reaches
 // the browser. Configure AIRTABLE_API_KEY in the Vercel project env variables.
 
-import { requireUser, checkOrigin, sendAuthError } from './_lib/auth.js';
+import { requireUser, checkOrigin, sendAuthError, airtable, USERS_TABLE, authError } from './_lib/auth.js';
 import { BASE_ID, EXPENSES_BASE_ID, TABLES } from '../src/lib/config.js';
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 const AIRTABLE_CONTENT = 'https://content.airtable.com/v0';
@@ -56,7 +56,24 @@ export default async function handler(req, res, env = process.env) {
 
   if (method === 'POST' || method === 'PATCH') {
     headers['Content-Type'] = 'application/json';
-    const body = req.body;
+    let body = req.body;
+    if (parts[0] === BASE_ID && parts[1] === TABLES.tasks && body) {
+      try {
+        body = typeof body === 'string' ? JSON.parse(body) : body;
+        // Resolve the display name on the server; the browser only chooses a user ID.
+        const records = body.records || [body];
+        for (const record of records) {
+          const fields = record.fields;
+          if (!fields || !Object.hasOwn(fields, 'Assigned User ID')) continue;
+          const id = fields['Assigned User ID'];
+          if (!id) { fields['Assigned User Name'] = ''; continue; }
+          if (typeof id !== 'string' || !/^rec[A-Za-z0-9]+$/.test(id)) throw authError(400, 'Choisissez un utilisateur du dashboard.');
+          const assignee = await airtable(`${USERS_TABLE}/${id}`, { env });
+          if (assignee.fields?.is_active !== true) throw authError(400, 'Cet utilisateur est inactif. Choisissez un utilisateur actif.');
+          fields['Assigned User Name'] = assignee.fields.display_name || assignee.fields.username;
+        }
+      } catch (error) { return sendAuthError(res, error); }
+    }
     init.body =
       body == null || body === ''
         ? undefined

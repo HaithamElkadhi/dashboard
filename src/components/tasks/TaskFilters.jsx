@@ -74,7 +74,7 @@ function FilterPopover({ label, active, activeLabel, options, value, onSelect })
   );
 }
 
-export default function TaskFilters({ filters, onChange, onReset, hasActiveFilters }) {
+export default function TaskFilters({ filters, onChange, onReset, hasActiveFilters, assignees = [] }) {
   const set = (key) => (value) => onChange({ ...filters, [key]: value });
 
   return (
@@ -99,7 +99,7 @@ export default function TaskFilters({ filters, onChange, onReset, hasActiveFilte
         activeLabel={filters.assignee}
         value={filters.assignee}
         onSelect={set('assignee')}
-        options={[{ value: 'All', label: 'Tous' }, ...ASSIGNEES.map((a) => ({ value: a, label: a }))]}
+        options={[{ value: 'All', label: 'Tous' }, ...[...new Set([...ASSIGNEES, ...assignees])].map((a) => ({ value: a, label: a }))]}
       />
 
       <FilterPopover

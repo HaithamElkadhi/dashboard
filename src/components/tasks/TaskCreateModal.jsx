@@ -29,6 +29,7 @@ export default function TaskCreateModal({
         submitLabel="Créer la tâche"
         showCreateAnother
         compact
+        simple
         onCancel={onClose}
         onSubmit={handleSubmit}
       />

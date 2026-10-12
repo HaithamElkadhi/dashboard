@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ALL_TASK_STATUSES,
-  ASSIGNEES,
   TASK_PRIORITIES,
   TASK_TYPES,
 } from '../../lib/config.js';
@@ -69,11 +68,11 @@ function Select({ value, onChange, placeholder, children, required }) {
   );
 }
 
-function emptyForm(initialStatus) {
+function emptyForm(initialStatus, simple) {
   return {
     name: '',
-    type: '',
-    priority: '',
+    type: simple ? 'Other' : '',
+    priority: simple ? 'Medium' : '',
     assignedTo: '',
     status: initialStatus || 'Todo',
     ddl: '',
@@ -92,14 +91,15 @@ export default function TaskForm({
   showStatus = true,
   showCreateAnother = false,
   compact = false,
+  simple = false,
 }) {
   const [form, setForm] = useState(() => {
-    if (!initial) return emptyForm(initialStatus);
+    if (!initial) return emptyForm(initialStatus, simple);
     return {
       name: initial.name || '',
       type: initial.type || '',
       priority: initial.priority || '',
-      assignedTo: initial.assignedTo || '',
+      assignedTo: initial.assignedUserId || initial.assignedTo || '',
       status: initial.status || 'Todo',
       ddl: initial.ddl || '',
       notes: initial.notes || '',
@@ -108,12 +108,27 @@ export default function TaskForm({
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setUsersLoading(true); setUsersError('');
+    fetch('/api/ticketing?users=1', { cache: 'no-store', signal: controller.signal })
+      .then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Impossible de charger les utilisateurs.'); return data.users || []; })
+      .then(list => { if (!controller.signal.aborted) setUsers(list); })
+      .catch(err => { if (!controller.signal.aborted) setUsersError(err.message); })
+      .finally(() => { if (!controller.signal.aborted) setUsersLoading(false); });
+    return () => controller.abort();
+  }, [retry]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const submit = async (keepOpen) => {
+    if (saving || usersLoading || usersError) return;
     if (!form.name.trim() || !form.type || !form.priority || !form.assignedTo) {
-      setError('Titre, type, priorité et responsable sont obligatoires.');
+      setError(simple ? 'Titre et responsable sont obligatoires.' : 'Titre, type, priorité et responsable sont obligatoires.');
       return;
     }
     setSaving(true);
@@ -134,7 +149,7 @@ export default function TaskForm({
         prospectName,
       };
       await onSubmit(payload, keepOpen);
-      if (!initial) setForm(emptyForm(initialStatus));
+      if (!initial) setForm(emptyForm(initialStatus, simple));
     } catch (err) {
       setError(err.message || 'Échec de l’enregistrement');
     } finally {
@@ -150,8 +165,11 @@ export default function TaskForm({
       }}
       className={compact ? 'space-y-4' : 'space-y-5'}
     >
+      <fieldset disabled={saving} className={compact ? 'space-y-4' : 'space-y-5'}>
       <Field label="Titre" required>
         <input data-write=""
+          required
+          disabled={saving}
           autoFocus={!initial}
           className={inputClass}
           value={form.name}
@@ -161,7 +179,7 @@ export default function TaskForm({
       </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Type" required>
+        {!simple && <Field label="Type" required>
           <Select
             required
             value={form.type}
@@ -174,9 +192,9 @@ export default function TaskForm({
               </option>
             ))}
           </Select>
-        </Field>
+        </Field>}
 
-        <Field label="Priorité" required>
+        {!simple && <Field label="Priorité" required>
           <Select
             required
             value={form.priority}
@@ -189,24 +207,25 @@ export default function TaskForm({
               </option>
             ))}
           </Select>
-        </Field>
+        </Field>}
 
         <Field label="Responsable" required>
           <Select
             required
             value={form.assignedTo}
             onChange={set('assignedTo')}
-            placeholder="Assigner à…"
+            placeholder={usersLoading ? 'Chargement…' : 'Assigner à…'}
           >
-            {ASSIGNEES.map((a) => (
-              <option key={a} value={a}>
-                {a}
+            {initial && form.assignedTo && !users.some(user => user.id === form.assignedTo) && <option value={form.assignedTo}>{initial.assignedToName || initial.assignedTo} (actuel)</option>}
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.displayName} ({user.username})
               </option>
             ))}
           </Select>
         </Field>
 
-        {showStatus ? (
+        {!simple && showStatus ? (
           <Field label="Statut">
             <Select value={form.status} onChange={set('status')}>
               {ALL_TASK_STATUSES.map((s) => (
@@ -228,7 +247,7 @@ export default function TaskForm({
         )}
       </div>
 
-      {showStatus && (
+      {!simple && showStatus && (
         <Field label="Date d’échéance" className="sm:max-w-xs">
           <input data-write=""
             type="date"
@@ -241,7 +260,7 @@ export default function TaskForm({
 
       <div className="block space-y-1.5">
         <span className="block text-sm font-medium text-text-strong">
-          Étudiant / Prospect
+          Lead / Prospect concerné
         </span>
         <ProspectPicker
           people={people}
@@ -252,7 +271,7 @@ export default function TaskForm({
         />
       </div>
 
-      <Field label="Description / notes">
+      <Field label={simple ? 'Description' : 'Description / notes'}>
         <textarea data-write=""
           rows={compact ? 3 : 4}
           className={`${inputClass} resize-y`}
@@ -261,6 +280,9 @@ export default function TaskForm({
           placeholder="Notes internes…"
         />
       </Field>
+      {usersError && <p role="alert" className="text-sm text-red-700">{usersError} <button type="button" className="underline" onClick={() => setRetry(value => value + 1)}>Réessayer</button></p>}
+      {!usersLoading && !usersError && !users.length && <p role="status" className="text-sm text-text-muted">Aucun utilisateur actif disponible.</p>}
+      </fieldset>
 
       {error && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -272,6 +294,7 @@ export default function TaskForm({
         {onCancel && (
           <button
             type="button"
+            disabled={saving}
             onClick={onCancel}
             className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-text-strong transition hover:border-border-strong hover:bg-canvas"
           >
@@ -281,7 +304,7 @@ export default function TaskForm({
         {showCreateAnother && (
           <button data-write=""
             type="button"
-            disabled={saving}
+            disabled={saving || usersLoading || !!usersError || !users.length}
             onClick={() => submit(true)}
             className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-text-strong transition hover:border-border-strong hover:bg-canvas disabled:opacity-60"
           >
@@ -290,7 +313,7 @@ export default function TaskForm({
         )}
         <button data-write=""
           type="submit"
-          disabled={saving}
+          disabled={saving || usersLoading || !!usersError || !users.length}
           className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:opacity-60"
         >
           {saving ? 'Enregistrement…' : submitLabel}

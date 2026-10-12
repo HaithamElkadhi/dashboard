@@ -68,7 +68,7 @@ export default function TaskDetailsModal({
         name: task.name,
         type: task.type,
         priority: task.priority,
-        assignedTo: task.assignedTo,
+        assignedTo: task.assignedUserId || task.assignedTo,
         status: 'Todo',
         ddl: task.ddl,
         notes: task.notes,

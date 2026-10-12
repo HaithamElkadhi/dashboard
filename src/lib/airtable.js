@@ -475,7 +475,8 @@ export function normalizeTask(record) {
     status: f[TF.status] || (f.Type === 'Ticket' ? '' : 'Todo'),
     priority: f[TF.priority] || '',
     type: f[TF.type] || '',
-    assignedTo: f.Type === 'Ticket' ? f['Assigned User ID'] || '' : f[TF.assignedTo] || '',
+    assignedTo: f.Type === 'Ticket' ? f['Assigned User ID'] || '' : f['Assigned User Name'] || f[TF.assignedTo] || '',
+    assignedUserId: f['Assigned User ID'] || '',
     assignedToName: f['Assigned User Name'] || '', legacyAssignedTo: f.Type === 'Ticket' ? f[TF.assignedTo] || '' : '',
     ddl: f[TF.ddl] || '',
     prospectName: f[TF.prospectName] || '',
@@ -491,7 +492,14 @@ function toAirtableFields(input) {
   if (input.status != null) fields[TF.status] = input.status;
   if (input.priority != null) fields[TF.priority] = input.priority;
   if (input.type != null) fields[TF.type] = input.type;
-  if (input.assignedTo != null) fields[TF.assignedTo] = input.assignedTo;
+  if (input.assignedTo != null) {
+    if (/^rec[A-Za-z0-9]+$/.test(input.assignedTo)) fields['Assigned User ID'] = input.assignedTo;
+    else {
+      fields[TF.assignedTo] = input.assignedTo;
+      fields['Assigned User ID'] = '';
+      fields['Assigned User Name'] = '';
+    }
+  }
   if (input.ddl !== undefined) {
     fields[TF.ddl] = input.ddl || null;
   }

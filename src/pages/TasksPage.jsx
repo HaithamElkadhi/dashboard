@@ -267,7 +267,7 @@ export default function TasksPage() {
         name: task.name,
         type: task.type,
         priority: task.priority,
-        assignedTo: task.assignedTo,
+        assignedTo: task.assignedUserId || task.assignedTo,
         status: 'Todo',
         ddl: task.ddl,
         notes: task.notes,
@@ -347,6 +347,7 @@ export default function TasksPage() {
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TaskFilters
+              assignees={[...new Set(tasks.map(task => task.assignedTo).filter(Boolean))]}
               filters={filters}
               onChange={setFilters}
               onReset={resetFilters}
