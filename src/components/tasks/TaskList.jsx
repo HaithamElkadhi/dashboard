@@ -15,12 +15,7 @@ const GROUP_ORDER = [
   { key: 'noDeadline', label: 'Sans échéance' },
 ];
 
-const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
-
 function compareTasks(a, b, sortBy) {
-  if (sortBy === 'priority') {
-    return (PRIORITY_ORDER[a.priority] ?? 3) - (PRIORITY_ORDER[b.priority] ?? 3);
-  }
   if (sortBy === 'name') return a.name.localeCompare(b.name, 'fr');
   return (a.ddl || '9999-99-99').localeCompare(b.ddl || '9999-99-99');
 }

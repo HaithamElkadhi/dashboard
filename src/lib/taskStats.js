@@ -1,6 +1,6 @@
 // Shared task-metrics computation — used by the workspace's stat cards and
 // right-side widgets, and by the Reports page, so both read from one place.
-import { ARCHIVED_STATUS, ASSIGNEES, TASK_STATUSES } from './config.js';
+import { ARCHIVED_STATUS, TASK_STATUSES } from './config.js';
 import { isTaskOverdue, todayISO } from './taskDates.js';
 
 export function computeTaskStats(tasks, today = todayISO()) {
@@ -35,7 +35,7 @@ export function computeTaskStats(tasks, today = todayISO()) {
 
 export function computeWorkload(tasks) {
   const activeTasks = tasks.filter((t) => t.status !== ARCHIVED_STATUS);
-  return [...new Set([...ASSIGNEES, ...activeTasks.map(task => task.assignedTo).filter(Boolean)])].map((name) => {
+  return [...new Set(activeTasks.map(task => task.assignedTo).filter(Boolean))].map((name) => {
     const row = { name, Todo: 0, 'In progress': 0, Blocked: 0, Done: 0, Total: 0 };
     for (const t of activeTasks) {
       if (t.assignedTo !== name) continue;

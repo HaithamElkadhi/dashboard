@@ -1,4 +1,4 @@
-import { priorityLabel, statusLabel, typeLabel } from '../../lib/taskLabels.js';
+import { statusLabel, typeLabel } from '../../lib/taskLabels.js';
 import { XIcon } from '../icons.jsx';
 
 const DUE_LABELS = {
@@ -24,7 +24,7 @@ function Chip({ label, onRemove }) {
   );
 }
 
-export default function ActiveFilterChips({ filters, onChange }) {
+export default function ActiveFilterChips({ filters, onChange, assigneeLabel }) {
   const chips = [];
   if (filters.query.trim()) {
     chips.push({
@@ -36,15 +36,8 @@ export default function ActiveFilterChips({ filters, onChange }) {
   if (filters.assignee !== 'All') {
     chips.push({
       key: 'assignee',
-      label: filters.assignee,
+      label: assigneeLabel || filters.assignee,
       clear: () => onChange({ ...filters, assignee: 'All' }),
-    });
-  }
-  if (filters.priority !== 'All') {
-    chips.push({
-      key: 'priority',
-      label: priorityLabel(filters.priority),
-      clear: () => onChange({ ...filters, priority: 'All' }),
     });
   }
   if (filters.type !== 'All') {

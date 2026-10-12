@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTasksWorkspace } from '../contexts/TasksWorkspaceContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { usePageRefreshRegistration } from '../contexts/PageRefreshContext.jsx';
 import { ErrorState } from '../components/states.jsx';
 import Pagination from '../components/Pagination.jsx';
@@ -9,13 +10,11 @@ import TaskFilters from '../components/tasks/TaskFilters.jsx';
 import ActiveFilterChips from '../components/tasks/ActiveFilterChips.jsx';
 import TaskList from '../components/tasks/TaskList.jsx';
 import KanbanBoard from '../components/tasks/KanbanBoard.jsx';
-import ProgressWidget from '../components/tasks/ProgressWidget.jsx';
-import UpcomingDeadlinesWidget from '../components/tasks/UpcomingDeadlinesWidget.jsx';
-import WorkloadWidget from '../components/tasks/WorkloadWidget.jsx';
 import { usePagination } from '../hooks/usePagination.js';
 import { ARCHIVED_STATUS } from '../lib/config.js';
 import { addDaysISO, isTaskOverdue, todayISO } from '../lib/taskDates.js';
 import { computeTaskStats } from '../lib/taskStats.js';
+import { matchesTaskAssignee } from '../lib/taskAssignees.js';
 import {
   ArchiveIcon,
   CalendarIcon,
@@ -27,13 +26,12 @@ import {
   TrashIcon,
 } from '../components/icons.jsx';
 
-const ASSIGNEE_FILTER_KEY = 'jeexpert:tasks:assigneeFilter:v1';
+const ASSIGNEE_FILTER_KEY = 'jeexpert:tasks:assigneeFilter:v2';
 const VIEW_MODE_KEY = 'jeexpert:tasks:viewMode';
 
 const DEFAULT_FILTERS = {
   query: '',
   assignee: 'All',
-  priority: 'All',
   type: 'All',
   status: 'All',
   due: 'all',
@@ -114,6 +112,16 @@ function ArchivedSection({ tasks, onOpen, onRestore, onDelete }) {
 }
 
 export default function TasksPage() {
+  const { user } = useAuth();
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/ticketing?users=1', { signal: controller.signal })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Users unavailable')))
+      .then(data => setUsers(data.users || []))
+      .catch(() => { /* Existing task assignees remain available when offline. */ });
+    return () => controller.abort();
+  }, []);
   const {
     tasks: allTasks,
     status,
@@ -164,14 +172,27 @@ export default function TasksPage() {
     ...DEFAULT_FILTERS,
     assignee:
       typeof window !== 'undefined'
-        ? localStorage.getItem(ASSIGNEE_FILTER_KEY) || 'All'
-        : 'All',
+        ? localStorage.getItem(`${ASSIGNEE_FILTER_KEY}:${user.id}`) || 'Mine'
+        : 'Mine',
   }));
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   useEffect(() => {
-    localStorage.setItem(ASSIGNEE_FILTER_KEY, filters.assignee);
-  }, [filters.assignee]);
+    localStorage.setItem(`${ASSIGNEE_FILTER_KEY}:${user.id}`, filters.assignee);
+  }, [filters.assignee, user.id]);
+
+  const assignees = useMemo(() => {
+    const options = new Map(users.map(account => [account.id, {
+      value: account.id, label: `${account.displayName || account.username} (${account.username})`,
+    }]));
+    for (const task of tasks) {
+      if (task.assignedUserId && !options.has(task.assignedUserId)) {
+        options.set(task.assignedUserId, { value: task.assignedUserId, label: task.assignedTo || 'Utilisateur' });
+      }
+    }
+    return [...options.values()];
+  }, [users, tasks]);
+  const assigneeLabel = filters.assignee === 'Mine' ? 'Mes tâches' : assignees.find(option => option.value === filters.assignee)?.label || 'Responsable';
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(filters.query), 300);
@@ -195,22 +216,24 @@ export default function TasksPage() {
   }, [refresh, lastUpdated]);
 
   const today = todayISO();
+  const assignedTasks = useMemo(
+    () => tasks.filter(task => matchesTaskAssignee(task, filters.assignee, user.id)),
+    [tasks, filters.assignee, user.id]
+  );
 
   const activeTasks = useMemo(
-    () => tasks.filter((t) => t.status !== ARCHIVED_STATUS),
-    [tasks]
+    () => assignedTasks.filter((t) => t.status !== ARCHIVED_STATUS),
+    [assignedTasks]
   );
   const archivedTasks = useMemo(
-    () => tasks.filter((t) => t.status === ARCHIVED_STATUS),
-    [tasks]
+    () => assignedTasks.filter((t) => t.status === ARCHIVED_STATUS),
+    [assignedTasks]
   );
 
   const filteredTasks = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     const weekEnd = addDaysISO(today, 7);
     return activeTasks.filter((t) => {
-      if (filters.assignee !== 'All' && t.assignedTo !== filters.assignee) return false;
-      if (filters.priority !== 'All' && t.priority !== filters.priority) return false;
       if (filters.type !== 'All' && t.type !== filters.type) return false;
       if (filters.status !== 'All' && t.status !== filters.status) return false;
       if (filters.due === 'overdue' && !isTaskOverdue(t, today)) return false;
@@ -233,14 +256,13 @@ export default function TasksPage() {
   const hasActiveFilters =
     filters.query.trim() !== '' ||
     filters.assignee !== 'All' ||
-    filters.priority !== 'All' ||
     filters.type !== 'All' ||
     filters.status !== 'All' ||
     filters.due !== 'all';
 
   const resetFilters = () => setFilters({ ...DEFAULT_FILTERS, assignee: filters.assignee });
 
-  const stats = useMemo(() => computeTaskStats(tasks, today), [tasks, today]);
+  const stats = useMemo(() => computeTaskStats(assignedTasks, today), [assignedTasks, today]);
 
   const handleToggleDone = async (task) => {
     try {
@@ -343,11 +365,12 @@ export default function TasksPage() {
         />
       </div>
 
-      <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-start">
+      <div className="mt-5">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TaskFilters
-              assignees={[...new Set(tasks.map(task => task.assignedTo).filter(Boolean))]}
+              assignees={assignees}
+              assigneeLabel={assigneeLabel}
               filters={filters}
               onChange={setFilters}
               onReset={resetFilters}
@@ -377,7 +400,7 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <ActiveFilterChips filters={filters} onChange={setFilters} />
+          <ActiveFilterChips filters={filters} onChange={setFilters} assigneeLabel={assigneeLabel} />
 
           {showSkeleton ? (
             <div className="space-y-2 rounded-2xl border border-border bg-surface p-3">
@@ -420,11 +443,6 @@ export default function TasksPage() {
           />
         </div>
 
-        <aside className="w-full shrink-0 space-y-4 lg:w-72">
-          <ProgressWidget stats={stats} />
-          <UpcomingDeadlinesWidget tasks={activeTasks} />
-          <WorkloadWidget tasks={activeTasks} />
-        </aside>
       </div>
     </div>
   );

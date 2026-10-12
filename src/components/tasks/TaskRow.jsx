@@ -1,6 +1,5 @@
 import { formatShortDate, isTaskOverdue } from '../../lib/taskDates.js';
 import { typeLabel } from '../../lib/taskLabels.js';
-import PriorityBadge from './PriorityBadge.jsx';
 import AssigneeAvatar from './AssigneeAvatar.jsx';
 import TaskQuickActionsMenu from './TaskQuickActionsMenu.jsx';
 import { CheckIcon, ClockAlertIcon } from '../icons.jsx';
@@ -55,10 +54,6 @@ export default function TaskRow({
           {task.prospectName && task.type && <span>·</span>}
           {task.type && <span className="truncate">{typeLabel(task.type)}</span>}
         </div>
-      </div>
-
-      <div className="hidden shrink-0 sm:block">
-        <PriorityBadge priority={task.priority} />
       </div>
 
       <div className="w-16 shrink-0 text-right text-xs">

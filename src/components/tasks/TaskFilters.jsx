@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ASSIGNEES,
-  TASK_PRIORITIES,
   TASK_STATUSES,
   TASK_TYPES,
 } from '../../lib/config.js';
-import { priorityLabel, statusLabel, typeLabel } from '../../lib/taskLabels.js';
+import { statusLabel, typeLabel } from '../../lib/taskLabels.js';
 import { ArrowUpDownIcon, ChevronDownIcon, SearchIcon } from '../icons.jsx';
 
 const DUE_OPTIONS = [
@@ -18,7 +16,6 @@ const DUE_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: 'deadline', label: 'Échéance' },
-  { value: 'priority', label: 'Priorité' },
   { value: 'name', label: 'Nom' },
 ];
 
@@ -74,7 +71,7 @@ function FilterPopover({ label, active, activeLabel, options, value, onSelect })
   );
 }
 
-export default function TaskFilters({ filters, onChange, onReset, hasActiveFilters, assignees = [] }) {
+export default function TaskFilters({ filters, onChange, onReset, hasActiveFilters, assignees = [], assigneeLabel }) {
   const set = (key) => (value) => onChange({ ...filters, [key]: value });
 
   return (
@@ -96,22 +93,10 @@ export default function TaskFilters({ filters, onChange, onReset, hasActiveFilte
       <FilterPopover
         label="Responsable"
         active={filters.assignee !== 'All'}
-        activeLabel={filters.assignee}
+        activeLabel={assigneeLabel}
         value={filters.assignee}
         onSelect={set('assignee')}
-        options={[{ value: 'All', label: 'Tous' }, ...[...new Set([...ASSIGNEES, ...assignees])].map((a) => ({ value: a, label: a }))]}
-      />
-
-      <FilterPopover
-        label="Priorité"
-        active={filters.priority !== 'All'}
-        activeLabel={priorityLabel(filters.priority)}
-        value={filters.priority}
-        onSelect={set('priority')}
-        options={[
-          { value: 'All', label: 'Toutes' },
-          ...TASK_PRIORITIES.map((p) => ({ value: p, label: priorityLabel(p) })),
-        ]}
+        options={[{ value: 'Mine', label: 'Mes tâches' }, { value: 'All', label: 'Tous' }, ...assignees]}
       />
 
       <FilterPopover
