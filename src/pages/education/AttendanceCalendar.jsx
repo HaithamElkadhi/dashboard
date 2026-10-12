@@ -14,6 +14,7 @@ export default function AttendanceCalendar({ tables, onSave, onOpenStudent, onDi
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [exporting, setExporting] = useState(false);
   const baseline = useRef('{}');
   const dirty = JSON.stringify(marks) !== baseline.current;
   useEffect(() => { onDirtyChange?.(dirty || busy); }, [dirty, busy, onDirtyChange]);
@@ -47,6 +48,16 @@ export default function AttendanceCalendar({ tables, onSave, onOpenStudent, onDi
     return counts;
   }, [tables.attendance, classId]);
   const complete = roster.length > 0 && roster.every(student => statuses.includes(marks[student.id]));
+  const downloadPdf = async () => {
+    if (busy || exporting || !classId || !roster.length) return;
+    setExporting(true); setError('');
+    try {
+      const { createAttendancePdf, attendancePdfFilename } = await import('../../lib/attendancePdf.js');
+      const className = tables.classes?.find(item => item.id === classId)?.fields?.Classe || 'Classe';
+      createAttendancePdf({ className, date, roster, marks, draft: dirty || !complete }).save(attendancePdfFilename(className, date));
+    } catch { setError('Impossible de télécharger la fiche de présence. Réessayez.'); }
+    finally { setExporting(false); }
+  };
   const save = async () => {
     if (!complete || busy) return;
     setBusy(true); setError(''); setNotice('');
@@ -61,6 +72,7 @@ export default function AttendanceCalendar({ tables, onSave, onOpenStudent, onDi
     finally { setBusy(false); }
   };
   return <section className="edu-attendance">
+    <div className="edu-actions"><button type="button" className="edu-button" disabled={busy || exporting || !classId || !roster.length} onClick={downloadPdf}>{exporting ? 'Préparation du PDF…' : 'Télécharger la fiche de présence (PDF)'}</button></div>
     <div className="edu-card edu-attendance-calendar">
       <div className="edu-section-heading"><h2>Absences et appel</h2><button className="edu-button" disabled={busy} onClick={() => navigate(() => { setDate(today()); setMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1)); })}>Aujourd’hui</button></div>
       <label className="edu-attendance-class">Classe<select aria-label='Classe de l’appel' value={classId} disabled={busy} onChange={event => navigate(() => setClassId(event.target.value))}><option value="">Choisir une classe</option>{(tables.classes || []).map(item => <option key={item.id} value={item.id}>{item.fields?.Classe || 'Classe'}</option>)}</select></label>

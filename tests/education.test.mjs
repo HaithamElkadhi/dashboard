@@ -105,9 +105,38 @@ test('email derives the recipient from the linked parent and rejects unrelated d
   assert.equal(response.code, 200);
   const sent = calls.find(call => call.path === 'https://api.resend.com/emails');
   assert.deepEqual(JSON.parse(sent.body).to, ['parent@example.com']);
+  assert.equal(JSON.parse(sent.body).from, 'Ecole <maitre@jeexpert-study.com>');
+  assert.equal(Object.hasOwn(JSON.parse(sent.body), 'cc'), false);
   assert.equal(sent.headers['Idempotency-Key'], 'education-request123');
   response = res(); await handler(req('POST', { ...body, parentId: 'recOther' }), response, env); assert.equal(response.code, 400);
   response = res(); await handler(req('POST', { ...body, source: { entity: 'results', id: 'recResult' } }), response, env); assert.equal(response.code, 400);
+  for (const cc of ['invalid', 'boss@example.com\r\nBcc: other@example.com', ['boss@example.com'], 'a@example.com,b@example.com']) {
+    response = res(); await handler(req('POST', { ...body, cc }), response, { ...env, RESEND_API_KEY: 'fake' }); assert.equal(response.code, 400);
+  }
+});
+
+test('note email includes every saved exam copy and omits attachments when there are none', async () => {
+  const calls = mock(), base = globalThis.fetch;
+  let copies = [{ url: 'https://example.com/examen.pdf', filename: 'examen.pdf' }, { url: 'https://example.com/page.png', filename: 'page.png' }];
+  globalThis.fetch = async (url, init) => {
+    if (String(url).endsWith('/recStudent')) return { ok: true, json: async () => ({ fields: { Parents: ['recParent'] } }) };
+    if (String(url).endsWith('/recParent')) return { ok: true, json: async () => ({ fields: { Email: 'parent@example.com' } }) };
+    if (String(url).endsWith('/recResult')) return { ok: true, json: async () => ({ fields: { 'Élève': ['recStudent'], 'Copies d’examen': copies } }) };
+    return base(url, init);
+  };
+  const body = { action: 'email', studentId: 'recStudent', parentId: 'recParent', cc: ' directeur@example.com ', subject: 'Note', body: 'Bonjour', source: { entity: 'results', id: 'recResult' } };
+  let response = res();
+  await handler(req('POST', body), response, { ...env, RESEND_API_KEY: 'fake', RESEND_FROM_CONTACT_Ecole: 'Ecole Test <maitre@jeexpert-study.com>' });
+  assert.equal(response.code, 200);
+  const sent = JSON.parse(calls.find(call => call.path === 'https://api.resend.com/emails').body);
+  assert.deepEqual(sent.to, ['parent@example.com']);
+  assert.equal(sent.from, 'Ecole Test <maitre@jeexpert-study.com>');
+  assert.deepEqual(sent.cc, ['directeur@example.com']);
+  assert.deepEqual(sent.attachments, copies.map(file => ({ path: file.url, filename: file.filename })));
+  copies = []; calls.length = 0; response = res();
+  await handler(req('POST', body), response, { ...env, RESEND_API_KEY: 'fake' });
+  assert.equal(response.code, 200);
+  assert.equal(Object.hasOwn(JSON.parse(calls.find(call => call.path === 'https://api.resend.com/emails').body), 'attachments'), false);
 });
 
 test('file upload checks type, size and actual record before using the attachment endpoint', async () => {

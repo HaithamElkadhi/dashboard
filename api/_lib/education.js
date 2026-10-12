@@ -138,6 +138,8 @@ export default async function handler(req, res, env = process.env) {
     }
     if (req.method === 'POST' && body?.action === 'email') {
       if (!recordId(body.studentId) || !recordId(body.parentId) || typeof body.subject !== 'string' || !body.subject.trim() || body.subject.length > 300 || /[\r\n]/.test(body.subject) || typeof body.body !== 'string' || !body.body.trim() || body.body.length > 20000) invalid('Email invalide.');
+      if (body.cc !== undefined && (typeof body.cc !== 'string' || body.cc.length > 254 || body.cc.trim() && !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(body.cc.trim()))) invalid('Adresse email en copie (CC) invalide.');
+      const cc = body.cc?.trim();
       if (body.requestId && !/^[A-Za-z0-9_-]{8,100}$/.test(body.requestId)) invalid('Identifiant envoi invalide.');
       const student = await request(`${EDUCATION_BASE}/${EDUCATION_ENTITIES.students.tableId}/${body.studentId}`);
       if (!student.fields.Parents?.includes(body.parentId)) invalid('Ce parent ne correspond pas à cet élève.');
@@ -152,7 +154,7 @@ export default async function handler(req, res, env = process.env) {
         attachments = (source.fields['Copies d’examen'] || []).filter(file => safeAttachmentUrl(file.url)).map(file => ({ path: file.url, filename: file.filename || 'copie.pdf' }));
       }
       if (!env.RESEND_API_KEY) throw authError(503, 'Envoi email non configuré.');
-      const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', ...(body.requestId ? { 'Idempotency-Key': `education-${body.requestId}` } : {}) }, body: JSON.stringify({ from: env.RESEND_FROM_CONTACT || env.RESEND_FROM || 'onboarding@resend.dev', to: [recipient], subject: body.subject.trim(), text: body.body.trim(), ...(attachments.length ? { attachments } : {}) }), signal: AbortSignal.timeout(20000) });
+      const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', ...(body.requestId ? { 'Idempotency-Key': `education-${body.requestId}` } : {}) }, body: JSON.stringify({ from: env.RESEND_FROM_CONTACT_Ecole || 'Ecole <maitre@jeexpert-study.com>', to: [recipient], ...(cc ? { cc: [cc] } : {}), subject: body.subject.trim(), text: body.body.trim(), ...(attachments.length ? { attachments } : {}) }), signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw authError(503, 'Envoi email non confirmé.');
       return res.json({ success: true });
     }
