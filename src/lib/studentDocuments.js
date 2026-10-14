@@ -1,8 +1,12 @@
 export const DOCUMENT_TABLES = { Academic: 'tbl4qg0oCDDMm6nfc', Scholarship: 'tbl7qGYTAKarKrGNn', reviews: 'tblBEikU5IsBAwzZL', activity: 'tblRmPz47Tclxz3od' };
+export const VISA_DOCUMENT_TABLE = 'tblw95xgY2VrEXz4Q';
+export const VISA_REVIEW_TABLE = 'tbl4yktMy08JBdLln';
+export const VISA_VERSIONS_FIELD = 'fldaiTGdk6TQ12tkI';
 export const REVIEW_STATUSES = ['Missing', 'Received', 'Under review', 'Validated', 'Needs correction'];
 export const REQUIREMENTS = ['Required', 'Optional', 'Not applicable'];
 export const SOURCE_FIELDS = {
-  Academic: { Documents: 'Academic documents' },
+  Academic: { Documents: 'Academic documents', 'Documents admission originaux': 'Admission originals' },
+  Visa: { Documents: 'Visa documents' },
   Scholarship: { 'Actes de naissance': 'Birth certificates', 'Livret de famille / Vie collective': 'Family booklet', 'Documents propriété': 'Property documents', 'Documents non-propriété': 'Non-ownership documents', 'Attestation solde 31-12-2025': 'Bank balance certificate — 31 Dec 2025', 'Déclarations fiscales': 'Tax declarations', 'Autres documents': 'Other documents' },
 };
 export const FOLDER_STATUSES = { Academic: ['Pending', 'Under Review', 'Incomplete', 'Complete'], Scholarship: ['Reçu', 'En vérification', 'Incomplet', 'Validé'] };
@@ -14,7 +18,7 @@ export function buildDocumentItems(folders, reviews) {
     for (const file of folder.fields[field] || []) {
       const key = `${folder.source}:${folder.id}:${field}:${file.id}`;
       const review = rows.find(r => r['Document Key'] === key);
-      items.push(documentItem(key, folder.source, file.filename || category, [file], review, { sourceRecordId: folder.id, sourceField: field, attachmentId: file.id, category }));
+      items.push(documentItem(key, folder.source, file.filename || category, [file], review, { sourceRecordId: folder.id, sourceField: field, sourceTable: folder.tableId || DOCUMENT_TABLES[folder.source], attachmentId: file.id, category }));
     }
   }
   for (const review of rows) if (!items.some(item => item.key === review['Document Key'])) {

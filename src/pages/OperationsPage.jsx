@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { GraduationCapIcon } from '../components/icons.jsx';
 
 const TOOLS = [
+  { to: '/operations/documents', icon: GraduationCapIcon, title: 'Documents', desc: 'Visa, Scholarship et Admission : fichiers, ZIP, commentaires et envoi par email.' },
   {
     to: '/operations/prospection',
     icon: GraduationCapIcon,

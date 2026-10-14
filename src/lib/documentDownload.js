@@ -1,13 +1,25 @@
 export const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024;
 const safeName = value => (value || 'document').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').replace(/^\.+|[. ]+$/g, '').slice(0, 180) || 'document';
 
+export async function downloadDocumentFile(file) {
+  if (!file?.url || !/^https:\/\//i.test(file.url)) throw new Error('File unavailable. Refresh and retry.');
+  const response = await fetch(file.url, { credentials: 'omit', signal: AbortSignal.timeout(60000) });
+  if (!response.ok) throw new Error('Unable to download the file. Refresh and retry.');
+  if (Number(response.headers.get('content-length') || 0) > MAX_ARCHIVE_BYTES) throw new Error('File exceeds the 100 MB download limit.');
+  const blob = await response.blob();
+  if (blob.size > MAX_ARCHIVE_BYTES) throw new Error('File exceeds the 100 MB download limit.');
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = safeName(file.filename); document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 // Download the current version of each selected document, not its old versions.
 export function selectedDocumentFiles(documents, keys) {
   const selected = new Set(keys), used = new Set(), files = [], missing = [];
   for (const doc of documents.filter(item => selected.has(item.key))) {
     const file = doc.files[0];
     if (!file?.url || !/^https:\/\//i.test(file.url)) { missing.push(doc.name); continue; }
-    const group = doc.source === 'Scholarship' ? 'Scholarship' : 'Admission';
+    const group = doc.source === 'Scholarship' ? 'Scholarship' : doc.source === 'Visa' ? 'Visa' : 'Admission';
     const base = safeName(file.filename || doc.name);
     const dot = base.lastIndexOf('.'), stem = dot > 0 ? base.slice(0, dot) : base, ext = dot > 0 ? base.slice(dot) : '';
     let name = `${group}/${base}`, index = 2;

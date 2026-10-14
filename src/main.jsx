@@ -19,6 +19,7 @@ import BookingsPage from './pages/BookingsPage.jsx';
 import VisaGuidePage from './pages/visa/VisaGuidePage.jsx';
 import VisaClassementPage from './pages/visa/VisaClassementPage.jsx';
 import VisaModelesPage from './pages/visa/VisaModelesPage.jsx';
+import DocumentsPage from './pages/operations/DocumentsPage.jsx';
 import OperationsPage from './pages/OperationsPage.jsx';
 import ProspectionPage from './pages/operations/ProspectionPage.jsx';
 import ProposalItalyPage from './pages/operations/ProposalItalyPage.jsx';
@@ -58,6 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/visa" element={<VisaGuidePage />} />
           <Route path="/visa/classement" element={<VisaClassementPage />} />
           <Route path="/visa/modeles" element={<VisaModelesPage />} />
+          <Route path="/operations/documents" element={<DocumentsPage />} />
           <Route path="/operations" element={<OperationsPage />} />
           <Route path="/operations/prospection" element={<ProspectionPage />} />
           <Route path="/operations/application" element={<ApplicationPage />} />
