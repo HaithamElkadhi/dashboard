@@ -311,9 +311,8 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
               <div className="truncate text-sm font-medium capitalize text-text-strong">
                 {p.fullName || '—'}
               </div>
-              <div className="truncate text-xs text-text-muted">
-                {p.prospectId || '—'}
-              </div>
+              <div className="break-words text-xs text-text-muted">{p.email || 'Email non renseigné'}</div>
+              <div className="text-xs tabular-nums text-text-muted">{p.phone || 'Téléphone non renseigné'}</div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               {!proposalMode && (
@@ -504,9 +503,8 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
             <div className="truncate text-sm font-medium capitalize text-text-strong">
               {p.fullName || '—'}
             </div>
-            <div className="truncate text-xs text-text-muted">
-              {p.prospectId || '—'}
-            </div>
+            <div className="break-words text-xs text-text-muted">{p.email || 'Email non renseigné'}</div>
+            <div className="text-xs tabular-nums text-text-muted">{p.phone || 'Téléphone non renseigné'}</div>
           </div>
         </div>
       </td>
