@@ -58,6 +58,7 @@ export const PAGE_TITLES = {
   '/visa/classement': 'Visa',
   '/visa/modeles': 'Visa',
   '/operations': 'Operations',
+  '/operations/mailing': 'Mailing',
   '/operations/documents': 'Documents',
   '/operations/prospection': 'Prospection',
   '/operations/application': 'Application',

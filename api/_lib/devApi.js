@@ -9,6 +9,7 @@ import integration from './integration.js';
 import contactActivity from '../contact-activity.js';
 import notes from './notes.js';
 import prospection from './prospection.js';
+import mailing from './mailing.js';
 import login from '../auth/login.js';
 import me from '../auth/me.js';
 import logout from '../auth/logout.js';
@@ -34,6 +35,7 @@ export function devApi(env) {
           }
         }
         if (url.pathname === '/api/prospection') handler = prospection;
+        if (url.pathname === '/api/mailing') handler = mailing;
         if (!handler) return next();
         res.status = (status) => { res.statusCode = status; return res; };
         res.json = (body) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); };

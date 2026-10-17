@@ -1,147 +1,60 @@
-// Payment receipt PDF — ported from v0-invoice-generator-spec
-// lib/payment-receipt-pdf.ts. Returns the jsPDF doc instead of saving it.
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
+import { prepareBrand, drawBrandHeader, drawBrandFooter, brandTable, PDF_BRAND, PDF_FONT } from '../pdfBrand.js';
 import {
-  COMPANY_INFO,
-  BRAND_COLORS,
-  CURRENCY_LABELS,
-  buildDocFilename,
-  PAYMENT_METHOD_LABELS,
-  formatDocDate,
-  formatInvoiceCurrency,
+  CURRENCY_LABELS, buildDocFilename, PAYMENT_METHOD_LABELS, formatDocDate, formatInvoiceCurrency,
 } from './constants.js';
 
 export function receiptFilename(data) {
   return buildDocFilename('Receipt', {
-    clientName: data.clientName,
-    reference: data.invoiceId,
-    date: data.paymentDate,
+    clientName: data.clientName, reference: data.invoiceId, date: data.paymentDate,
   });
 }
 
-export function buildReceiptPdf(data) {
+export async function buildReceiptPdf(data) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-  const { primary } = BRAND_COLORS;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 18;
-  const contentWidth = pageWidth - margin * 2;
-
+  const brand = await prepareBrand(doc);
+  const y = drawBrandHeader(doc, brand, { title: 'PAYMENT RECEIPT', subtitle: 'Thank you for your trust.' });
+  const nextY = () => doc.lastAutoTable.finalY + 9;
   const currencyLabel = CURRENCY_LABELS[data.currency] ?? data.currency;
 
-  let y = margin;
-
-  doc.setDrawColor(primary.r, primary.g, primary.b);
-  doc.setLineWidth(0.7);
-  doc.line(margin, y + 16, pageWidth - margin, y + 16);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(primary.r, primary.g, primary.b);
-  doc.text(COMPANY_INFO.name, margin, y + 6);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(90, 90, 90);
-  doc.text(COMPANY_INFO.email, margin, y + 11);
-  doc.text(COMPANY_INFO.phone, margin + 55, y + 11);
-  doc.text(COMPANY_INFO.website, margin + 95, y + 11);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(24);
-  doc.setTextColor(primary.r, primary.g, primary.b);
-  doc.text('PAYMENT RECEIPT', pageWidth - margin, y + 8, { align: 'right' });
-
-  y += 24;
-
-  doc.setFillColor(247, 248, 250);
-  doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'F');
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  doc.text('Reference:', margin + 4, y + 8);
-  doc.text('Payment Date:', margin + 4, y + 15);
-  doc.text('Purpose:', margin + 4, y + 22);
-
-  doc.setTextColor(35, 35, 35);
-  doc.text(data.invoiceId || '-', margin + 35, y + 8);
-  doc.text(formatDocDate(data.paymentDate) || '-', margin + 35, y + 15);
-  doc.text(data.paymentReason || '-', margin + 35, y + 22);
-
-  y += 38;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(primary.r, primary.g, primary.b);
-  doc.text('CLIENT DETAILS', margin, y);
-
-  y += 6;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(30, 30, 30);
-  doc.text(data.clientName || '-', margin, y);
-  y += 5;
-  if (data.clientEmail) {
-    doc.text(`Email: ${data.clientEmail}`, margin, y);
-    y += 5;
-  }
-  if (data.clientPhone) {
-    doc.text(`Phone: ${data.clientPhone}`, margin, y);
-    y += 5;
-  }
-  if (data.clientAddress) {
-    const addressLines = doc.splitTextToSize(data.clientAddress, contentWidth);
-    doc.text(addressLines, margin, y);
-    y += addressLines.length * 4.5;
-  }
-
-  y += 4;
-  doc.setDrawColor(220, 220, 220);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 8;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(primary.r, primary.g, primary.b);
-  doc.text('PAYMENT SUMMARY', margin, y);
-  y += 7;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text(`Amount (${currencyLabel})`, margin, y);
-  doc.text(formatInvoiceCurrency(Number(data.amount) || 0, data.currency), pageWidth - margin, y, {
-    align: 'right',
+  brandTable(doc, {
+    startY: y, theme: 'plain',
+    body: [
+      ['Reference', data.invoiceId || '-'],
+      ['Payment Date', formatDocDate(data.paymentDate) || '-'],
+      ['Purpose', data.paymentReason || '-'],
+    ],
+    styles: { font: PDF_FONT, fontSize: 9.5, cellPadding: 3.5, fillColor: PDF_BRAND.light, textColor: PDF_BRAND.ink },
+    columnStyles: { 0: { cellWidth: 43, fontStyle: 'bold', textColor: PDF_BRAND.navy } },
   });
-  y += 4;
-  doc.text(
-    `Payment Method: ${PAYMENT_METHOD_LABELS[data.paymentMethod] ?? PAYMENT_METHOD_LABELS.other}`,
-    margin,
-    y
-  );
-  y += 8;
 
-  if (data.comment.trim()) {
-    y += 8;
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(primary.r, primary.g, primary.b);
-    doc.text('Comment', margin, y);
-    y += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(40, 40, 40);
-    doc.text(doc.splitTextToSize(data.comment.trim(), contentWidth), margin, y);
-  }
+  const clientRows = [['Name', data.clientName || '-']];
+  if (data.clientEmail) clientRows.push(['Email', data.clientEmail]);
+  if (data.clientPhone) clientRows.push(['Phone', data.clientPhone]);
+  if (data.clientAddress) clientRows.push(['Address', data.clientAddress]);
+  brandTable(doc, {
+    startY: nextY(), head: [[{ content: 'CLIENT DETAILS', colSpan: 2 }]], body: clientRows,
+    columnStyles: { 0: { cellWidth: 43, fontStyle: 'bold' } },
+  });
 
-  const footerY = pageHeight - 14;
-  doc.setDrawColor(230, 230, 230);
-  doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8.5);
-  doc.setTextColor(110, 110, 110);
-  doc.text('Thank you for your payment.', pageWidth / 2, footerY - 1, { align: 'center' });
-  doc.text('Generated by Jeexpert ERP Light', pageWidth / 2, footerY + 3.5, { align: 'center' });
+  brandTable(doc, {
+    startY: nextY(), theme: 'plain',
+    body: [
+      [
+        { content: `AMOUNT (${currencyLabel})`, styles: { fontStyle: 'bold', fontSize: 10 } },
+        { content: formatInvoiceCurrency(Number(data.amount) || 0, data.currency), styles: { fontStyle: 'bold', fontSize: 16, halign: 'right' } },
+      ],
+      [{ content: `Payment Method: ${PAYMENT_METHOD_LABELS[data.paymentMethod] ?? PAYMENT_METHOD_LABELS.other}`, colSpan: 2, styles: { fontSize: 9 } }],
+    ],
+    styles: { font: PDF_FONT, cellPadding: 5, fillColor: PDF_BRAND.navy, textColor: [255, 255, 255] },
+    alternateRowStyles: { fillColor: PDF_BRAND.navy },
+    columnStyles: { 0: { cellWidth: 100 } },
+    pageBreak: 'avoid',
+  });
 
+  if (data.comment?.trim()) brandTable(doc, {
+    startY: nextY(), head: [['COMMENT']], body: [[data.comment.trim()]],
+  });
+  drawBrandFooter(doc);
   return doc;
 }

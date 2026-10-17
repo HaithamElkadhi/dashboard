@@ -52,7 +52,11 @@ export function AuthProvider({ children }) {
       const response = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
       if (started !== generation.current) return;
       if (response.status === 401) { invalidate(); return; }
-      if (!response.ok) throw new Error('Impossible de vérifier la session. Réessayez.');
+      if (!response.ok) {
+        let detail = '';
+        try { const body = await response.json(); if (typeof body.error === 'string') detail = body.error; } catch { /* Hosting errors may return HTML. */ }
+        throw new Error(`${detail || 'Impossible de vérifier la session. Réessayez.'} (HTTP ${response.status})`);
+      }
       const data = await response.json();
       if (started === generation.current) setUser(data.user);
     } catch (err) {

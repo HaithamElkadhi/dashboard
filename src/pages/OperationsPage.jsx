@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { GraduationCapIcon } from '../components/icons.jsx';
 
 const TOOLS = [
+  { to: '/operations/mailing', icon: GraduationCapIcon, title: 'Mailing', desc: 'Modèles personnalisables, pièces jointes, expéditeurs JEEXPERT, CC et historique des envois.' },
   { to: '/operations/documents', icon: GraduationCapIcon, title: 'Documents', desc: 'Visa, Scholarship et Admission : fichiers, ZIP, commentaires et envoi par email.' },
   {
     to: '/operations/prospection',

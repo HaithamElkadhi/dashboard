@@ -7,7 +7,7 @@ export const COMPANY_INFO = {
   email: 'contact@jeexpert-study.com',
   phone: '+39 352 088 0880',
   website: 'www.jeexpert-study.com',
-  logoUrl: '/images/jeexpert-20logo-20inversed.png',
+  logoUrl: '/images/jeexpert-content/logo-blue.png',
 };
 
 /** Intesa Sanpaolo (Italy) */
@@ -31,8 +31,8 @@ export const BANK_DETAILS_TN = {
 };
 
 export const BRAND_COLORS = {
-  primary: { r: 41, g: 84, b: 144 },
-  accent: { r: 220, g: 53, b: 69 },
+  primary: { r: 6, g: 40, b: 74 },
+  accent: { r: 102, g: 198, b: 238 },
 };
 
 export const DOC_CURRENCIES = ['EUR', 'USD', 'TND'];
