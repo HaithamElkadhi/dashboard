@@ -36,11 +36,11 @@ export default async function handler(req, res, env = process.env) {
           const download = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(20000) });
           if (!download.ok || Number(download.headers.get('content-length')) > MAX_ATTACHMENT_BYTES) throw authError(503, 'Téléchargement de pièce jointe impossible.');
           const chunks = []; let size = 0;
-          for await (const chunk of download.body) { size += chunk.length; if (size + total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 2 Mo au total.'); chunks.push(Buffer.from(chunk)); }
+          for await (const chunk of download.body) { size += chunk.length; if (size + total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 3 Mo au total.'); chunks.push(Buffer.from(chunk)); }
           content = Buffer.concat(chunks).toString('base64');
         }
         total += Buffer.from(content, 'base64').length;
-        if (total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 2 Mo au total.');
+        if (total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 3 Mo au total.');
         resolved.push({ filename: file.filename, content });
       }
       return resolved;
@@ -96,7 +96,7 @@ export default async function handler(req, res, env = process.env) {
         retainedBytes = retained.reduce((size,file)=>size + (original.fields.Attachments.find(stored=>stored.id===file.id).size || 0),0);
       }
       const files = await resolveAttachments(input.attachments.filter(file => !retained.includes(file)));
-      if (retainedBytes + files.reduce((size,file)=>size + Buffer.from(file.content,'base64').length,0) > MAX_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes dépassent 2 Mo au total.');
+      if (retainedBytes + files.reduce((size,file)=>size + Buffer.from(file.content,'base64').length,0) > MAX_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes dépassent 3 Mo au total.');
       const fields = { Name: input.name, Subject: input.subject, Body: input.body, CC: input.cc, 'From Key': input.fromKey, Attachments: retained.map(file => ({ id: file.id })) };
       let saved = await request(table + (body.id ? `/${body.id}` : ''), body.id ? 'PATCH' : 'POST', fields);
       for (const file of files) {
@@ -117,7 +117,7 @@ export default async function handler(req, res, env = process.env) {
     if (systemTemplate) {
       try { const variables = validateOnboardingVariables(body.variables); const rendered = renderOnboarding({ student, variables, attachments }); message = { html:rendered.html,text:rendered.text }; } catch (error) { throw authError(400,error.message); }
       attachments.push({ filename:'jeexpert-logo.png',content:MAILING_LOGO_BASE64,content_id:'jeexpert-logo',content_type:'image/png' });
-      if (attachments.reduce((sum,file)=>sum+Buffer.from(file.content,'base64').length,0)>MAX_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes et le logo dépassent 2 Mo au total.');
+      if (attachments.reduce((sum,file)=>sum+Buffer.from(file.content,'base64').length,0)>MAX_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes et le logo dépassent 3 Mo au total.');
     }
     const subject = renderMailText(input.subject, student);
     if (/[\r\n]/.test(subject) || subject.length > 300) throw authError(400, 'Objet personnalisé invalide.');

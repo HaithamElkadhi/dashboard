@@ -1,4 +1,10 @@
-export const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+// Resend allows up to 40 MB per email, but these requests run through a
+// Vercel serverless function, which hard-caps the whole inbound request body
+// (JSON + base64-encoded attachments) at 4.5 MB — a platform limit, not
+// configurable. 3 MB of raw (decoded) attachment bytes inflates to ~4 MB of
+// base64, leaving headroom for the rest of the JSON payload.
+export const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024;
+export const MAX_ATTACHMENT_COUNT = 20;
 export const isMailEmail = value => typeof value === 'string' && /^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/.test(value);
 export function parseMailCc(value = '') {
   if (typeof value !== 'string' || value.length > 2000) throw new Error('CC invalide.');
@@ -15,7 +21,7 @@ export function validateMailInput(input, { template = false } = {}) {
   parseMailCc(input.cc);
   if (template && (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 150)) throw new Error('Nom du modèle requis (150 caractères maximum).');
   const attachments = input.attachments ?? [];
-  if (!Array.isArray(attachments) || attachments.length > 10) throw new Error('10 pièces jointes maximum.');
+  if (!Array.isArray(attachments) || attachments.length > MAX_ATTACHMENT_COUNT) throw new Error(`${MAX_ATTACHMENT_COUNT} pièces jointes maximum.`);
   let size = 0;
   for (const file of attachments) {
     if (file?.id) {
@@ -25,7 +31,7 @@ export function validateMailInput(input, { template = false } = {}) {
     if (!file || typeof file.filename !== 'string' || !file.filename.trim() || file.filename.length > 200 || /[\r\n/\\]/.test(file.filename) || typeof file.content !== 'string' || !file.content || file.content.length % 4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(file.content)) throw new Error('Pièce jointe invalide.');
     size += file.content.length * 3 / 4 - (file.content.endsWith('==') ? 2 : file.content.endsWith('=') ? 1 : 0);
   }
-  if (size > MAX_ATTACHMENT_BYTES) throw new Error('Les pièces jointes dépassent 2 Mo au total.');
+  if (size > MAX_ATTACHMENT_BYTES) throw new Error('Les pièces jointes dépassent 3 Mo au total.');
   return { ...(template ? { name: input.name.trim() } : {}), subject: input.subject.trim(), body: input.body, cc: parseMailCc(input.cc).join(', '), fromKey: input.fromKey, attachments: attachments.map(file => file.id ? { id: file.id, filename: file.filename, templateId: file.templateId } : { filename: file.filename.trim(), content: file.content }) };
 }
 export function renderMailText(text, student) {
