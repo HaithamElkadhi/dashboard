@@ -11,6 +11,7 @@ import { emptyProposalData } from '../../lib/proposalItaly/initialData.js';
 import { generateProposalItalyPDF } from '../../lib/proposalItaly/pdf.js';
 import { buildProposalEmailBody } from '../../lib/proposalItaly/emailBody.js';
 import { saveProposalToAirtable } from '../../lib/airtable.js';
+import { filesToAttachments } from '../../lib/attachments.js';
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -23,6 +24,10 @@ import {
 } from '../../components/icons.jsx';
 
 const HISTORY_KEY = 'jeexpert:proposalItaly:history';
+
+// Matches the server-side cap in api/_lib/sendEmail.js — kept here too so
+// the user gets an immediate message instead of a generic network error.
+const MAX_ATTACHMENTS_BYTES = 3 * 1024 * 1024;
 
 const FORM_SECTIONS = [
   { id: 'proposal-info', label: 'Proposal Info' },
@@ -59,6 +64,7 @@ export default function ProposalItalyPage() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [history, setHistory] = useState([]);
   const [savingAirtable, setSavingAirtable] = useState(false);
   const [emailForm, setEmailForm] = useState({
@@ -149,6 +155,7 @@ export default function ProposalItalyPage() {
 
   const openEmail = () => {
     setSendError('');
+    setAttachmentFiles([]);
     setEmailForm((prev) => ({
       ...prev,
       fullName: data.studentName,
@@ -157,16 +164,27 @@ export default function ProposalItalyPage() {
     setEmailOpen(true);
   };
 
+  const handleAttachmentsChange = (e) => {
+    setAttachmentFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
+    e.target.value = '';
+  };
+
   const handleSendEmail = async (e) => {
     e.preventDefault();
     if (!emailForm.fullName.trim() || !emailForm.email.trim()) {
       setSendError('Full name and email are required.');
       return;
     }
+    const totalBytes = attachmentFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalBytes > MAX_ATTACHMENTS_BYTES) {
+      setSendError('Attachments exceed 3 MB total. Remove or compress some files.');
+      return;
+    }
     setSending(true);
     setSendError('');
     try {
       const html = buildProposalEmailBody(data);
+      const attachments = await filesToAttachments(attachmentFiles);
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -176,6 +194,7 @@ export default function ProposalItalyPage() {
           cc: emailForm.cc.trim(),
           subject: emailForm.subject.trim(),
           body: html,
+          attachments,
         }),
       });
       const json = await res.json();
@@ -425,6 +444,35 @@ export default function ProposalItalyPage() {
                 onChange={(e) => setEmailForm((prev) => ({ ...prev, cc: e.target.value }))}
                 className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text-strong outline-none focus:border-border-strong"
               />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-text-strong">Attachments (3 MB max total)</label>
+              <input
+                type="file"
+                multiple
+                onChange={handleAttachmentsChange}
+                className="block w-full text-sm text-text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:opacity-90"
+              />
+              {attachmentFiles.length > 0 && (
+                <ul className="space-y-1 text-xs text-text-muted">
+                  {attachmentFiles.map((f, i) => (
+                    <li key={`${f.name}-${f.size}-${i}`} className="flex items-center justify-between gap-2">
+                      <span className="truncate">
+                        {f.name} ({(f.size / 1024).toFixed(0)} KB)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachmentFiles((prev) => prev.filter((_, idx) => idx !== i))
+                        }
+                        className="shrink-0 text-text-muted hover:text-red-600"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             {sendError && <p className="text-sm text-red-600">{sendError}</p>}
             <div className="flex justify-end gap-2 pt-2">

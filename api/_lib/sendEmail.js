@@ -21,9 +21,16 @@ function buildHtml(rawBody) {
     .join('');
 }
 
+// Resend itself allows up to 40 MB of attachments per email, but this
+// function runs behind a Vercel serverless function, which hard-caps the
+// whole request body (JSON + base64-encoded files) at 4.5 MB — a platform
+// limit, not configurable. 3 MB of raw file bytes (~4 MB once base64, plus
+// headroom for the JSON/HTML body) is the real ceiling here.
+const MAX_ATTACHMENTS_BYTES = 3 * 1024 * 1024;
+
 // Returns { status, body } — caller just writes both to its response.
 export async function sendProposalEmail(
-  { toName, toEmail, cc, subject, body, fromKey },
+  { toName, toEmail, cc, subject, body, fromKey, attachments },
   env = process.env
 ) {
   const apiKey = env.RESEND_API_KEY;
@@ -32,6 +39,20 @@ export async function sendProposalEmail(
   }
   if (!toName?.trim() || !toEmail?.trim()) {
     return { status: 400, body: { error: 'Full name and email are required' } };
+  }
+
+  const cleanAttachments = Array.isArray(attachments)
+    ? attachments.filter((a) => a?.filename && a?.content)
+    : [];
+  const attachmentsBytes = cleanAttachments.reduce(
+    (sum, a) => sum + Math.ceil((a.content.length * 3) / 4),
+    0
+  );
+  if (attachmentsBytes > MAX_ATTACHMENTS_BYTES) {
+    return {
+      status: 400,
+      body: { error: 'Attachments exceed 3 MB total. Remove or compress some files.' },
+    };
   }
 
   const resend = new Resend(apiKey);
@@ -49,6 +70,7 @@ export async function sendProposalEmail(
       cc: parseEmails(cc).length ? parseEmails(cc) : undefined,
       subject: subject?.trim() || '(No subject)',
       html: buildHtml(body),
+      attachments: cleanAttachments.length ? cleanAttachments : undefined,
     });
 
     if (error) {

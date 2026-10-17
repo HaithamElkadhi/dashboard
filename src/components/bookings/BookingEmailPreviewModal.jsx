@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import Modal from '../Modal.jsx';
 import { buildBookingEmail } from '../../lib/bookings/emailTemplates.js';
+import { filesToAttachments } from '../../lib/attachments.js';
 
 const inputClass =
   'w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-strong outline-none transition placeholder:text-text-muted focus:border-border-strong';
+
+// Matches the server-side cap in api/_lib/sendEmail.js — kept here too so
+// the user gets an immediate message instead of a generic network error.
+const MAX_ATTACHMENTS_BYTES = 3 * 1024 * 1024;
 
 export default function BookingEmailPreviewModal({
   booking,
@@ -17,9 +22,15 @@ export default function BookingEmailPreviewModal({
   const [subject, setSubject] = useState(draft.subject);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState([]);
 
   const title =
     kind === 'meeting-link' ? 'Send meeting link' : 'Send rappel';
+
+  const handleAttachmentsChange = (e) => {
+    setAttachmentFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
+    e.target.value = '';
+  };
 
   const handleSend = async () => {
     if (!toName.trim() || !toEmail.trim()) {
@@ -30,9 +41,15 @@ export default function BookingEmailPreviewModal({
       setError('Ce booking n’a pas de lien meeting.');
       return;
     }
+    const totalBytes = attachmentFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalBytes > MAX_ATTACHMENTS_BYTES) {
+      setError('Les pièces jointes dépassent 3 Mo au total. Retire ou compresse des fichiers.');
+      return;
+    }
     setSending(true);
     setError('');
     try {
+      const attachments = await filesToAttachments(attachmentFiles);
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,6 +59,7 @@ export default function BookingEmailPreviewModal({
           subject: subject.trim(),
           body: draft.html,
           fromKey: 'contact',
+          attachments,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -114,6 +132,34 @@ export default function BookingEmailPreviewModal({
             onChange={(e) => setSubject(e.target.value)}
           />
         </label>
+
+        <div className="space-y-1.5">
+          <span className="text-sm font-medium text-text-strong">Pièces jointes (3 Mo max au total)</span>
+          <input
+            type="file"
+            multiple
+            onChange={handleAttachmentsChange}
+            className="block w-full text-sm text-text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:opacity-90"
+          />
+          {attachmentFiles.length > 0 && (
+            <ul className="space-y-1 text-xs text-text-muted">
+              {attachmentFiles.map((f, i) => (
+                <li key={`${f.name}-${f.size}-${i}`} className="flex items-center justify-between gap-2">
+                  <span className="truncate">
+                    {f.name} ({(f.size / 1024).toFixed(0)} Ko)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachmentFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                    className="shrink-0 text-text-muted hover:text-red-600"
+                  >
+                    Retirer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="space-y-1.5">
           <p className="text-sm font-medium text-text-strong">Aperçu</p>
