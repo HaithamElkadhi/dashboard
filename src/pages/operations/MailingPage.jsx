@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { fetchProspectsForSearch } from '../../lib/airtable.js';
-import { renderMailText, MAX_ATTACHMENT_BYTES } from '../../lib/mailing.js';
+import { renderMailText, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_COUNT } from '../../lib/mailing.js';
 import { getOnboardingDefaults, renderOnboarding, validateOnboardingVariables, ONBOARDING_TEMPLATE_ID } from '../../lib/mailingSystemTemplates.js';
 import StudentPicker from '../../components/documents/StudentPicker.jsx';
 import Modal from '../../components/Modal.jsx';
@@ -69,7 +69,7 @@ export default function MailingPage() {
   const addFiles = async event => {
     const files = Array.from(event.target.files || []); event.target.value = ''; setBusy(true); setError('');
     try {
-      if (draft.attachments.length + files.length > 10 || bytes(draft.attachments) + (draft.reservedAttachmentBytes || 0) + files.reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_BYTES) throw new Error('10 pièces jointes et 2 Mo au total maximum (logo inclus pour le mail de bienvenue).');
+      if (draft.attachments.length + files.length > MAX_ATTACHMENT_COUNT || bytes(draft.attachments) + (draft.reservedAttachmentBytes || 0) + files.reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_BYTES) throw new Error(`${MAX_ATTACHMENT_COUNT} pièces jointes et 3 Mo au total maximum (logo inclus pour le mail de bienvenue).`);
       const added = await Promise.all(files.map(file => new Promise((resolve, reject) => {
         const reader = new FileReader(); reader.onerror = () => reject(new Error(`Lecture impossible : ${file.name}`));
         reader.onload = () => resolve({ filename: file.name, content: String(reader.result).split(',')[1] }); reader.readAsDataURL(file);
@@ -148,7 +148,7 @@ export default function MailingPage() {
               <Field label="Message"><textarea required rows={10} maxLength={20000} className={inputClass} value={draft.body} onChange={event => change('body', event.target.value)} /></Field>
               <p className="text-xs text-text-muted">Texte simple. Variables disponibles : {'{{fullName}}, {{firstName}}, {{email}}'}. Elles seront remplacées pour l’étudiant choisi.</p>
             </>}
-            <div className="space-y-2"><Field label="Pièces jointes"><input type="file" multiple onChange={addFiles} className="block w-full text-sm" /></Field><p className="text-xs text-text-muted">{isSystem ? '10 fichiers, 2 Mo au total, logo inclus. Les pièces ajoutées concernent cet envoi uniquement.' : '10 fichiers, 2 Mo au total maximum. Les fichiers sont conservés dans le modèle uniquement après enregistrement.'}</p>
+            <div className="space-y-2"><Field label="Pièces jointes"><input type="file" multiple onChange={addFiles} className="block w-full text-sm" /></Field><p className="text-xs text-text-muted">{isSystem ? `${MAX_ATTACHMENT_COUNT} fichiers, 3 Mo au total, logo inclus. Les pièces ajoutées concernent cet envoi uniquement.` : `${MAX_ATTACHMENT_COUNT} fichiers, 3 Mo au total maximum. Les fichiers sont conservés dans le modèle uniquement après enregistrement.`}</p>
               <ul className="space-y-2">{draft.attachments.map((file, index) => <li key={`${index}-${file.filename}`} className="flex items-center justify-between gap-2 rounded-lg bg-canvas px-3 py-2 text-sm"><span className="break-all">{file.filename}</span><button type="button" className={buttonClass} aria-label={`Retirer ${file.filename}`} onClick={() => change('attachments', draft.attachments.filter((_, i) => i !== index))}>Retirer</button></li>)}</ul>
             </div>
             {isSystem && <p className="rounded-lg bg-canvas p-3 text-xs text-text-muted">Documents à ajouter selon le dossier : brochure, fiche étudiant, règlement intérieur, facture et guide de la plateforme. La liste des cinq documents est fixe dans le mail ; les fichiers ne sont pas générés automatiquement.</p>}
