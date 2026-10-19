@@ -1,5 +1,6 @@
 import { PF } from './config.js';
 import { ONBOARDING_HTML } from './mailingTemplates/onboardingHtml.js';
+import { ONBOARDING_DEFAULT_ATTACHMENTS } from './mailingAttachments.js';
 
 export const ONBOARDING_TEMPLATE_ID = 'system-onboarding';
 const ONBOARDING_TEXT = `Bonjour {{prenom_etudiant}} {{nom_etudiant}},
@@ -36,7 +37,7 @@ Bureau Tunisie : Bureau 3/4, 11 Avenue Habib Thameur, 1000 Tunis
 Jeexpert Team - +393520880880`;
 export const SYSTEM_MAIL_TEMPLATES = Object.freeze([Object.freeze({
   id: ONBOARDING_TEMPLATE_ID, system: true, name: 'Bienvenue / Onboarding JEEXPERT',
-  subject: 'Bienvenue chez JEEXPERT — {{fullName}}', body: ONBOARDING_TEXT, cc: '', fromKey: 'contact', attachments: [],
+  subject: 'Bienvenue chez JEEXPERT — {{fullName}}', body: ONBOARDING_TEXT, cc: '', fromKey: 'contact', attachments: ONBOARDING_DEFAULT_ATTACHMENTS,
 })]);
 
 export function normalizeMailingStudent(record) {
@@ -56,6 +57,10 @@ export function normalizeMailingStudent(record) {
 export function getOnboardingDefaults(student, payments = []) {
   const payment = payments.length === 1 ? payments[0] : null;
   return { formule: student?.formula || '', date_echeance: payment?.dueDate || '', montant_a_payer: payment ? String(payment.amount) : '' };
+}
+
+export function getInvoiceMailingVariables(invoice) {
+  return { formule: invoice?.description || '', date_echeance: invoice?.dueDate || '', montant_a_payer: invoice?.amount == null ? '' : String(invoice.amount) };
 }
 
 export function validateOnboardingVariables(value) {

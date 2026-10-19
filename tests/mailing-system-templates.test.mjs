@@ -1,7 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PF } from '../src/lib/config.js';
+import { PF, FIN } from '../src/lib/config.js';
+import { describeInvoices } from '../src/lib/mailingStudentAttachments.js';
+import { renderMailText } from '../src/lib/mailing.js';
+import { getInvoiceMailingVariables, SYSTEM_MAIL_TEMPLATES } from '../src/lib/mailingSystemTemplates.js';
 import { getOnboardingDefaults, normalizeMailingStudent, renderOnboarding, validateOnboardingVariables } from '../src/lib/mailingSystemTemplates.js';
+
+test('selected student resolves the subject and selected invoice supplies its description, amount and due date', () => {
+  const student = normalizeMailingStudent({ id:'recStudent', fields:{ [PF.fullName]:'Amira Ben Salem' } });
+  assert.equal(renderMailText(SYSTEM_MAIL_TEMPLATES[0].subject, student), 'Bienvenue chez JEEXPERT — Amira Ben Salem');
+  const invoice = describeInvoices([{ id:'recPayment', fields:{ [FIN.prospects]:['recStudent'], [FIN.purpose]:['Admission', 'Visa'], [FIN.amount]:1250.5, [FIN.dueDate]:'2026-11-10' } }], { id:student.id })[0];
+  assert.deepEqual(getInvoiceMailingVariables(invoice), { formule:'Admission, Visa', date_echeance:'2026-11-10', montant_a_payer:'1250.5' });
+  assert.deepEqual(getInvoiceMailingVariables({ amount:0 }), { formule:'', date_echeance:'', montant_a_payer:'0' });
+});
 
 test('student variables use the stored names and services; multiple payments require selection', () => {
   const student = normalizeMailingStudent({ id: 'recStudent', fields: { [PF.fullName]: 'Mohamed Ali Ben Salem', [PF.name]: 'Mohamed Ali', [PF.surname]: 'Ben Salem', [PF.email]: 'student@example.com', [PF.selectedServices]: ['Admission', 'Visa'], [PF.paiementsLink]: ['recPayment', 'invalid'] } });

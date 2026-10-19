@@ -4,9 +4,9 @@ import { formatDocDate } from '../financeDocs/constants.js';
 import { DEGREE_LABELS, CITY_LABELS, FINANCING_PLAN_LABELS, YES_NO_LABELS, GUARANTOR_LABELS, toGpa } from './emailBody.js';
 
 // Build separately from downloading so previews and layout checks use the same PDF.
-export async function buildProposalItalyPdf(data) {
+export async function buildProposalItalyPdf(data, options = {}) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const brand = await prepareBrand(doc);
+  const brand = await prepareBrand(doc, options);
   let y = drawBrandHeader(doc, brand, { title: 'STUDY PROPOSAL', subtitle: 'ITALY  /  PERSONALIZED STUDY PLAN' });
   const section = (title, rows) => {
     // Keep the section heading with at least the start of its first record.

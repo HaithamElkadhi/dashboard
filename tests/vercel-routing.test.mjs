@@ -4,6 +4,12 @@ import { readdirSync, readFileSync } from 'node:fs';
 import handler, { operationHandlers } from '../api/operations.js';
 const files = dir => readdirSync(dir, {withFileTypes:true}).flatMap(entry => entry.name.startsWith('_') ? [] : entry.isDirectory() ? files(`${dir}/${entry.name}`) : entry.name.endsWith('.js') ? [`${dir}/${entry.name}`] : []);
 test('Vercel API remains below the Hobby function limit', () => assert.ok(files('api').length < 12, `${files('api').length} functions; keep below 12`));
+
+test('Operations bundles the private default mailing PDFs', () => {
+  const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
+  assert.equal(config.functions['api/operations.js'].includeFiles, '{api/_lib/mailing-defaults/*.pdf,public/fonts/poppins/*.ttf,public/images/jeexpert-content/logo-pdf.png}');
+  assert.equal(readdirSync('api/_lib/mailing-defaults').filter(name => name.endsWith('.pdf')).length, 3);
+});
 test('grouped public routes map to existing handlers', () => {
   const config=JSON.parse(readFileSync('vercel.json','utf8'));
   for(const route of Object.keys(operationHandlers))assert.ok(config.rewrites.some(r=>r.source===`/api/${route}` && r.destination===`/api/operations?__route=${route}`));

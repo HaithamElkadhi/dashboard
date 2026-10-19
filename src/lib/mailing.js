@@ -1,8 +1,5 @@
-// Resend allows up to 40 MB per email, but these requests run through a
-// Vercel serverless function, which hard-caps the whole inbound request body
-// (JSON + base64-encoded attachments) at 4.5 MB — a platform limit, not
-// configurable. 3 MB of raw (decoded) attachment bytes inflates to ~4 MB of
-// base64, leaving headroom for the rest of the JSON payload.
+import { ONBOARDING_DEFAULT_ATTACHMENTS } from './mailingAttachments.js';
+
 export const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024;
 export const MAX_ATTACHMENT_COUNT = 20;
 export const isMailEmail = value => typeof value === 'string' && /^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/.test(value);
@@ -12,7 +9,7 @@ export function parseMailCc(value = '') {
   if (emails.length > 20 || emails.some(email => !isMailEmail(email))) throw new Error('Vérifiez les adresses CC (20 maximum).');
   return emails;
 }
-export function validateMailInput(input, { template = false } = {}) {
+export function validateMailInput(input, { template = false, system = false } = {}) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Email invalide.');
   for (const key of ['subject', 'body', 'cc', 'fromKey']) if (typeof input[key] !== 'string') throw new Error('Champs email invalides.');
   if (!input.subject.trim() || input.subject.length > 300 || /[\r\n]/.test(input.subject)) throw new Error('Objet requis (300 caractères maximum).');
@@ -23,7 +20,22 @@ export function validateMailInput(input, { template = false } = {}) {
   const attachments = input.attachments ?? [];
   if (!Array.isArray(attachments) || attachments.length > MAX_ATTACHMENT_COUNT) throw new Error(`${MAX_ATTACHMENT_COUNT} pièces jointes maximum.`);
   let size = 0;
+  const systemFiles = new Set();
+  const studentDocuments = new Set();
   for (const file of attachments) {
+    if (file?.studentDocument) {
+      if (!system || template || !['proposal','invoice'].includes(file.studentDocument) || !/^rec[A-Za-z0-9]+$/.test(file.studentId || '') || typeof file.filename!=='string' || !file.filename.trim() || file.filename.length>200 || /[\r\n/\\]/.test(file.filename) || file.content || file.id || file.systemFile || file.studentDocument==='invoice' && (!/^rec[A-Za-z0-9]+$/.test(file.paymentId || '') || file.invoiceAttachmentId && !/^att[A-Za-z0-9]+$/.test(file.invoiceAttachmentId))) throw new Error('Document étudiant invalide.');
+      const key=`${file.studentDocument}:${file.studentId}:${file.paymentId || ''}:${file.invoiceAttachmentId || ''}`;
+      if(studentDocuments.has(key))throw new Error('Document étudiant sélectionné plusieurs fois.');
+      studentDocuments.add(key);
+      continue;
+    }
+    if (file?.systemFile) {
+      const stored = ONBOARDING_DEFAULT_ATTACHMENTS.find(item => item.systemFile === file.systemFile);
+      if (!system || template || !stored || stored.filename !== file.filename || file.content || file.id || systemFiles.has(file.systemFile)) throw new Error('Pièce jointe système invalide.');
+      systemFiles.add(file.systemFile);
+      continue;
+    }
     if (file?.id) {
       if (!/^att[A-Za-z0-9]+$/.test(file.id) || !/^rec[A-Za-z0-9]+$/.test(file.templateId || '') || typeof file.filename !== 'string') throw new Error('Référence de pièce jointe invalide.');
       continue;
@@ -32,7 +44,7 @@ export function validateMailInput(input, { template = false } = {}) {
     size += file.content.length * 3 / 4 - (file.content.endsWith('==') ? 2 : file.content.endsWith('=') ? 1 : 0);
   }
   if (size > MAX_ATTACHMENT_BYTES) throw new Error('Les pièces jointes dépassent 3 Mo au total.');
-  return { ...(template ? { name: input.name.trim() } : {}), subject: input.subject.trim(), body: input.body, cc: parseMailCc(input.cc).join(', '), fromKey: input.fromKey, attachments: attachments.map(file => file.id ? { id: file.id, filename: file.filename, templateId: file.templateId } : { filename: file.filename.trim(), content: file.content }) };
+  return { ...(template ? { name: input.name.trim() } : {}), subject: input.subject.trim(), body: input.body, cc: parseMailCc(input.cc).join(', '), fromKey: input.fromKey, attachments: attachments.map(file => file.studentDocument ? {studentDocument:file.studentDocument,studentId:file.studentId,filename:file.filename,...(file.studentDocument==='invoice'?{paymentId:file.paymentId,...(file.invoiceAttachmentId?{invoiceAttachmentId:file.invoiceAttachmentId}:{})}:{})} : file.systemFile ? { ...ONBOARDING_DEFAULT_ATTACHMENTS.find(item => item.systemFile === file.systemFile) } : file.id ? { id: file.id, filename: file.filename, templateId: file.templateId } : { filename: file.filename.trim(), content: file.content }) };
 }
 export function renderMailText(text, student) {
   const values = { fullName: student.fullName || '', firstName: student.firstName || student.fullName?.split(/\s+/)[0] || '', email: student.email || '' };

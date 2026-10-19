@@ -3,7 +3,6 @@ import {
   EXPENSES_BASE_ID,
   TABLES,
   PF,
-  PAY,
   PAID_STATUS,
   DUE_STATUS,
   TF,
@@ -102,16 +101,15 @@ function toNumber(v) {
   return Number.isFinite(n) ? n : 0;
 }
 
-// Build a map keyed by Prospect ID text -> { eurPaid, eurDue, tndPaid, tndDue }.
-// The Paiements "Prospect (link)" field returns the linked prospect's primary
-// value (the Prospect ID text, e.g. "TUNRB25"), so we join on that.
+// Join on the actual Airtable record link, never the display Prospect ID:
+// codes such as "SL" can belong to several different students.
 function buildPaymentMap(payments) {
   return payments.reduce((acc, pay) => {
     const f = pay.fields || {};
-    const ids = f[PAY.prospectLink] || [];
-    const amt = toNumber(f[PAY.amount]);
-    const cur = f[PAY.currency];
-    const st = f[PAY.status];
+    const ids = asArray(f[FIN.prospects]);
+    const amt = toNumber(f[FIN.amount]);
+    const cur = f[FIN.currency];
+    const st = f[FIN.status];
 
     ids.forEach((id) => {
       if (!acc[id]) acc[id] = { eurPaid: 0, eurDue: 0, tndPaid: 0, tndDue: 0 };
@@ -210,7 +208,7 @@ function photoUrl(attachments) {
 function normalizeProspect(record, payMap) {
   const f = record.fields || {};
   const prospectId = f[PF.prospectId] || '';
-  const pay = payMap[prospectId] || {
+  const pay = payMap[record.id] || {
     eurPaid: 0,
     eurDue: 0,
     tndPaid: 0,
@@ -426,11 +424,11 @@ export async function fetchDashboardData() {
     ...PROPOSAL_COMPLETENESS_FIELD_IDS,
   ];
   const paymentFields = [
-    PAY.paymentId,
-    PAY.prospectLink,
-    PAY.amount,
-    PAY.currency,
-    PAY.status,
+    FIN.reference,
+    FIN.prospects,
+    FIN.amount,
+    FIN.currency,
+    FIN.status,
   ];
 
   const [prospectRecords, paymentRecords, schemaResult] = await Promise.all([
@@ -1510,7 +1508,13 @@ export async function fetchProposalFromProspect(recordId) {
     `${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${recordId}?returnFieldsByFieldId=true`
   );
   if (!res.ok) await parseError(res);
-  const f = (await res.json()).fields || {};
+  const record = await res.json();
+  const data = normalizeProposalRecord(record);
+  return { ...data, proposalDate: data.proposalDate || emptyProposalData().proposalDate };
+}
+
+export function normalizeProposalRecord(record) {
+  const f = record.fields || {};
   const base = emptyProposalData();
 
   const academicDescription = f[PF.academicRecordDescription] || '';
@@ -1545,8 +1549,8 @@ export async function fetchProposalFromProspect(recordId) {
 
   return {
     ...base,
-    prospectRecordId: recordId,
-    proposalDate: f[PF.proposalDate] || base.proposalDate,
+    prospectRecordId: record.id,
+    proposalDate: f[PF.proposalDate] || '',
     validUntil: f[PF.validUntil] || '',
     studentName: fullName,
     email: f[PF.email] || '',

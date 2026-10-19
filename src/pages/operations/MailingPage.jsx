@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { fetchProspectsForSearch } from '../../lib/airtable.js';
 import { renderMailText, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_COUNT } from '../../lib/mailing.js';
-import { getOnboardingDefaults, renderOnboarding, validateOnboardingVariables, ONBOARDING_TEMPLATE_ID } from '../../lib/mailingSystemTemplates.js';
+import { MAX_SYSTEM_ATTACHMENT_BYTES } from '../../lib/mailingAttachments.js';
+import { getOnboardingDefaults, getInvoiceMailingVariables, renderOnboarding, validateOnboardingVariables, ONBOARDING_TEMPLATE_ID } from '../../lib/mailingSystemTemplates.js';
 import StudentPicker from '../../components/documents/StudentPicker.jsx';
 import Modal from '../../components/Modal.jsx';
 import { Field, ErrorMessage, inputClass, buttonClass, primaryClass } from '../../components/prospection/controls.jsx';
@@ -17,6 +18,7 @@ async function api(body, signal, studentId = '') {
 const empty = () => ({ name: '', subject: '', body: '', cc: '', fromKey: '', attachments: [] });
 const bytes = files => files.reduce((sum, file) => sum + (file.size ?? Math.floor(file.content.length * 3 / 4)), 0);
 const emptyVariables = () => ({ formule: '', date_echeance: '', montant_a_payer: '' });
+const documentKey = file => `${file.studentDocument}:${file.studentId}:${file.paymentId || ''}:${file.invoiceAttachmentId || ''}`;
 function HtmlPreview({ html }) {
   return <iframe title="Aperçu du mail de bienvenue JEEXPERT" sandbox="" referrerPolicy="no-referrer" srcDoc={html} className="h-[620px] w-full rounded-xl border border-border bg-white" />;
 }
@@ -54,22 +56,41 @@ export default function MailingPage() {
     api(null, controller.signal, studentId).then(data => {
       if (controller.signal.aborted) return;
       setHistory(data.history || []); setHistoryStatus(data.warning || '');
-      setContext({ student: data.student, payments: data.payments || [] }); setContextWarning(data.contextWarning || '');
+      setContext({ student: data.student, payments: data.payments || [], proposalAttachment: data.proposalAttachment || null, invoices: data.invoices || [] }); setContextWarning(data.contextWarning || '');
       setVariables(getOnboardingDefaults(data.student, data.payments || []));
       setPaymentId(data.payments?.length === 1 ? data.payments[0].id : ''); key.current = crypto.randomUUID();
     }).catch(err => { if (err.name !== 'AbortError') { setHistoryStatus(err.message); setContextWarning(err.message); } }).finally(() => { if (!controller.signal.aborted) setContextLoading(false); });
     return () => controller.abort();
   }, [studentId]);
+  useEffect(() => {
+    if (!isSystem || context?.student?.id !== studentId || !context?.proposalAttachment) return;
+    const proposal = context.proposalAttachment;
+    setDraft(old => old.attachments.some(file => file.studentDocument && documentKey(file) === documentKey(proposal)) ? old : { ...old, attachments: [...old.attachments, proposal] });
+    key.current = crypto.randomUUID(); setSent(false);
+  }, [isSystem, studentId, context?.student?.id, context?.proposalAttachment]);
   const chooseTemplate = id => {
     if ((draft.body || draft.subject) && !window.confirm('Remplacer le message actuel ?')) return;
     const model = templates.find(item => item.id === id);
-    setTemplateId(id); setDraft(model ? { ...model, fromKey: senders.some(sender => sender.key === model.fromKey) ? model.fromKey : senders[0]?.key || '', attachments: [...model.attachments] } : { ...empty(), fromKey: senders[0]?.key || '' });
+    const proposal = model?.system && context?.student?.id === studentId ? context.proposalAttachment : null;
+    setTemplateId(id); setDraft(model ? { ...model, fromKey: senders.some(sender => sender.key === model.fromKey) ? model.fromKey : senders[0]?.key || '', attachments: [...model.attachments, ...(proposal ? [proposal] : [])] } : { ...empty(), fromKey: senders[0]?.key || '' });
     key.current = crypto.randomUUID(); setSent(false); setNotice(''); setError('');
+  };
+  const toggleDocument = (document, checked) => {
+    const remaining = draft.attachments.filter(file => !file.studentDocument || documentKey(file) !== documentKey(document));
+    const next = checked ? [...remaining, document] : remaining;
+    if (next.length > MAX_ATTACHMENT_COUNT || bytes(next) + (draft.reservedAttachmentBytes || 0) > MAX_SYSTEM_ATTACHMENT_BYTES) { setError('Maximum 20 pièces jointes et 6 Mo au total. Retirez un fichier avant de continuer.'); return; }
+    change('attachments', next); setError('');
+    if (checked && document.studentDocument === 'invoice') {
+      setVariables(getInvoiceMailingVariables(document)); setPaymentId(document.paymentId);
+    }
   };
   const addFiles = async event => {
     const files = Array.from(event.target.files || []); event.target.value = ''; setBusy(true); setError('');
     try {
-      if (draft.attachments.length + files.length > MAX_ATTACHMENT_COUNT || bytes(draft.attachments) + (draft.reservedAttachmentBytes || 0) + files.reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_BYTES) throw new Error(`${MAX_ATTACHMENT_COUNT} pièces jointes et 3 Mo au total maximum (logo inclus pour le mail de bienvenue).`);
+      const addedBytes = files.reduce((sum, file) => sum + file.size, 0);
+      if (draft.attachments.length + files.length > MAX_ATTACHMENT_COUNT) throw new Error('20 pièces jointes maximum.');
+      if (bytes(draft.attachments.filter(file => file.content)) + addedBytes > MAX_ATTACHMENT_BYTES) throw new Error('Les fichiers ajoutés manuellement sont limités à 3 Mo au total.');
+      if (bytes(draft.attachments) + (draft.reservedAttachmentBytes || 0) + addedBytes > (isSystem ? MAX_SYSTEM_ATTACHMENT_BYTES : MAX_ATTACHMENT_BYTES)) throw new Error(isSystem ? '6 Mo maximum, documents par défaut et logo inclus.' : '3 Mo au total maximum.');
       const added = await Promise.all(files.map(file => new Promise((resolve, reject) => {
         const reader = new FileReader(); reader.onerror = () => reject(new Error(`Lecture impossible : ${file.name}`));
         reader.onload = () => resolve({ filename: file.name, content: String(reader.result).split(',')[1] }); reader.readAsDataURL(file);
@@ -126,12 +147,12 @@ export default function MailingPage() {
           try { if (!context?.student || contextLoading) throw new Error('Attendez le chargement de la fiche étudiant.'); if (isSystem) validateOnboardingVariables(variables); setPreview(true); }
           catch (err) { setError(err.message); }
         }}>
-            <StudentPicker students={students} value={studentId} disabled={busy} onChange={id => { setStudentId(id); key.current = crypto.randomUUID(); setSent(false); setNotice(''); }} />
+            <StudentPicker students={students} value={studentId} disabled={busy} onChange={id => { if (id === studentId) return; setDraft(old => ({ ...old, attachments: old.attachments.filter(file => !file.studentDocument) })); setStudentId(id); setContext(null); setPreview(false); key.current = crypto.randomUUID(); setSent(false); setNotice(''); }} />
             {student && <p className="break-words text-sm text-text-muted">À : {student.email || 'Adresse email manquante dans la fiche étudiant.'}</p>}
           <fieldset disabled={busy || !canWrite} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2"><Field label="Expéditeur JEEXPERT"><select required className={inputClass} value={draft.fromKey} onChange={event => change('fromKey', event.target.value)}><option value="">Choisir une adresse</option>{senders.map(sender => <option key={sender.key} value={sender.key}>{sender.label} · {sender.email}</option>)}</select></Field><Field label="CC (facultatif)"><input className={inputClass} value={draft.cc} placeholder="nom@exemple.com, autre@exemple.com" onChange={event => change('cc', event.target.value)} /></Field></div>
             {!senders.length && <p className="text-sm text-amber-800">Aucune adresse d’expédition configurée.</p>}
-            <Field label="Objet"><input required maxLength={200} className={inputClass} value={draft.subject} onChange={event => change('subject', event.target.value)} /></Field>
+            <Field label="Objet"><input required maxLength={300} className={inputClass} value={studentId ? renderMailText(draft.subject, context?.student || student || {}) : draft.subject} onChange={event => change('subject', event.target.value)} /></Field>
             {isSystem ? <div className="space-y-4">
               <h2 className="font-semibold text-text-strong">Informations du mail de bienvenue</h2>
               {contextLoading && <p role="status" className="text-sm text-text-muted">Chargement de la fiche et des paiements…</p>}
@@ -140,7 +161,8 @@ export default function MailingPage() {
               <Field label="Formule"><input required disabled={contextLoading} maxLength={1000} className={inputClass} value={variables.formule} onChange={event => changeVariable('formule', event.target.value)} placeholder="Reprise des services sélectionnés dans Proposal" /></Field>
               {!!context?.payments.length && <Field label="Préremplir depuis un paiement à régler en DT"><select disabled={contextLoading} className={inputClass} value={paymentId} onChange={event => {
                 const id = event.target.value, payment = context.payments.find(item => item.id === id);
-                setPaymentId(id); setVariables(old => ({ ...old, date_echeance: payment?.dueDate || '', montant_a_payer: payment ? String(payment.amount) : '' })); key.current = crypto.randomUUID(); setSent(false); setNotice('');
+                const invoice = context.invoices.find(item => item.paymentId === id);
+                setPaymentId(id); setVariables(old => invoice ? getInvoiceMailingVariables(invoice) : ({ ...old, date_echeance: payment?.dueDate || '', montant_a_payer: payment ? String(payment.amount) : '' })); key.current = crypto.randomUUID(); setSent(false); setNotice('');
               }}><option value="">Saisie manuelle / choisir un paiement</option>{context.payments.map(payment => <option key={payment.id} value={payment.id}>{payment.amount} DT · {payment.dueDate || 'Sans échéance'}</option>)}</select></Field>}
               <div className="grid gap-4 sm:grid-cols-2"><Field label="Échéance"><input required disabled={contextLoading} type="date" className={inputClass} value={variables.date_echeance} onChange={event => changeVariable('date_echeance', event.target.value)} /></Field><Field label="Montant à payer (DT)"><input required disabled={contextLoading} type="number" min="0.001" step="0.001" className={inputClass} value={variables.montant_a_payer} onChange={event => changeVariable('montant_a_payer', event.target.value)} /></Field></div>
               <p className="text-xs text-text-muted">Les données sont préremplies quand elles existent. Vérifiez-les avant envoi. Ces ajustements concernent uniquement cet email.</p>
@@ -148,10 +170,18 @@ export default function MailingPage() {
               <Field label="Message"><textarea required rows={10} maxLength={20000} className={inputClass} value={draft.body} onChange={event => change('body', event.target.value)} /></Field>
               <p className="text-xs text-text-muted">Texte simple. Variables disponibles : {'{{fullName}}, {{firstName}}, {{email}}'}. Elles seront remplacées pour l’étudiant choisi.</p>
             </>}
-            <div className="space-y-2"><Field label="Pièces jointes"><input type="file" multiple onChange={addFiles} className="block w-full text-sm" /></Field><p className="text-xs text-text-muted">{isSystem ? `${MAX_ATTACHMENT_COUNT} fichiers, 3 Mo au total, logo inclus. Les pièces ajoutées concernent cet envoi uniquement.` : `${MAX_ATTACHMENT_COUNT} fichiers, 3 Mo au total maximum. Les fichiers sont conservés dans le modèle uniquement après enregistrement.`}</p>
+            {isSystem && <section className="space-y-3 rounded-xl border border-border bg-canvas p-4">
+              <h2 className="text-sm font-semibold text-text-strong">Documents de l’étudiant</h2>
+              {!studentId ? <p className="text-sm text-text-muted">Choisissez un étudiant pour charger son Proposal et ses factures.</p> : contextLoading ? <p role="status" className="text-sm text-text-muted">Chargement des documents disponibles…</p> : context?.student?.id === studentId ? <>
+                {context.proposalAttachment ? <label className="flex min-h-11 items-start gap-3 text-sm"><input type="checkbox" className="mt-1 h-4 w-4 accent-current" checked={draft.attachments.some(file => file.studentDocument && documentKey(file) === documentKey(context.proposalAttachment))} onChange={event => toggleDocument(context.proposalAttachment, event.target.checked)} /><span><strong className="block">Proposal de {context.student.fullName}</strong><span className="text-xs text-text-muted">PDF personnalisé, préparé avec les données enregistrées au moment de l’envoi.</span></span></label> : <p className="text-sm text-text-muted">Aucun Proposal enregistré pour cet étudiant. Complétez son Proposal dans Operations pour pouvoir le joindre.</p>}
+                <h3 className="pt-2 text-sm font-medium text-text-strong">Factures disponibles ({context.invoices.length})</h3>
+                {!context.invoices.length ? <p className="text-sm text-text-muted">Aucune facture disponible dans les paiements liés à cet étudiant.</p> : <ul className="max-h-72 space-y-2 overflow-y-auto">{context.invoices.map(invoice => <li key={documentKey(invoice)}><label className="flex min-h-11 items-start gap-3 rounded-lg border border-border bg-surface p-3 text-sm"><input type="checkbox" className="mt-1 h-4 w-4 accent-current" checked={draft.attachments.some(file => file.studentDocument && documentKey(file) === documentKey(invoice))} onChange={event => toggleDocument(invoice, event.target.checked)} /><span className="min-w-0"><strong className="block break-words">{invoice.reference || invoice.filename}</strong><span className="block text-xs text-text-muted">{invoice.amount} {invoice.currency} · {invoice.status || 'Sans statut'}</span><span className="block break-words text-xs text-text-muted">{invoice.invoiceAttachmentId ? 'PDF enregistré' : 'PDF généré depuis le paiement'} · {invoice.filename}</span></span></label></li>)}</ul>}
+              </> : <p className="text-sm text-text-muted">Les documents de cet étudiant n’ont pas pu être chargés.</p>}
+            </section>}
+            <div className="space-y-2"><Field label="Pièces jointes"><input type="file" multiple onChange={addFiles} className="block w-full text-sm" /></Field><p className="text-xs text-text-muted">{isSystem ? '20 fichiers, 6 Mo au total, documents par défaut et logo inclus. Ajouts manuels : 3 Mo maximum. Vous pouvez retirer un document pour cet envoi.' : '20 fichiers, 3 Mo au total maximum. Les fichiers sont conservés dans le modèle uniquement après enregistrement.'}</p>
               <ul className="space-y-2">{draft.attachments.map((file, index) => <li key={`${index}-${file.filename}`} className="flex items-center justify-between gap-2 rounded-lg bg-canvas px-3 py-2 text-sm"><span className="break-all">{file.filename}</span><button type="button" className={buttonClass} aria-label={`Retirer ${file.filename}`} onClick={() => change('attachments', draft.attachments.filter((_, i) => i !== index))}>Retirer</button></li>)}</ul>
             </div>
-            {isSystem && <p className="rounded-lg bg-canvas p-3 text-xs text-text-muted">Documents à ajouter selon le dossier : brochure, fiche étudiant, règlement intérieur, facture et guide de la plateforme. La liste des cinq documents est fixe dans le mail ; les fichiers ne sont pas générés automatiquement.</p>}
+            {isSystem && <p className="rounded-lg bg-canvas p-3 text-xs text-text-muted">Contrat FR/AR, manuel du portail, brochure et Proposal disponible ajoutés par défaut. Cochez les factures à joindre. La liste des documents reste fixe dans le mail.</p>}
             {!isSystem && <div className="border-t border-border pt-4"><Field label="Nom du modèle (pour enregistrer)"><input maxLength={100} className={inputClass} value={draft.name} onChange={event => change('name', event.target.value)} placeholder="Ex. Documents à fournir pour le visa" /></Field>
               <div className="mt-3 flex flex-wrap gap-2"><button type="button" className={buttonClass} disabled={!draft.name.trim() || !draft.subject.trim() || !draft.body.trim()} onClick={() => saveTemplate(false)}>Enregistrer comme nouveau modèle</button>{templateId && <button type="button" className={buttonClass} disabled={!draft.name.trim()} onClick={() => saveTemplate(true)}>Mettre à jour le modèle</button>}</div>
             </div>}

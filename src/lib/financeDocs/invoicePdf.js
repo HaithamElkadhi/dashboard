@@ -11,10 +11,10 @@ export function invoiceFilename(data) {
   });
 }
 
-export async function buildInvoicePdf(data) {
+export async function buildInvoicePdf(data, options = {}) {
   const { subtotal, discountAmount, finalTotal } = computeInvoiceTotals(data);
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const brand = await prepareBrand(doc);
+  const brand = await prepareBrand(doc, options);
   const y = drawBrandHeader(doc, brand, { title: 'INVOICE', subtitle: 'Your academic journey, supported.' });
   const money = (value) => formatInvoiceCurrency(value, data.currency);
   const nextY = () => doc.lastAutoTable.finalY + 8;

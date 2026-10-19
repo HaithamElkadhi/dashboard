@@ -18,13 +18,15 @@ async function loadAsset(path) {
   if (!response.ok) throw new Error('Impossible de charger les fichiers de marque du PDF. Rechargez la page.');
   return base64(await response.arrayBuffer());
 }
-export async function prepareBrand(doc) {
-  if (!assetsPromise) assetsPromise = Promise.all([
-    loadAsset('/fonts/poppins/Poppins-Regular.ttf'),
-    loadAsset('/fonts/poppins/Poppins-SemiBold.ttf'),
-    loadAsset('/images/jeexpert-content/logo-pdf.png'),
-  ]).catch(error => { assetsPromise = null; throw error; });
-  const [regular, bold, image] = await assetsPromise;
+export async function prepareBrand(doc, { assetLoader } = {}) {
+  const loader = assetLoader || loadAsset;
+  const loadAssets = () => Promise.all([
+    loader('/fonts/poppins/Poppins-Regular.ttf'),
+    loader('/fonts/poppins/Poppins-SemiBold.ttf'),
+    loader('/images/jeexpert-content/logo-pdf.png'),
+  ]);
+  if (!assetLoader && !assetsPromise) assetsPromise = loadAssets().catch(error => { assetsPromise = null; throw error; });
+  const [regular, bold, image] = await (assetLoader ? loadAssets() : assetsPromise);
   doc.addFileToVFS('Poppins-Regular.ttf', regular);
   doc.addFileToVFS('Poppins-SemiBold.ttf', bold);
   doc.addFont('Poppins-Regular.ttf', PDF_FONT, 'normal');

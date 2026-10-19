@@ -2,6 +2,10 @@ import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
 import { BASE_ID, TABLES, FIN, DUE_STATUS } from '../../src/lib/config.js';
 import { ONBOARDING_TEMPLATE_ID, SYSTEM_MAIL_TEMPLATES, normalizeMailingStudent, renderOnboarding, validateOnboardingVariables } from '../../src/lib/mailingSystemTemplates.js';
 import { MAILING_LOGO_BASE64 } from './mailingLogo.js';
+import { readDefaultMailingAttachment } from './mailingDefaultAttachments.js';
+import { MAX_SYSTEM_ATTACHMENT_BYTES } from '../../src/lib/mailingAttachments.js';
+import { describeProposal, describeInvoices, isInvoicePdf } from '../../src/lib/mailingStudentAttachments.js';
+import { buildMailingProposal, buildMailingInvoice } from './mailingPdfDocuments.js';
 import { EMAIL_HISTORY_TABLE } from '../../src/lib/contactActivity.js';
 import { MAX_ATTACHMENT_BYTES, isMailEmail, parseMailCc, validateMailInput, renderMailText, normalizeMailTemplate } from '../../src/lib/mailing.js';
 const DEFAULT_ATTACHMENTS_FIELD = 'fldMh2yYS25eewHIM';
@@ -23,9 +27,46 @@ export default async function handler(req, res, env = process.env) {
       return response.json();
     };
     const list = async path => { const records = []; let offset; do { const page = await request(path + (path.includes('?') ? '&' : '?') + new URLSearchParams({ pageSize: '100', ...(offset ? { offset } : {}) })); records.push(...(page.records || [])); offset = page.offset; } while (offset); return records; };
-    const resolveAttachments = async files => {
+    const studentRecords = new Map();
+    const resolveAttachments = async (files, maxBytes = MAX_ATTACHMENT_BYTES, studentId = '') => {
       const cache = new Map(); let total = 0; const resolved = [];
       for (const file of files) {
+        if (file.studentDocument) {
+          if (file.studentId !== studentId || !studentRecords.has(studentId)) throw authError(400,'Document lié à un autre étudiant.');
+          const studentRecord=studentRecords.get(studentId); let loaded;
+          if (file.studentDocument==='proposal') {
+            const descriptor=describeProposal(studentRecord);
+            if (!descriptor || descriptor.filename!==file.filename) throw authError(400,'Proposal enregistrée introuvable.');
+            loaded=await buildMailingProposal(studentRecord);
+            loaded.filename=descriptor.filename;
+          } else {
+            const payment=await request(`${TABLES.paiements}/${file.paymentId}?returnFieldsByFieldId=true`);
+            if (!payment.fields?.[FIN.prospects]?.includes(studentId)) throw authError(400,'Facture liée à un autre étudiant.');
+            const descriptor=describeInvoices([payment],studentRecord).find(item=>(item.invoiceAttachmentId || '')===(file.invoiceAttachmentId || '') && item.filename===file.filename);
+            if (!descriptor) throw authError(400,'Facture enregistrée introuvable.');
+            if (file.invoiceAttachmentId) {
+              const stored=payment.fields[FIN.invoice].find(item=>item.id===file.invoiceAttachmentId && isInvoicePdf(item));
+              const url=new URL(stored.url);
+              if (url.protocol!=='https:' || url.username || url.password || !/^(?:[a-z0-9-]+\.)*(?:airtableusercontent\.com|dl\.airtable\.com)$/.test(url.hostname)) throw authError(400,'Adresse de facture invalide.');
+              if (stored.size > maxBytes) throw authError(400,'Facture trop volumineuse.');
+              const download=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(20000)});
+              if (!download.ok || Number(download.headers.get('content-length'))>maxBytes) throw authError(503,'Téléchargement de facture impossible.');
+              let size=0;const chunks=[];
+              for await (const chunk of download.body) {size+=chunk.length;if(size+total>maxBytes)throw authError(400,'Pièces jointes trop volumineuses.');chunks.push(Buffer.from(chunk));}
+              loaded={filename:descriptor.filename,content:Buffer.concat(chunks).toString('base64')};
+            } else { loaded=await buildMailingInvoice(payment,studentRecord); loaded.filename=descriptor.filename; }
+          }
+          total+=Buffer.from(loaded.content,'base64').length;
+          if(total>maxBytes)throw authError(400,'Pièces jointes trop volumineuses.');
+          resolved.push(loaded);continue;
+        }
+        if (file.systemFile) {
+          const loaded = await readDefaultMailingAttachment(file);
+          total += Buffer.from(loaded.content, 'base64').length;
+          if (total > maxBytes) throw authError(400, 'Pièces jointes trop volumineuses.');
+          resolved.push(loaded);
+          continue;
+        }
         let content = file.content;
         if (file.id) {
           if (!cache.has(file.templateId)) cache.set(file.templateId, await request(`${table}/${file.templateId}`));
@@ -36,11 +77,11 @@ export default async function handler(req, res, env = process.env) {
           const download = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(20000) });
           if (!download.ok || Number(download.headers.get('content-length')) > MAX_ATTACHMENT_BYTES) throw authError(503, 'Téléchargement de pièce jointe impossible.');
           const chunks = []; let size = 0;
-          for await (const chunk of download.body) { size += chunk.length; if (size + total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 3 Mo au total.'); chunks.push(Buffer.from(chunk)); }
+          for await (const chunk of download.body) { size += chunk.length; if (size + total > maxBytes) throw authError(400, 'Pièces jointes trop volumineuses.'); chunks.push(Buffer.from(chunk)); }
           content = Buffer.concat(chunks).toString('base64');
         }
         total += Buffer.from(content, 'base64').length;
-        if (total > MAX_ATTACHMENT_BYTES) throw authError(400, 'Les pièces jointes dépassent 3 Mo au total.');
+        if (total > maxBytes) throw authError(400, 'Pièces jointes trop volumineuses.');
         resolved.push({ filename: file.filename, content });
       }
       return resolved;
@@ -48,6 +89,8 @@ export default async function handler(req, res, env = process.env) {
     const getStudent = async id => {
       if (!validId(id)) throw authError(400, 'Choisissez un étudiant.');
       const record = await request(`${TABLES.prospects}/${id}?returnFieldsByFieldId=true`);
+      if(record.id!==id)throw authError(400,'Étudiant introuvable.');
+      studentRecords.set(id,record);
       const student = normalizeMailingStudent(record);
       if (!isMailEmail(student.email)) throw authError(400, 'Cet étudiant ne possède pas une adresse email valide.');
       return student;
@@ -59,6 +102,8 @@ export default async function handler(req, res, env = process.env) {
       if (studentId) {
         const student = await getStudent(studentId);
         result.student = student;
+        result.proposalAttachment = describeProposal(studentRecords.get(studentId));
+        result.invoices = [];
         result.payments = [];
         try {
           const ids = [...new Set(student.paymentIds || [])];
@@ -70,6 +115,7 @@ export default async function handler(req, res, env = process.env) {
             records.push(...await list(`${TABLES.paiements}?${params}`));
           }
           if (records.length !== ids.length || new Set(records.map(record=>record.id)).size !== ids.length || records.some(record=>!ids.includes(record.id) || !record.fields?.[FIN.prospects]?.includes(student.id))) throw new Error('Payment ownership mismatch');
+          result.invoices = describeInvoices(records,studentRecords.get(studentId));
           result.payments = records.filter(record=>record.fields[FIN.currency]==='TND' && [DUE_STATUS, 'En retard'].includes(record.fields[FIN.status])).map(record=>({ id:record.id,amount:record.fields[FIN.amount] ?? '',currency:'TND',status:record.fields[FIN.status],dueDate:record.fields[FIN.dueDate] || '' })).sort((a,b)=>(a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
         } catch { result.contextWarning = 'Informations de paiement indisponibles. Renseignez et vérifiez les valeurs manuellement.'; }
         const safeEmail = student.email.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -82,7 +128,7 @@ export default async function handler(req, res, env = process.env) {
     if (body.systemTemplateId && body.systemTemplateId !== ONBOARDING_TEMPLATE_ID) throw authError(400,'Modèle système inconnu.');
     if (body.action === 'save-template' && (body.id === ONBOARDING_TEMPLATE_ID || body.systemTemplateId)) throw authError(400,'Le modèle système ne peut pas être modifié.');
     const systemTemplate = body.systemTemplateId === ONBOARDING_TEMPLATE_ID ? SYSTEM_MAIL_TEMPLATES.find(template=>template.id===ONBOARDING_TEMPLATE_ID) : null;
-    let input; try { input = validateMailInput(body.action === 'save-template' ? body.input : systemTemplate ? {...body,body:systemTemplate.body} : body, { template: body.action === 'save-template' }); } catch (error) { throw authError(400, error.message); }
+    let input; try { input = validateMailInput(body.action === 'save-template' ? body.input : systemTemplate ? {...body,body:systemTemplate.body,attachments:body.attachments ?? systemTemplate.attachments} : body, { template: body.action === 'save-template', system: !!systemTemplate }); } catch (error) { throw authError(400, error.message); }
     const sender = senders.find(item => item.key === input.fromKey);
     if (!sender) throw authError(400, 'Cet expéditeur n’est pas configuré.');
     if (body.action === 'save-template') {
@@ -112,12 +158,12 @@ export default async function handler(req, res, env = process.env) {
     if (!/^[A-Za-z0-9_-]{16,100}$/.test(body.idempotencyKey || '')) throw authError(400, 'Identifiant d’envoi invalide.');
     if (!env.RESEND_API_KEY) throw authError(503, 'Envoi email non configuré.');
     const student = await getStudent(body.studentId);
-    const attachments = await resolveAttachments(input.attachments);
+    const attachments = await resolveAttachments(input.attachments, systemTemplate ? MAX_SYSTEM_ATTACHMENT_BYTES : MAX_ATTACHMENT_BYTES,body.studentId);
     let message = { text: renderMailText(input.body, student) };
     if (systemTemplate) {
       try { const variables = validateOnboardingVariables(body.variables); const rendered = renderOnboarding({ student, variables, attachments }); message = { html:rendered.html,text:rendered.text }; } catch (error) { throw authError(400,error.message); }
       attachments.push({ filename:'jeexpert-logo.png',content:MAILING_LOGO_BASE64,content_id:'jeexpert-logo',content_type:'image/png' });
-      if (attachments.reduce((sum,file)=>sum+Buffer.from(file.content,'base64').length,0)>MAX_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes et le logo dépassent 3 Mo au total.');
+      if (attachments.reduce((sum,file)=>sum+Buffer.from(file.content,'base64').length,0)>MAX_SYSTEM_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes et le logo dépassent 6 Mo au total.');
     }
     const subject = renderMailText(input.subject, student);
     if (/[\r\n]/.test(subject) || subject.length > 300) throw authError(400, 'Objet personnalisé invalide.');
