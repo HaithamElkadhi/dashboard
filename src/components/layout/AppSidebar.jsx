@@ -12,6 +12,7 @@ const SECTIONS = [
   ['Students', ['Students', 'Bookings', 'Client Accounts', 'Visa']],
   ['Finance', ['Payments', 'Expenses', 'Performance']],
   ['Operations', ['Operations']],
+  ['Human ressources', ['Human ressources']],
   ['Education', ['Education']],
 ];
 const SECTION_KEY = 'jeexpert:sidebar:sections';

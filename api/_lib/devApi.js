@@ -1,3 +1,4 @@
+import recruitment from './recruitment.js';
 import documentsWorkspace from './documents-workspace.js';
 import education from './education.js';
 import ticketing from '../ticketing.js';
@@ -35,6 +36,7 @@ export function devApi(env) {
           }
         }
         if (url.pathname === '/api/prospection') handler = prospection;
+        if (url.pathname === '/api/recruitment') handler = recruitment;
         if (url.pathname === '/api/mailing') handler = mailing;
         if (!handler) return next();
         res.status = (status) => { res.statusCode = status; return res; };

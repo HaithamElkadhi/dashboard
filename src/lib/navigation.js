@@ -19,6 +19,7 @@ import {
 // used to keep internal tooling (Operations) visually separate from the
 // client-pipeline pages above it.
 export const NAV_ITEMS = [
+  { path: '/human-resources', label: 'Human ressources', icon: UsersIcon, matchPrefix: true, adminOnly: true },
   { path: '/', label: 'Overview', icon: HomeIcon },
   { path: '/tasks', label: 'My Tasks', icon: ListChecksIcon, taskView: 'list' },
   { path: '/tasks', label: 'Kanban Board', icon: KanbanIcon, taskView: 'kanban' },
@@ -42,6 +43,8 @@ export const NAV_ITEMS = [
 ];
 
 export const PAGE_TITLES = {
+  '/human-resources': 'Human ressources',
+  '/human-resources/recruitment': 'Candidatures',
   '/education': 'Education',
   '/ticketing': 'Ticketing',
   '/notes': 'Notes',

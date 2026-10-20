@@ -1,3 +1,5 @@
+import RecruitmentPage from './pages/RecruitmentPage.jsx';
+import HumanResourcesPage from './pages/HumanResourcesPage.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider } from './contexts/AuthContext.jsx';
@@ -45,6 +47,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider><Routes>
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/human-resources" element={<HumanResourcesPage />} />
+          <Route path="/human-resources/recruitment" element={<RecruitmentPage />} />
           <Route path="/prospects" element={<ProspectsPage />} />
           <Route path="/students/:studentId/documents" element={<StudentDocumentsPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
