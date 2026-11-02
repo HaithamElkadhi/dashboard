@@ -1,3 +1,4 @@
+import shifts from './shifts.js';
 import recruitment from './recruitment.js';
 import documentsWorkspace from './documents-workspace.js';
 import education from './education.js';
@@ -36,6 +37,7 @@ export function devApi(env) {
           }
         }
         if (url.pathname === '/api/prospection') handler = prospection;
+        if (url.pathname === '/api/shifts') handler = shifts;
         if (url.pathname === '/api/recruitment') handler = recruitment;
         if (url.pathname === '/api/mailing') handler = mailing;
         if (!handler) return next();

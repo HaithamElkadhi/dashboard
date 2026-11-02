@@ -45,6 +45,7 @@ export const NAV_ITEMS = [
 export const PAGE_TITLES = {
   '/human-resources': 'Human ressources',
   '/human-resources/recruitment': 'Candidatures',
+  '/human-resources/shifts': 'Shift',
   '/education': 'Education',
   '/ticketing': 'Ticketing',
   '/notes': 'Notes',
