@@ -145,7 +145,7 @@ test('student document metadata requires saved proposal data and lists invoices 
 test('student invoice send resolves stored PDF; cross-student and generic/template document refs never send',async()=>{
  const calls=mock();const normal=globalThis.fetch;
  const student={id:'recStudent',fields:{[PF.fullName]:'Ada Lovelace',[PF.email]:'ada@example.com',[PF.proposalDate]:'2026-10-19'}};
- const payment={id:'recPayOne',fields:{[FIN.prospects]:['recStudent'],[FIN.invoice]:[{id:'attInvoice',filename:'actual.pdf',type:'application/pdf',size:5,url:'https://v5.airtableusercontent.com/invoice'}]}};
+ const payment={id:'recPayOne',fields:{[FIN.amount]:'700',[FIN.currency]:'TND',[FIN.prospects]:['recStudent'],[FIN.invoice]:[{id:'attInvoice',filename:'actual.pdf',type:'application/pdf',size:5,url:'https://v5.airtableusercontent.com/invoice'}]}};
  globalThis.fetch=async(url,init)=>String(url).includes('/recStudent')?{ok:true,json:async()=>student}:String(url).includes('/recPayOne')?{ok:true,json:async()=>payment}:String(url).startsWith('https://v5.airtableusercontent.com/')?new Response('%PDF-'):normal(url,init);
  const descriptor=describeInvoices([payment],student)[0];
  const system={...input,action:'send',systemTemplateId:ONBOARDING_TEMPLATE_ID,studentId:'recStudent',variables:{formule:'Admission',date_echeance:'2026-10-30',montant_a_payer:'700'},idempotencyKey:'student-doc-send-1234',attachments:[descriptor]};
@@ -162,4 +162,19 @@ test('saved proposal and generated invoice are built from server records as PDFs
  globalThis.fetch=async(url,init)=>String(url).includes('/recStudent')?{ok:true,json:async()=>student}:String(url).includes('/recPayOne')?{ok:true,json:async()=>payment}:normal(url,init);
  const response=res();await handler(req({...input,action:'send',systemTemplateId:ONBOARDING_TEMPLATE_ID,studentId:'recStudent',variables:{formule:'Admission',date_echeance:'2026-10-30',montant_a_payer:'700'},idempotencyKey:'generated-doc-send-123',attachments:[describeProposal(student),...describeInvoices([payment],student)]}),response,env);
  assert.equal(response.code,200,JSON.stringify(response.body));const sent=JSON.parse(calls.find(call=>call.url.includes('api.resend.com')).body);assert.equal(sent.attachments.length,3);assert.equal(sent.attachments[0].filename,describeProposal(student).filename);assert.equal(sent.attachments[1].filename,describeInvoices([payment],student)[0].filename);assert.ok(sent.attachments.slice(0,2).every(file=>Buffer.from(file.content,'base64').subarray(0,5).toString()==='%PDF-'));
+});
+
+test('two invoice attachments remain attached and canonical amounts sum by currency, ignoring forged client totals',async()=>{
+ for(const secondCurrency of ['EUR','TND']){
+  const calls=mock(),normal=globalThis.fetch;
+  const student={id:'recStudent',fields:{[PF.fullName]:'Ada Lovelace',[PF.email]:'ada@example.com'}};
+  const payments=['One','Two'].map((suffix,index)=>({id:`recPay${suffix}`,fields:{[FIN.prospects]:['recStudent'],[FIN.amount]:index?'200.125':'100.125',[FIN.currency]:index?secondCurrency:'EUR',[FIN.invoice]:[{id:`att${suffix}`,filename:`invoice-${suffix}.pdf`,type:'application/pdf',size:5,url:`https://v5.airtableusercontent.com/${suffix}`}]}}));
+  globalThis.fetch=async(url,init)=>{const path=String(url);if(path.includes('/recStudent'))return{ok:true,json:async()=>student};const payment=payments.find(item=>path.includes('/'+item.id));if(payment)return{ok:true,json:async()=>payment};if(path.startsWith('https://v5.airtableusercontent.com/'))return new Response('%PDF-');return normal(url,init);};
+  const response=res();await handler(req({...input,action:'send',studentId:'recStudent',systemTemplateId:ONBOARDING_TEMPLATE_ID,idempotencyKey:`invoice-totals-${secondCurrency}-12345`,variables:{formule:'Admission',date_echeance:'2026-11-15',montant_a_payer:'999',devise:'USD',totaux:[{currency:'USD',amount:'999'}]},attachments:describeInvoices(payments,student)}),response,env);
+  assert.equal(response.code,200,JSON.stringify(response.body));const sent=JSON.parse(calls.find(c=>c.url.includes('api.resend.com')).body);
+  assert.deepEqual(sent.attachments.slice(0,2).map(f=>f.filename),['invoice-One.pdf','invoice-Two.pdf']);
+  const plain=sent.text.replace(/\s/g,'');
+  if(secondCurrency==='EUR')assert.ok(plain.includes('300,25EUR'));else{assert.ok(plain.includes('100,125EUR'));assert.ok(plain.includes('200,125TND'));}
+  assert.ok(!plain.includes('999USD'));assert.ok(!sent.html.includes('}} DT'));
+ }
 });

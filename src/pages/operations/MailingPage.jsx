@@ -1,3 +1,4 @@
+import { invoiceSelectionVariables, formatInvoiceTotals } from '../../lib/mailingInvoiceTotals.js';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
@@ -36,8 +37,24 @@ export default function MailingPage() {
   const key = useRef(crypto.randomUUID());
   const student = students.find(item => item.id === studentId);
   const isSystem = templateId === ONBOARDING_TEMPLATE_ID;
-  const onboarding = renderOnboarding({ student: context?.student || {}, variables, attachments: draft.attachments, logoSrc: '/images/jeexpert-content/logo-pdf.png' });
-  const change = (field, value) => { setDraft(old => ({ ...old, [field]: value })); key.current = crypto.randomUUID(); setSent(false); setNotice(''); };
+  const selectedInvoices = (context?.invoices || []).filter(invoice => draft.attachments.some(file => file.studentDocument==='invoice' && documentKey(file)===documentKey(invoice)));
+  const selectedTotals = selectedInvoices.length ? invoiceSelectionVariables(selectedInvoices) : null;
+  const emailVariables = selectedTotals ? {...variables,montant_a_payer:selectedTotals.montant_a_payer,devise:selectedTotals.devise,totaux:selectedTotals.totaux} : variables;
+  const onboarding = renderOnboarding({ student: context?.student || {}, variables: emailVariables, attachments: draft.attachments, logoSrc: '/images/jeexpert-content/logo-pdf.png' });
+  const change = (field, value) => {
+    if (field === 'attachments') {
+      const invoices = (context?.invoices || []).filter(invoice => value.some(file => file.studentDocument === 'invoice' && documentKey(file) === documentKey(invoice)));
+      if (invoices.length) {
+        const derived = invoiceSelectionVariables(invoices);
+        setVariables(old => ({...old,...derived,formule:derived.formule || old.formule,date_echeance:derived.date_echeance || old.date_echeance}));
+        setPaymentId('');
+      } else if (draft.attachments.some(file => file.studentDocument === 'invoice')) {
+        setVariables({...getOnboardingDefaults(context?.student,context?.payments || []),devise:'TND'});
+        setPaymentId('');
+      }
+    }
+    setDraft(old => ({...old,[field]:value})); key.current = crypto.randomUUID(); setSent(false); setNotice('');
+  };
   const changeVariable = (field, value) => { setVariables(old => ({ ...old, [field]: value })); key.current = crypto.randomUUID(); setSent(false); setNotice(''); };
   const load = async () => {
     setLoading(true); setError('');
@@ -80,9 +97,7 @@ export default function MailingPage() {
     const next = checked ? [...remaining, document] : remaining;
     if (next.length > MAX_ATTACHMENT_COUNT || bytes(next) + (draft.reservedAttachmentBytes || 0) > MAX_SYSTEM_ATTACHMENT_BYTES) { setError('Maximum 20 pièces jointes et 6 Mo au total. Retirez un fichier avant de continuer.'); return; }
     change('attachments', next); setError('');
-    if (checked && document.studentDocument === 'invoice') {
-      setVariables(getInvoiceMailingVariables(document)); setPaymentId(document.paymentId);
-    }
+
   };
   const addFiles = async event => {
     const files = Array.from(event.target.files || []); event.target.value = ''; setBusy(true); setError('');
@@ -118,8 +133,8 @@ export default function MailingPage() {
   const send = async () => {
     if (busy || sent) return; setBusy(true); setError('');
     try {
-      if (isSystem) validateOnboardingVariables(variables);
-      const result = await api({ action: 'send', studentId, subject: draft.subject, body: draft.body, cc: draft.cc, fromKey: draft.fromKey, attachments: draft.attachments, idempotencyKey: key.current, ...(isSystem ? { systemTemplateId: ONBOARDING_TEMPLATE_ID, variables } : {}) });
+      if (isSystem) validateOnboardingVariables(emailVariables);
+      const result = await api({ action: 'send', studentId, subject: draft.subject, body: draft.body, cc: draft.cc, fromKey: draft.fromKey, attachments: draft.attachments, idempotencyKey: key.current, ...(isSystem ? { systemTemplateId: ONBOARDING_TEMPLATE_ID, variables: emailVariables } : {}) });
       setSent(true); setPreview(false); setNotice(`Email accepté par le service d’envoi pour ${student.email}.${result.warning ? ` ${result.warning}` : ''}`);
       try { const data = await api(null, undefined, studentId); setHistory(data.history || []); } catch { /* Sending succeeded; preserve the confirmation. */ }
     } catch (err) { setError(err.message); } finally { setBusy(false); }
@@ -144,7 +159,7 @@ export default function MailingPage() {
       <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
         <form className="space-y-4" onSubmit={event => {
           event.preventDefault(); setError('');
-          try { if (!context?.student || contextLoading) throw new Error('Attendez le chargement de la fiche étudiant.'); if (isSystem) validateOnboardingVariables(variables); setPreview(true); }
+          try { if (!context?.student || contextLoading) throw new Error('Attendez le chargement de la fiche étudiant.'); if (isSystem) validateOnboardingVariables(emailVariables); setPreview(true); }
           catch (err) { setError(err.message); }
         }}>
             <StudentPicker students={students} value={studentId} disabled={busy} onChange={id => { if (id === studentId) return; setDraft(old => ({ ...old, attachments: old.attachments.filter(file => !file.studentDocument) })); setStudentId(id); setContext(null); setPreview(false); key.current = crypto.randomUUID(); setSent(false); setNotice(''); }} />
@@ -159,12 +174,12 @@ export default function MailingPage() {
               {contextWarning && <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{contextWarning}</p>}
               {context?.student && <p className="break-words text-sm text-text-muted">Prénom : {context.student.firstName || '—'} · Nom : {context.student.lastName || '—'} · Email : {context.student.email}</p>}
               <Field label="Formule"><input required disabled={contextLoading} maxLength={1000} className={inputClass} value={variables.formule} onChange={event => changeVariable('formule', event.target.value)} placeholder="Reprise des services sélectionnés dans Proposal" /></Field>
-              {!!context?.payments.length && <Field label="Préremplir depuis un paiement à régler en DT"><select disabled={contextLoading} className={inputClass} value={paymentId} onChange={event => {
+              {!!context?.payments.length && <Field label="Préremplir depuis un paiement à régler en DT"><select disabled={contextLoading || !!selectedTotals} className={inputClass} value={paymentId} onChange={event => {
                 const id = event.target.value, payment = context.payments.find(item => item.id === id);
                 const invoice = context.invoices.find(item => item.paymentId === id);
                 setPaymentId(id); setVariables(old => invoice ? getInvoiceMailingVariables(invoice) : ({ ...old, date_echeance: payment?.dueDate || '', montant_a_payer: payment ? String(payment.amount) : '' })); key.current = crypto.randomUUID(); setSent(false); setNotice('');
               }}><option value="">Saisie manuelle / choisir un paiement</option>{context.payments.map(payment => <option key={payment.id} value={payment.id}>{payment.amount} DT · {payment.dueDate || 'Sans échéance'}</option>)}</select></Field>}
-              <div className="grid gap-4 sm:grid-cols-2"><Field label="Échéance"><input required disabled={contextLoading} type="date" className={inputClass} value={variables.date_echeance} onChange={event => changeVariable('date_echeance', event.target.value)} /></Field><Field label="Montant à payer (DT)"><input required disabled={contextLoading} type="number" min="0.001" step="0.001" className={inputClass} value={variables.montant_a_payer} onChange={event => changeVariable('montant_a_payer', event.target.value)} /></Field></div>
+              <div className="grid gap-4 sm:grid-cols-2"><Field label="Échéance"><input required disabled={contextLoading} type="date" className={inputClass} value={variables.date_echeance} onChange={event => changeVariable('date_echeance', event.target.value)} /></Field>{selectedTotals ? <Field label="Total des factures sélectionnées"><input readOnly className={inputClass} value={formatInvoiceTotals(selectedTotals.totaux)} /></Field> : <><Field label="Montant à payer"><input required disabled={contextLoading} type="number" min="0.001" step="0.001" className={inputClass} value={variables.montant_a_payer} onChange={event => changeVariable('montant_a_payer', event.target.value)} /></Field><Field label="Devise"><select className={inputClass} value={variables.devise || 'TND'} onChange={event=>changeVariable('devise',event.target.value)}>{['TND','EUR','USD','GBP','CAD'].map(code=><option key={code}>{code}</option>)}</select></Field></>}</div>
               <p className="text-xs text-text-muted">Les données sont préremplies quand elles existent. Vérifiez-les avant envoi. Ces ajustements concernent uniquement cet email.</p>
             </div> : <>
               <Field label="Message"><textarea required rows={10} maxLength={20000} className={inputClass} value={draft.body} onChange={event => change('body', event.target.value)} /></Field>

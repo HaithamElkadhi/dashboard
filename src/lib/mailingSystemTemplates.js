@@ -1,3 +1,4 @@
+import { formatInvoiceTotals } from './mailingInvoiceTotals.js';
 import { PF } from './config.js';
 import { ONBOARDING_HTML } from './mailingTemplates/onboardingHtml.js';
 import { ONBOARDING_DEFAULT_ATTACHMENTS } from './mailingAttachments.js';
@@ -11,7 +12,7 @@ Selon votre formule, notre équipe vous guide pour l’admission universitaire, 
 VOTRE PREMIER PAIEMENT
 Formule : {{formule}}
 Échéance : {{date_echeance}}
-Montant à payer : {{montant_a_payer}} DT
+Montant à payer : {{montant_avec_devise}}
 
 Votre dossier sera activé après confirmation du premier paiement. Un manager dédié assurera ensuite le suivi de vos démarches.
 
@@ -64,12 +65,15 @@ export function getInvoiceMailingVariables(invoice) {
 }
 
 export function validateOnboardingVariables(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !['formule', 'date_echeance', 'montant_a_payer'].includes(key))) throw new Error('Variables du mail de bienvenue invalides.');
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !['formule', 'date_echeance', 'montant_a_payer', 'devise', 'totaux'].includes(key))) throw new Error('Variables du mail de bienvenue invalides.');
   if (typeof value.formule !== 'string' || !value.formule.trim() || value.formule.length > 1000) throw new Error('Complétez la formule de l’étudiant.');
   if (typeof value.date_echeance !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.date_echeance) || !Number.isFinite(Date.parse(value.date_echeance)) || new Date(value.date_echeance).toISOString().slice(0,10) !== value.date_echeance) throw new Error('Complétez une date d’échéance valide.');
+  const validateTotal = item => item && typeof item.currency==='string' && /^[A-Z]{3}$/.test(item.currency) && typeof item.amount==='string' && /^\d{1,9}(?:\.\d{1,3})?$/.test(item.amount) && Number(item.amount)>0;
+  if(value.totaux!==undefined && (!Array.isArray(value.totaux)||!value.totaux.length||value.totaux.length>20||value.totaux.some(item=>!validateTotal(item))||new Set(value.totaux.map(item=>item.currency)).size!==value.totaux.length))throw new Error('Vérifiez les montants et devises des factures sélectionnées.');
+  if(value.devise!==undefined && !(value.totaux?.length>1 && value.devise==='') && !/^[A-Z]{3}$/.test(value.devise))throw new Error('Choisissez une devise valide.');
   const amount = typeof value.montant_a_payer === 'string' ? value.montant_a_payer.trim().replace(/\s/g, '').replace(',', '.') : '';
-  if (!/^\d{1,9}(?:\.\d{1,3})?$/.test(amount) || Number(amount) <= 0) throw new Error('Complétez un montant à payer positif en DT (3 décimales maximum).');
-  return { formule: value.formule.trim(), date_echeance: value.date_echeance, montant_a_payer: amount };
+  if (!/^\d{1,9}(?:\.\d{1,3})?$/.test(amount) || Number(amount) <= 0) throw new Error('Complétez un montant à payer positif (3 décimales maximum).');
+  return { formule: value.formule.trim(), date_echeance: value.date_echeance, montant_a_payer: amount, ...(value.devise!==undefined?{devise:value.devise}:{}),...(value.totaux?{totaux:value.totaux.map(({currency,amount})=>({currency,amount}))}:{}) };
 }
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -78,6 +82,7 @@ export function renderOnboarding({ student = {}, variables = {}, logoSrc = 'cid:
   const amount = String(variables.montant_a_payer || '').replace(/\s/g, '').replace(',', '.');
   const values = {
     prenom_etudiant: student.firstName || student.fullName || 'Étudiant', nom_etudiant: student.lastName || '',
+    montant_avec_devise: formatInvoiceTotals(variables.totaux || [{currency:variables.devise || 'TND',amount}]),
     email_etudiant: student.email || 'À compléter', formule: variables.formule || 'À compléter', date_echeance: date,
     montant_a_payer: amount && Number.isFinite(Number(amount)) ? new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 }).format(Number(amount)) : 'À compléter',
   };

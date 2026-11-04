@@ -1,3 +1,4 @@
+import { invoiceSelectionVariables } from '../../src/lib/mailingInvoiceTotals.js';
 import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
 import { BASE_ID, TABLES, FIN, DUE_STATUS } from '../../src/lib/config.js';
 import { ONBOARDING_TEMPLATE_ID, SYSTEM_MAIL_TEMPLATES, normalizeMailingStudent, renderOnboarding, validateOnboardingVariables } from '../../src/lib/mailingSystemTemplates.js';
@@ -28,6 +29,7 @@ export default async function handler(req, res, env = process.env) {
     };
     const list = async path => { const records = []; let offset; do { const page = await request(path + (path.includes('?') ? '&' : '?') + new URLSearchParams({ pageSize: '100', ...(offset ? { offset } : {}) })); records.push(...(page.records || [])); offset = page.offset; } while (offset); return records; };
     const studentRecords = new Map();
+    const selectedInvoices = new Map();
     const resolveAttachments = async (files, maxBytes = MAX_ATTACHMENT_BYTES, studentId = '') => {
       const cache = new Map(); let total = 0; const resolved = [];
       for (const file of files) {
@@ -44,6 +46,7 @@ export default async function handler(req, res, env = process.env) {
             if (!payment.fields?.[FIN.prospects]?.includes(studentId)) throw authError(400,'Facture liée à un autre étudiant.');
             const descriptor=describeInvoices([payment],studentRecord).find(item=>(item.invoiceAttachmentId || '')===(file.invoiceAttachmentId || '') && item.filename===file.filename);
             if (!descriptor) throw authError(400,'Facture enregistrée introuvable.');
+            selectedInvoices.set(file.paymentId,descriptor);
             if (file.invoiceAttachmentId) {
               const stored=payment.fields[FIN.invoice].find(item=>item.id===file.invoiceAttachmentId && isInvoicePdf(item));
               const url=new URL(stored.url);
@@ -161,7 +164,16 @@ export default async function handler(req, res, env = process.env) {
     const attachments = await resolveAttachments(input.attachments, systemTemplate ? MAX_SYSTEM_ATTACHMENT_BYTES : MAX_ATTACHMENT_BYTES,body.studentId);
     let message = { text: renderMailText(input.body, student) };
     if (systemTemplate) {
-      try { const variables = validateOnboardingVariables(body.variables); const rendered = renderOnboarding({ student, variables, attachments }); message = { html:rendered.html,text:rendered.text }; } catch (error) { throw authError(400,error.message); }
+      try {
+        const inputVariables = {...body.variables};
+        if (selectedInvoices.size) {
+          const {montant_a_payer,devise,totaux} = invoiceSelectionVariables([...selectedInvoices.values()]);
+          Object.assign(inputVariables,{montant_a_payer,devise,totaux});
+        }
+        const variables = validateOnboardingVariables(inputVariables);
+        const rendered = renderOnboarding({student,variables,attachments});
+        message = {html:rendered.html,text:rendered.text};
+      } catch (error) { throw authError(400,error.message); }
       attachments.push({ filename:'jeexpert-logo.png',content:MAILING_LOGO_BASE64,content_id:'jeexpert-logo',content_type:'image/png' });
       if (attachments.reduce((sum,file)=>sum+Buffer.from(file.content,'base64').length,0)>MAX_SYSTEM_ATTACHMENT_BYTES) throw authError(400,'Les pièces jointes et le logo dépassent 6 Mo au total.');
     }
