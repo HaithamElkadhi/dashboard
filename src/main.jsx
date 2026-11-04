@@ -11,7 +11,7 @@ import ComingSoonPage from './components/layout/ComingSoonPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ProspectsPage from './pages/ProspectsPage.jsx';
 import TicketingPage from './pages/TicketingPage.jsx';
-import StudentDocumentsPage from './pages/StudentDocumentsPage.jsx';
+import ProspectDocumentsPage from './pages/ProspectDocumentsPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FinancePage from './pages/FinancePage.jsx';
 import FinanceDocumentPage from './pages/FinanceDocumentPage.jsx';
@@ -52,7 +52,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/human-resources/recruitment" element={<RecruitmentPage />} />
           <Route path="/human-resources/shifts" element={<ShiftsPage />} />
           <Route path="/prospects" element={<ProspectsPage />} />
-          <Route path="/students/:studentId/documents" element={<StudentDocumentsPage />} />
+          <Route path="/students/:studentId/documents" element={<ProspectDocumentsPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/ticketing" element={<TicketingPage />} />
           <Route path="/tasks" element={<TasksPage />} />
