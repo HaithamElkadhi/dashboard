@@ -1,12 +1,13 @@
 import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
 import { BASE_ID, TABLES, PF } from '../../src/lib/config.js';
 import { ADMISSION_DOCUMENTS, REQUESTED_DOCUMENTS_FIELD as F, mergeRequestedDocuments } from '../../src/lib/admissionDocuments.js';
+import { admissionRequirements } from './admission-requirements.js';
 const pending = new Map();
 export default async function handler(req, res, env = process.env) {
   res.setHeader('Cache-Control', 'no-store');
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed.' });
   try {
-    await requireUser(req, env);
+    const { user } = await requireUser(req, env);
     if (req.method === 'POST') checkOrigin(req, env);
     const studentId = req.method === 'GET' ? new URL(req.url, 'http://internal').searchParams.get('studentId') : req.body?.studentId;
     if (!/^rec[A-Za-z0-9]+$/.test(studentId || '')) throw authError(400, 'Select a valid prospect.');
@@ -19,6 +20,9 @@ export default async function handler(req, res, env = process.env) {
       return response.json();
     };
     const result = record => ({ student: { id: record.id, fullName: record.fields?.[PF.fullName] || '', email: record.fields?.[PF.email] || '' }, requested: record.fields?.[F] || '' });
+    if (req.method === 'GET' && new URL(req.url, 'http://internal').searchParams.get('checklist') === '1' || req.method === 'POST' && req.body?.action === 'save-checklist') {
+      return await admissionRequirements(req, res, { request, studentId, user });
+    }
     if (req.method === 'GET') return res.json(result(await request()));
     const { documentIds, expected } = req.body || {};
     const allowed = new Set(ADMISSION_DOCUMENTS.map(doc => doc.id));

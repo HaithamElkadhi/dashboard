@@ -84,7 +84,8 @@ export const PF = {
   currentStatus: 'fldvzq0VUdgCELdRf',
   lastAcademicLevel: 'fldGeykWH8oKFr03M',
   obtainedDiplomas: 'fld1P0dI80wYuEXe1',
-  background: 'fldlr2jdQRHs74t9r', // Field of Previous Studies
+  previousStudies: 'fldLL6037ymaLuT5m', // Field of Previous Studies (text shared by Proposal and Admission)
+  background: 'fldlr2jdQRHs74t9r', // Legacy Background (multipleSelects), fallback for previous studies
   yearOfGraduation: 'fldsot30LGlll8oss',
   currentOccupation: 'fldqTBJ1GLInyIHws',
   languages: 'fld2HHy6pgpQJmUNv',

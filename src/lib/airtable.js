@@ -1,3 +1,4 @@
+import { ACADEMIC_LEVEL_LABELS, normalizeAcademicLevel, previousStudies } from './proposalItaly/academicProfile.js';
 import {
   BASE_ID,
   EXPENSES_BASE_ID,
@@ -137,7 +138,7 @@ const PROPOSAL_COMPLETENESS_FIELDS = [
   ['Academic level', 'lastAcademicLevel'],
   ['Obtained diplomas', 'obtainedDiplomas'],
   ['Academic records', 'academicRecordDescription'],
-  ['Field of previous studies', 'background'],
+  ['Field of previous studies', 'previousStudies'],
   ['Year of graduation', 'yearOfGraduation'],
   ['Languages', 'languages'],
   ['Language records', 'languageRecordDescription'],
@@ -153,7 +154,7 @@ const PROPOSAL_COMPLETENESS_FIELDS = [
   ['Available budget', 'availableBudget'],
   ['Selected services', 'selectedServices'],
 ];
-const PROPOSAL_COMPLETENESS_FIELD_IDS = PROPOSAL_COMPLETENESS_FIELDS.map(([, k]) => PF[k]);
+const PROPOSAL_COMPLETENESS_FIELD_IDS = [...PROPOSAL_COMPLETENESS_FIELDS.map(([, k]) => PF[k]), PF.background];
 
 function isFilled(v) {
   if (v == null) return false;
@@ -164,7 +165,7 @@ function isFilled(v) {
 
 /** @returns {{ percent: number, missing: string[] }} */
 function proposalCompleteness(f) {
-  const missing = PROPOSAL_COMPLETENESS_FIELDS.filter(([, k]) => !isFilled(f[PF[k]])).map(
+  const missing = PROPOSAL_COMPLETENESS_FIELDS.filter(([, k]) => !isFilled(k === 'previousStudies' ? previousStudies(f, PF.previousStudies, PF.background) : f[PF[k]])).map(
     ([label]) => label
   );
   const total = PROPOSAL_COMPLETENESS_FIELDS.length;
@@ -1186,19 +1187,7 @@ const DEGREE_LEVEL_LABELS = {
   phd: 'Phd',
 };
 
-const ACADEMIC_LEVEL_LABELS = {
-  'Pre Bac': 'Bac non obtenu',
-  'Bac (en cours)': 'Bac',
-  'Bac accompli': 'Bac accompli',
-  'Bac +1': 'Bac +1',
-  'Bac +2 (BTS / BTP / DUT / équivalent)': 'Bac +2 ',
-  'Bac +3 (en cours)': 'Bac +3 en cours',
-  'Bac +3 accompli (Licence)': 'Bac +3 (Licence)',
-  'Bac +4 (en cours)': 'Bac +4 en cours',
-  'Bac +5 (en cours – Master)': 'Bac +5 en cours',
-  'Bac +5 accompli (Master)': 'Bac +5 (Master / Ingénieur)',
-  'Bac +6+ (Doctorat / PhD)': 'Bac +8 (Doctorat)',
-};
+
 
 const LANGUAGE_LABELS = {
   English: 'English',
@@ -1350,12 +1339,8 @@ function toProposalProspectFields(data) {
     fields[PF.obtainedDiplomas] = sp.obtainedDiploma;
   }
 
-  // Background is multipleSelects with a fixed option list — only write when
-  // the value is likely an exact option (skip arbitrary free text to avoid 422).
-  const background = (sp.fieldOfPreviousStudies || '').trim();
-  if (background && background.length < 80 && !background.includes('\n')) {
-    fields[PF.background] = [background];
-  }
+  fields[PF.previousStudies] = (sp.fieldOfPreviousStudies || '').trim();
+  if (!fields[PF.previousStudies]) fields[PF.background] = [];
 
   if (sp.yearOfGraduation !== '' && sp.yearOfGraduation != null) {
     const y = Number(sp.yearOfGraduation);
@@ -1559,11 +1544,11 @@ export function normalizeProposalRecord(record) {
     studentProfile: {
       ...base.studentProfile,
       currentStatus: f[PF.currentStatus] || '',
-      academicLevel: fromAirtable(ACADEMIC_LEVEL_LABELS, f[PF.lastAcademicLevel]),
+      academicLevel: normalizeAcademicLevel(f[PF.lastAcademicLevel]),
       obtainedDiploma: diplomas,
       academicRecords,
       academicDescription,
-      fieldOfPreviousStudies: first(f[PF.background]),
+      fieldOfPreviousStudies: previousStudies(f, PF.previousStudies, PF.background),
       yearOfGraduation: year != null ? String(year) : '',
       currentOccupation: f[PF.currentOccupation] || '',
       languages,

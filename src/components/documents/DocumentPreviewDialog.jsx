@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState } from 'react';
 import Modal from '../Modal.jsx';
-import { buttonClass, primaryClass, inputClass, Field, ErrorMessage } from '../prospection/controls.jsx';
+import { primaryClass, inputClass, Field, ErrorMessage } from '../prospection/controls.jsx';
+import { documentActions } from './documentActionStyles.js';
+import { DownloadIcon } from '../icons.jsx';
 
 const PdfPreview = lazy(() => import('./PdfPreview.jsx'));
 
@@ -28,7 +30,7 @@ export default function DocumentPreviewDialog({ doc, canWrite, onClose, onCommen
         {doc.files.length > 1 && <Field label="Version"><select className={inputClass} value={version} onChange={event => setVersion(Number(event.target.value))}>{doc.files.map((item, index) => <option key={item.id || index} value={index}>{index === 0 ? 'Version actuelle · ' : ''}{item.filename}</option>)}</select></Field>}
         <p className="break-words text-sm text-text-muted">{file?.filename || 'Aucun fichier disponible'}</p>
         {!url ? <p className="rounded-lg bg-canvas p-6 text-sm">Ce fichier n’est pas disponible. Actualisez la liste.</p> : pdf ? <Suspense fallback={<p role="status">Chargement de l’aperçu PDF…</p>}><PdfPreview url={url} name={file.filename || doc.name} /></Suspense> : image ? <img key={url} src={url} alt={file.filename || doc.name} className="max-h-[65vh] w-full rounded-lg border border-border object-contain" onError={event => { event.currentTarget.style.display = 'none'; setError('Aperçu indisponible. Téléchargez le document ou actualisez la liste.'); }} /> : <p className="rounded-lg bg-canvas p-6 text-sm">L’aperçu de ce format n’est pas disponible. Téléchargez le document pour le consulter.</p>}
-        {url && <button className={buttonClass} disabled={busy} onClick={download}>Télécharger cette version</button>}
+        {url && <button className={documentActions.download} disabled={busy} onClick={download}><DownloadIcon size={16} />Télécharger</button>}
       </section>
       <section className="min-w-0 space-y-4 rounded-xl border border-border bg-canvas/40 p-4" aria-label="Commentaires du document">
         <h3 className="font-semibold text-navy">Commentaires</h3>

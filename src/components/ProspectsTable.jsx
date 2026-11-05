@@ -7,7 +7,7 @@ import { EmptyState, SkeletonRows } from './states.jsx';
 import { usePagination } from '../hooks/usePagination.js';
 import { chipStyle, dotStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
-import { EyeIcon, FileTextIcon, PencilIcon, TrashIcon, UserIcon, WalletIcon, WhatsAppIcon } from './icons.jsx';
+import { EyeIcon, FileTextIcon, PencilIcon, TrashIcon, WalletIcon, WhatsAppIcon } from './icons.jsx';
 import { formatShortDate } from '../lib/taskDates.js';
 import { parseContactHistory } from '../lib/airtable.js';
 import { INTEREST_LEVELS } from '../lib/config.js';
@@ -293,6 +293,12 @@ function Field({ label, children }) {
   );
 }
 
+function StudentName({ prospect, onFiche }) {
+  const name = prospect.fullName || '—';
+  if (!onFiche) return <div className="truncate text-sm font-medium capitalize text-text-strong">{name}</div>;
+  return <button type="button" onClick={() => onFiche(prospect)} title="Ouvrir la fiche client" className="block max-w-full truncate rounded text-left text-sm font-medium capitalize text-text-strong underline-offset-4 transition hover:text-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy">{name}</button>;
+}
+
 function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
   const { readOnly } = useAuth();
   return (
@@ -308,9 +314,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium capitalize text-text-strong">
-                {p.fullName || '—'}
-              </div>
+              <StudentName prospect={p} onFiche={onFiche} />
               <div className="break-words text-xs text-text-muted">{p.email || 'Email non renseigné'}</div>
               <div className="text-xs tabular-nums text-text-muted">{p.phone || 'Téléphone non renseigné'}</div>
             </div>
@@ -340,16 +344,6 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
                   className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
                 >
                   {readOnly ? <EyeIcon size={13} /> : <PencilIcon size={13} />}
-                </button>
-              )}
-              {onFiche && (
-                <button
-                  type="button"
-                  onClick={() => onFiche(p)}
-                  title="Fiche client"
-                  className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
-                >
-                  <UserIcon size={13} />
                 </button>
               )}
               {onProposal && (
@@ -392,7 +386,7 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         </div>
       </div>
 
-      <div className="mt-3"><a href={`/students/${p.id}/documents`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a></div>
+      <div className="mt-3"><a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a></div>
       {proposalMode ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
           <div className="col-span-2">
@@ -500,9 +494,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
             src={p.photoUrl}
           />
           <div className="min-w-0">
-            <div className="truncate text-sm font-medium capitalize text-text-strong">
-              {p.fullName || '—'}
-            </div>
+            <StudentName prospect={p} onFiche={onFiche} />
             <div className="break-words text-xs text-text-muted">{p.email || 'Email non renseigné'}</div>
             <div className="text-xs tabular-nums text-text-muted">{p.phone || 'Téléphone non renseigné'}</div>
           </div>
@@ -611,7 +603,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
               <WhatsAppIcon size={14} />
             </button>
           )}
-          <a href={`/students/${p.id}/documents`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
+          <a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
               {onEdit && (
             <button data-write={readOnly ? undefined : ''}
               type="button"
@@ -620,16 +612,6 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
               className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
             >
               {readOnly ? <EyeIcon size={14} /> : <PencilIcon size={14} />}
-            </button>
-          )}
-          {onFiche && (
-            <button
-              type="button"
-              onClick={() => onFiche(p)}
-              title="Fiche client"
-              className="rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"
-            >
-              <UserIcon size={14} />
             </button>
           )}
           {onProposal && (

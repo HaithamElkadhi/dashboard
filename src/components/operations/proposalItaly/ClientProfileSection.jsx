@@ -1,3 +1,4 @@
+import { ACADEMIC_LEVEL_OPTIONS } from '../../../lib/proposalItaly/academicProfile.js';
 import { GraduationCapIcon, RefreshIcon } from '../../icons.jsx';
 import {
   buildAcademicDescription,
@@ -22,19 +23,7 @@ const OBTAINED_DIPLOMA_OPTIONS = [
   { value: 'PhD', label: 'PhD' },
 ];
 
-const ACADEMIC_LEVEL_OPTIONS = [
-  { value: 'Pre Bac', label: 'Pre Bac' },
-  { value: 'Bac (en cours)', label: 'Bac (en cours)' },
-  { value: 'Bac accompli', label: 'Bac accompli' },
-  { value: 'Bac +1', label: 'Bac +1' },
-  { value: 'Bac +2 (BTS / BTP / DUT / équivalent)', label: 'Bac +2 (BTS/BTP/DUT)' },
-  { value: 'Bac +3 (en cours)', label: 'Bac +3 (en cours)' },
-  { value: 'Bac +3 accompli (Licence)', label: 'Bac +3 (Licence)' },
-  { value: 'Bac +4 (en cours)', label: 'Bac +4 (en cours)' },
-  { value: 'Bac +5 (en cours – Master)', label: 'Bac +5 (en cours)' },
-  { value: 'Bac +5 accompli (Master)', label: 'Bac +5 (Master)' },
-  { value: 'Bac +6+ (Doctorat / PhD)', label: 'Bac +6+ (PhD)' },
-];
+
 
 const LANGUAGE_OPTIONS = ['English', 'French', 'Italian', 'Spanish', 'German', 'Arabic', 'Other'];
 const LANGUAGE_LEVEL_OPTIONS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'];
