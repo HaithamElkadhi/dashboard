@@ -12,6 +12,8 @@ import contactActivity from '../contact-activity.js';
 import notes from './notes.js';
 import prospection from './prospection.js';
 import mailing from './mailing.js';
+import universities from './universities.js';
+import courses from './courses.js';
 import login from '../auth/login.js';
 import me from '../auth/me.js';
 import logout from '../auth/logout.js';
@@ -40,6 +42,8 @@ export function devApi(env) {
         if (url.pathname === '/api/shifts') handler = shifts;
         if (url.pathname === '/api/recruitment') handler = recruitment;
         if (url.pathname === '/api/mailing') handler = mailing;
+        if (url.pathname === '/api/universities') handler = universities;
+        if (url.pathname === '/api/courses') handler = courses;
         if (!handler) return next();
         res.status = (status) => { res.statusCode = status; return res; };
         res.json = (body) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); };

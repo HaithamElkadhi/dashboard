@@ -37,7 +37,8 @@ function parseAttachments(value) {
 // Returns { status, body } — caller just writes both to its response.
 export async function sendProposalEmail(
   { toName, toEmail, cc, subject, body, fromKey, attachments },
-  env = process.env
+  env = process.env,
+  { plainText = false, idempotencyKey } = {}
 ) {
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
@@ -61,9 +62,9 @@ export async function sendProposalEmail(
       to: toEmail.trim(),
       cc: parseEmails(cc).length ? parseEmails(cc) : undefined,
       subject: subject?.trim() || '(No subject)',
-      html: buildHtml(body),
+      ...(plainText ? { text: body } : { html: buildHtml(body) }),
       attachments: parseAttachments(attachments),
-    });
+    }, idempotencyKey ? { idempotencyKey } : undefined);
 
     if (error) {
       return { status: 400, body: { error: error.message || 'Failed to send email' } };

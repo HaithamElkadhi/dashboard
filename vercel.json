@@ -18,6 +18,8 @@
     { "source": "/api/admission-documents", "destination": "/api/operations?__route=admission-documents" },
     { "source": "/api/integration", "destination": "/api/operations?__route=integration" },
     { "source": "/api/notes", "destination": "/api/operations?__route=notes" },
+    { "source": "/api/universities", "destination": "/api/operations?__route=universities" },
+    { "source": "/api/courses", "destination": "/api/operations?__route=courses" },
     {
       "source": "/api/at-content/:path*",
       "destination": "/api/proxy?__p=:path*&__host=content"

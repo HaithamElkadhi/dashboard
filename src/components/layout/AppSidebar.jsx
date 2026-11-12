@@ -9,7 +9,7 @@ import './AppSidebar.css';
 
 const SECTIONS = [
   ['Workspace', ['Overview', 'My Tasks', 'Kanban Board', 'Ticketing', 'Notes']],
-  ['Students', ['Students', 'Bookings', 'Client Accounts', 'Visa']],
+  ['Students', ['Students', 'Universities', 'Courses', 'Bookings', 'Client Accounts', 'Visa']],
   ['Finance', ['Payments', 'Expenses', 'Performance']],
   ['Operations', ['Operations']],
   ['Human ressources', ['Human ressources']],
