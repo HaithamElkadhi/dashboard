@@ -20,6 +20,7 @@
     { "source": "/api/notes", "destination": "/api/operations?__route=notes" },
     { "source": "/api/universities", "destination": "/api/operations?__route=universities" },
     { "source": "/api/courses", "destination": "/api/operations?__route=courses" },
+    { "source": "/api/desktop-notifications", "destination": "/api/operations?__route=desktop-notifications" },
     {
       "source": "/api/at-content/:path*",
       "destination": "/api/proxy?__p=:path*&__host=content"

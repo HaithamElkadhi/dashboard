@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-function worker(fetch) {
+function worker(fetch, overrides = {}) {
   const handlers = {};
   const cached = [];
   const fallback = new Response('Offline');
   vm.runInNewContext(readFileSync('public/sw.js', 'utf8'), {
-    self: { location: { origin: 'https://jeexpert.example' }, addEventListener: (name, handler) => { handlers[name] = handler; } },
+    self: { location: { origin: 'https://jeexpert.example' }, addEventListener: (name, handler) => { handlers[name] = handler; }, ...overrides },
     caches: { open: async () => ({ add: async (path) => cached.push(path) }), match: async () => fallback },
     URL, Response, fetch,
   });
@@ -61,4 +61,51 @@ test('Manifest has correctly sized installation icons', () => {
     assert.equal(png.readUInt32BE(16), size);
     assert.equal(png.readUInt32BE(20), size);
   }
+});
+
+test('A background booking push shows a Windows notification and its click opens the booking', async () => {
+  let shown;
+  let opened;
+  let closed = false;
+  let windows = [];
+  const badgeCalls = [];
+  const { handlers } = worker(undefined, {
+    registration: { showNotification: async (title, options) => { shown = { title, ...options }; } },
+    navigator: { setAppBadge: async (...args) => { badgeCalls.push(args); } },
+    clients: { matchAll: async () => windows, openWindow: async (url) => { opened = url; } },
+  });
+  const pending = [];
+  const push = () => handlers.push({
+    data: { json: () => ({ id: 'booking:reminder:rec123', title: 'Booking reminder', href: '/bookings?booking=rec123' }) },
+    waitUntil: (promise) => pending.push(promise),
+  });
+  push();
+  await Promise.all(pending);
+  assert.equal(shown.title, 'Booking reminder');
+  assert.deepEqual(badgeCalls, [[]]);
+  windows = [{ url: 'https://jeexpert.example/' }];
+  push();
+  await Promise.all(pending);
+  assert.deepEqual(badgeCalls, [[]]);
+  handlers.notificationclick({
+    notification: { ...shown, close: () => { closed = true; } },
+    waitUntil: (promise) => pending.push(promise),
+  });
+  await Promise.all(pending);
+  assert.equal(closed, true);
+  assert.equal(opened, 'https://jeexpert.example/bookings?booking=rec123');
+});
+
+test('A notification click with an external destination stays in JEEXPERT', async () => {
+  let opened;
+  let pending;
+  const { handlers } = worker(undefined, {
+    clients: { matchAll: async () => [], openWindow: async (url) => { opened = url; } },
+  });
+  handlers.notificationclick({
+    notification: { tag: 'jeexpert:test', data: { href: 'https://external.example/bookings' }, close() {} },
+    waitUntil: (promise) => { pending = promise; },
+  });
+  await pending;
+  assert.equal(opened, 'https://jeexpert.example/bookings');
 });

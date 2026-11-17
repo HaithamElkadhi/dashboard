@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBookingNotifications } from '../../contexts/BookingNotificationsContext.jsx';
 import { relativeTime } from '../../lib/taskDates.js';
+import { desktopNotificationMode, disableDesktopNotifications, enableDesktopNotifications, supportsDesktopNotifications } from '../../lib/desktopNotifications.js';
 import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, UserIcon, XIcon } from '../icons.jsx';
 
 function appointmentLabel(value) {
@@ -12,16 +13,44 @@ function appointmentLabel(value) {
 }
 
 export default function BookingNotificationBell() {
-  const { notifications, status, error, markRead, refresh } = useBookingNotifications();
+  const { notifications, status, error, markRead, refresh, desktopOwner, unread } = useBookingNotifications();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [desktopMode, setDesktopMode] = useState(() => desktopNotificationMode(desktopOwner));
+  const [desktopBusy, setDesktopBusy] = useState(false);
+  const [desktopError, setDesktopError] = useState('');
   const container = useRef(null);
   const trigger = useRef(null);
   const panel = useRef(null);
   const navigate = useNavigate();
-  const unread = notifications.filter((item) => !item.read).length;
   const visible = filter === 'unread' ? notifications.filter((item) => !item.read) : notifications;
   const close = () => { setOpen(false); trigger.current?.focus(); };
+
+  useEffect(() => {
+    const sync = () => setDesktopMode(desktopNotificationMode(desktopOwner));
+    sync();
+    window.addEventListener('desktop-notifications-changed', sync);
+    window.addEventListener('storage', sync);
+    window.addEventListener('focus', sync);
+    return () => {
+      window.removeEventListener('desktop-notifications-changed', sync);
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('focus', sync);
+    };
+  }, [desktopOwner]);
+
+  async function toggleDesktopNotifications() {
+    setDesktopBusy(true);
+    setDesktopError('');
+    try {
+      if (desktopMode) await disableDesktopNotifications();
+      else await enableDesktopNotifications(desktopOwner);
+    } catch (error) {
+      setDesktopError(error.message);
+    } finally {
+      setDesktopBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -62,6 +91,14 @@ export default function BookingNotificationBell() {
         <button type="button" disabled={!unread} onClick={() => markRead(notifications.map((item) => item.id))}
           className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-navy hover:underline disabled:opacity-40 disabled:no-underline"><CheckIcon size={14} />Mark all as read</button>
       </div>
+      {supportsDesktopNotifications() && <div className="border-t border-border px-5 pb-2">
+        <button type="button" disabled={desktopBusy} onClick={toggleDesktopNotifications}
+          className="min-h-11 rounded-lg text-left text-xs font-medium text-navy hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-50">
+          {desktopBusy ? 'Updating desktop reminders…' : desktopMode ? 'Turn off desktop reminders' : 'Turn on desktop reminders'}
+        </button>
+        {desktopMode === 'local' && <p className="text-xs text-text-muted">Reminders appear while JEEXPERT is open.</p>}
+        {desktopError && <p role="alert" className="pb-1 text-xs text-red-800">{desktopError}</p>}
+      </div>}
       <div className="max-h-[min(65vh,560px)] overflow-y-auto overscroll-contain scroll-thin">
         <div className="flex items-center justify-between border-t border-border px-5 py-3">
           <h3 className="text-sm font-semibold text-text-strong">Students & bookings</h3>

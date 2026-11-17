@@ -27,3 +27,43 @@ self.addEventListener('fetch', (event) => {
     });
   }));
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let reminder;
+  try {
+    reminder = event.data.json();
+  } catch {
+    return;
+  }
+  if (typeof reminder?.id !== 'string' || typeof reminder.title !== 'string') return;
+  event.waitUntil(self.registration.showNotification(reminder.title, {
+    body: typeof reminder.body === 'string' ? reminder.body : '',
+    icon: '/images/jeexpert/pwa-192.png',
+    tag: `jeexpert:${reminder.id}`,
+    data: { href: reminder.href },
+  }));
+  if (self.navigator.setAppBadge) {
+    event.waitUntil((async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      // An open dashboard owns the exact unread count.
+      if (!windows.length) await self.navigator.setAppBadge();
+    })().catch(() => {}));
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  if (!event.notification.tag.startsWith('jeexpert:')) return;
+  event.notification.close();
+  event.waitUntil((async () => {
+    let url = new URL('/bookings', self.location.origin);
+    try {
+      const destination = new URL(event.notification.data?.href, self.location.origin);
+      if (destination.origin === url.origin && destination.pathname === '/bookings') url = destination;
+    } catch { /* Fall back to the bookings page. */ }
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const existing = windows.find((client) => client.url === url.href);
+    if (existing) await existing.focus();
+    else await self.clients.openWindow(url.href);
+  })());
+});

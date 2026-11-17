@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import LoginPage from '../pages/LoginPage.jsx';
+import { disableDesktopNotifications, updateDesktopBadge } from '../lib/desktopNotifications.js';
 const AuthContext = createContext(null);
 function clearCache() {
   try { for (const key of Object.keys(localStorage)) if (key.startsWith('jeexpert:')) localStorage.removeItem(key); } catch { /* Browser storage may be disabled. */ }
@@ -14,6 +15,8 @@ export function AuthProvider({ children }) {
   userRef.current = user;
   const invalidate = useCallback((broadcast = true) => {
     generation.current += 1;
+    disableDesktopNotifications({ forgetOnServer: false }).catch(() => {});
+    updateDesktopBadge(0);
     clearCache();
     setUser(null);
     if (broadcast) channel.current?.postMessage('logout');
@@ -34,7 +37,8 @@ export function AuthProvider({ children }) {
       const protectedApi = url.origin === window.location.origin && url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/');
       const method = (init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
       const contactAppend = url.pathname === '/api/student-contact' && method === 'POST';
-      if (protectedApi && userRef.current?.role === 'View' && !contactAppend && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+      const desktopPreference = url.pathname === '/api/desktop-notifications' && ['POST', 'DELETE'].includes(method);
+      if (protectedApi && userRef.current?.role === 'View' && !contactAppend && !desktopPreference && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
         throw new Error('View access: changes are not allowed.');
       }
       const started = generation.current;

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { fetchBookingNotificationData, fetchStudentNotificationData } from '../lib/airtable.js';
 import { REMINDER_LEAD_MS } from '../lib/bookings/notifications.js';
 import { dashboardNotifications } from '../lib/studentNotifications.js';
+import { desktopNotificationMode, showBookingReminder, updateDesktopBadge } from '../lib/desktopNotifications.js';
 import { useAuth } from './AuthContext.jsx';
 
 const Context = createContext(null);
@@ -26,7 +27,7 @@ function UserNotifications({ children, storageKey }) {
     let active = true;
     let inFlight = false;
     async function load() {
-      if (inFlight || document.visibilityState === 'hidden') return;
+      if (inFlight || (document.visibilityState === 'hidden' && !desktopNotificationMode(storageKey))) return;
       inFlight = true;
       try {
         const results = await Promise.allSettled([fetchBookingNotificationData(), fetchStudentNotificationData()]);
@@ -49,6 +50,7 @@ function UserNotifications({ children, storageKey }) {
     window.addEventListener('focus', load);
     window.addEventListener('bookings-changed', load);
     window.addEventListener('students-changed', load);
+    window.addEventListener('desktop-notifications-changed', load);
     return () => {
       active = false;
       clearInterval(interval);
@@ -56,8 +58,9 @@ function UserNotifications({ children, storageKey }) {
       window.removeEventListener('focus', load);
       window.removeEventListener('bookings-changed', load);
       window.removeEventListener('students-changed', load);
+      window.removeEventListener('desktop-notifications-changed', load);
     };
-  }, [retry]);
+  }, [retry, storageKey]);
 
   useEffect(() => {
     // Recompute locally at the exact next reminder time, without another API request.
@@ -87,8 +90,30 @@ function UserNotifications({ children, storageKey }) {
     const readSet = new Set(read);
     return dashboardNotifications(bookings, students, now).map((item) => ({ ...item, read: readSet.has(item.id) }));
   }, [bookings, students, now, read]);
+  const unread = notifications.filter((item) => !item.read).length;
 
-  return <Context.Provider value={{ notifications, status, error, markRead,
+  useEffect(() => {
+    if (status !== 'loading') updateDesktopBadge(unread);
+  }, [status, unread]);
+
+  useEffect(() => {
+    if (desktopNotificationMode(storageKey) !== 'local') return;
+    const deliveredKey = `${storageKey}:desktop-delivered`;
+    const delivered = new Set(readIds(deliveredKey));
+    for (const item of notifications) {
+      const currentTime = Date.now();
+      if (item.kind !== 'reminder' || item.read || item.at < currentTime - 120000
+          || Date.parse(item.dateTime) <= currentTime || delivered.has(item.id)) continue;
+      delivered.add(item.id);
+      try { localStorage.setItem(deliveredKey, JSON.stringify([...delivered].slice(-500))); } catch { /* Storage is optional. */ }
+      showBookingReminder(item).catch(() => {
+        const previous = readIds(deliveredKey);
+        try { localStorage.setItem(deliveredKey, JSON.stringify(previous.filter((id) => id !== item.id))); } catch { /* Storage is optional. */ }
+      });
+    }
+  }, [notifications, now, storageKey]);
+
+  return <Context.Provider value={{ notifications, status, error, markRead, desktopOwner: storageKey, unread,
     refresh: () => setRetry((value) => value + 1) }}>{children}</Context.Provider>;
 }
 
