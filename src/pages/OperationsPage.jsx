@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { GraduationCapIcon } from '../components/icons.jsx';
 
 const TOOLS = [
+  { to: '/operations/preparation', icon: GraduationCapIcon, title: 'Préparation', desc: 'Sélectionner un étudiant et consulter sa timeline de préparation du dossier.' },
   { to: '/operations/mailing', icon: GraduationCapIcon, title: 'Mailing', desc: 'Modèles personnalisables, pièces jointes, expéditeurs JEEXPERT, CC et historique des envois.' },
   { to: '/operations/documents', icon: GraduationCapIcon, title: 'Documents', desc: 'Visa, Scholarship et Admission : fichiers, ZIP, commentaires et envoi par email.' },
   {
@@ -15,18 +16,6 @@ const TOOLS = [
     icon: GraduationCapIcon,
     title: 'Integration',
     desc: 'Follow arrival and settlement steps for students in Italy.',
-  },
-  {
-    to: '/operations/admission-documents',
-    icon: GraduationCapIcon,
-    title: 'Admission documents',
-    desc: 'Select a prospect and add required admission documents.',
-  },
-  {
-    icon: GraduationCapIcon,
-    title: 'Scholarship documents',
-    desc: 'Manage requested scholarship documents.',
-    comingSoon: true,
   },
   {
     to: '/operations/application',

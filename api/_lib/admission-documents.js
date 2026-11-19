@@ -1,3 +1,4 @@
+import { preparation } from './preparation.js';
 import { requireUser, checkOrigin, authError, sendAuthError } from './auth.js';
 import { BASE_ID, TABLES, PF } from '../../src/lib/config.js';
 import { ADMISSION_DOCUMENTS, REQUESTED_DOCUMENTS_FIELD as F, mergeRequestedDocuments } from '../../src/lib/admissionDocuments.js';
@@ -19,6 +20,9 @@ export default async function handler(req, res, env = process.env) {
       if (!response.ok) throw authError(response.status === 404 ? 404 : 503, method === 'GET' ? 'Unable to load requested documents.' : 'Update could not be confirmed. Refresh before trying again.');
       return response.json();
     };
+    if (req.method === 'GET' && new URL(req.url, 'http://internal').searchParams.get('preparation') === '1' || req.method === 'POST' && ['save-mousad9a', 'save-translation', 'save-test', 'save-dv', 'save-deposit', 'save-meeting'].includes(req.body?.action)) {
+      return await preparation(req, res, { request, studentId });
+    }
     const result = record => ({ student: { id: record.id, fullName: record.fields?.[PF.fullName] || '', email: record.fields?.[PF.email] || '' }, requested: record.fields?.[F] || '' });
     if (req.method === 'GET' && new URL(req.url, 'http://internal').searchParams.get('checklist') === '1' || req.method === 'POST' && req.body?.action === 'save-checklist') {
       return await admissionRequirements(req, res, { request, studentId, user });

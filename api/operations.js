@@ -1,3 +1,4 @@
+import preparationList from './_lib/preparation-list.js';
 import shifts from './_lib/shifts.js';
 import recruitment from './_lib/recruitment.js';
 import documentsWorkspace from './_lib/documents-workspace.js';
@@ -12,7 +13,7 @@ import universities from './_lib/universities.js';
 import courses from './_lib/courses.js';
 import desktopNotifications from './_lib/desktop-notifications.js';
 
-export const operationHandlers = Object.freeze({ shifts, recruitment, 'documents-workspace': documentsWorkspace, education, applications, 'admission-documents': admissionDocuments, integration, notes, prospection, mailing, universities, courses, 'desktop-notifications': desktopNotifications });
+export const operationHandlers = Object.freeze({ 'preparation-list': preparationList, shifts, recruitment, 'documents-workspace': documentsWorkspace, education, applications, 'admission-documents': admissionDocuments, integration, notes, prospection, mailing, universities, courses, 'desktop-notifications': desktopNotifications });
 export default async function handler(req, res, env = process.env) {
   const url = new URL(req.url, 'http://internal');
   const route = url.searchParams.get('__route');

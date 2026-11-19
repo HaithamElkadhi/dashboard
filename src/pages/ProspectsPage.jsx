@@ -9,6 +9,7 @@ import ProposalViewModal from '../components/prospects/ProposalViewModal.jsx';
 import ClientFicheModal from '../components/prospects/ClientFicheModal.jsx';
 import ContactLogModal from '../components/prospects/ContactLogModal.jsx';
 import WhatsAppModal from '../components/prospects/WhatsAppModal.jsx';
+import PreparationModal from '../components/prospects/PreparationModal.jsx';
 import SituationFilter from '../components/prospects/SituationFilter.jsx';
 import Toast from '../components/Toast.jsx';
 import { fetchProspectCompleteness, normalizeIntake, updateInterestLevel } from '../lib/airtable.js';
@@ -88,6 +89,7 @@ export default function ProspectsPage() {
   const [ficheFor, setFicheFor] = useState(null);
   const [contactFor, setContactFor] = useState(null);
   const [whatsappFor, setWhatsappFor] = useState(null);
+  const [preparationFor, setPreparationFor] = useState(null);
   const [intakeFilter, setIntakeFilter] = useState('all');
   const [admissionFilter, setAdmissionFilter] = useState('all');
   // Tous tab only: combine several situations (empty = all).
@@ -590,6 +592,7 @@ export default function ProspectsPage() {
               onContact={setContactFor}
               onInterest={handleInterestChange}
               onWhatsApp={setWhatsappFor}
+              onPreparation={activeTab === ADMISSION_TAB ? setPreparationFor : undefined}
               onIntakeChange={handleIntakeChange}
               onDateChange={handleDateChange}
               intakeYears={intakeYears}
@@ -597,6 +600,10 @@ export default function ProspectsPage() {
           )}
         </div>
       </div>
+
+      {activeTab === ADMISSION_TAB && preparationFor && (
+        <PreparationModal prospect={preparationFor} onClose={() => setPreparationFor(null)} />
+      )}
 
       {whatsappFor && (
         <WhatsAppModal

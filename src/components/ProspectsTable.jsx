@@ -299,7 +299,20 @@ function StudentName({ prospect, onFiche }) {
   return <button type="button" onClick={() => onFiche(prospect)} title="Ouvrir la fiche client" className="block max-w-full truncate rounded text-left text-sm font-medium capitalize text-text-strong underline-offset-4 transition hover:text-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy">{name}</button>;
 }
 
-function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
+function PreparationButton({ prospect, onPreparation }) {
+  return (
+    <button
+      type="button"
+      aria-label={`Préparation du dossier de ${prospect.fullName}`}
+      onClick={() => onPreparation(prospect)}
+      className="inline-flex min-h-11 items-center rounded-lg border border-border px-2 text-xs font-medium text-text-strong hover:border-border-strong hover:bg-canvas focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#173B65] md:min-h-8"
+    >
+      Préparation
+    </button>
+  );
+}
+
+function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
   const { readOnly } = useAuth();
   return (
     <div className="p-4">
@@ -386,7 +399,10 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         </div>
       </div>
 
-      <div className="mt-3"><a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a></div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
+        {onPreparation && <PreparationButton prospect={p} onPreparation={onPreparation} />}
+      </div>
       {proposalMode ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
           <div className="col-span-2">
@@ -480,7 +496,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode }) {
+function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
   const { readOnly } = useAuth();
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
@@ -604,6 +620,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
             </button>
           )}
           <a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
+          {onPreparation && <PreparationButton prospect={p} onPreparation={onPreparation} />}
               {onEdit && (
             <button data-write={readOnly ? undefined : ''}
               type="button"
@@ -665,6 +682,7 @@ export default function ProspectsTable({
   onWhatsApp,
   onIntakeChange,
   onDateChange,
+  onPreparation,
   intakeYears = [],
   proposalMode = false,
 }) {
@@ -730,6 +748,7 @@ export default function ProspectsTable({
                   onWhatsApp={onWhatsApp}
                   onIntakeChange={onIntakeChange}
                   onDateChange={onDateChange}
+                  onPreparation={onPreparation}
                   intakeYears={intakeYears}
                   proposalMode={proposalMode}
                 />
@@ -762,6 +781,7 @@ export default function ProspectsTable({
               onWhatsApp={onWhatsApp}
               onIntakeChange={onIntakeChange}
               onDateChange={onDateChange}
+              onPreparation={onPreparation}
               intakeYears={intakeYears}
               proposalMode={proposalMode}
             />

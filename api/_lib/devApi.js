@@ -1,3 +1,4 @@
+import preparationList from './preparation-list.js';
 import shifts from './shifts.js';
 import recruitment from './recruitment.js';
 import documentsWorkspace from './documents-workspace.js';
@@ -28,7 +29,7 @@ export function devApi(env) {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url, 'http://localhost');
-        let handler = { '/api/documents-workspace': documentsWorkspace, '/api/education': education, '/api/notes': notes, '/api/contact-activity': contactActivity, '/api/integration': integration, '/api/admission-documents': admissionDocuments, '/api/applications': applications, '/api/student-contact': studentContact, '/api/student-documents': studentDocuments, '/api/ticketing': ticketing, '/api/auth/login': login, '/api/auth/me': me, '/api/auth/logout': logout, '/api/admin/users': adminUsers, '/api/send-email': sendEmail, '/api/proxy': proxy }[url.pathname];
+        let handler = { '/api/preparation-list': preparationList, '/api/documents-workspace': documentsWorkspace, '/api/education': education, '/api/notes': notes, '/api/contact-activity': contactActivity, '/api/integration': integration, '/api/admission-documents': admissionDocuments, '/api/applications': applications, '/api/student-contact': studentContact, '/api/student-documents': studentDocuments, '/api/ticketing': ticketing, '/api/auth/login': login, '/api/auth/me': me, '/api/auth/logout': logout, '/api/admin/users': adminUsers, '/api/send-email': sendEmail, '/api/proxy': proxy }[url.pathname];
         for (const [prefix, host] of [['/api/airtable/', null], ['/api/at-content/', 'content']]) {
           if (url.pathname.startsWith(prefix)) {
             const path = url.pathname.slice(prefix.length);
