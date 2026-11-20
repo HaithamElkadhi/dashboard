@@ -5,6 +5,7 @@ import { ADMISSION_REQUIREMENTS_FIELD } from '../../src/lib/admissionRequirement
 import { TEST_FIELDS } from '../../src/lib/preparationTest.js';
 import { DV_FIELDS } from '../../src/lib/preparationDv.js';
 import { DEPOSIT_FIELDS } from '../../src/lib/preparationDeposit.js';
+import { accountQueries, LINKED_ACCOUNTS_FIELD } from '../../src/lib/preparationIdentity.js';
 import { INTAKE_FIELD, MOUSAD9A_FIELD, TRANSLATION_FIELD, NO_YEAR, schoolYears, isCandidate, matchesSchoolYear, preparationStats } from '../../src/lib/preparationCohort.js';
 
 export default async function handler(req, res, env = process.env) {
@@ -26,7 +27,7 @@ export default async function handler(req, res, env = process.env) {
       filters.push(`REGEX_MATCH(ARRAYJOIN({${INTAKE_FIELD}}, ','), '${pattern.replaceAll("\\", "\\\\")}')`);
     }
     const fields = mode === 'years' ? [PF.situation, INTAKE_FIELD] : [
-      PF.situation, INTAKE_FIELD, PF.fullName, PF.email, PF.phone, PF.prospectId, PF.applicationEmail,
+      PF.situation, INTAKE_FIELD, PF.fullName, PF.email, PF.phone, PF.prospectId, LINKED_ACCOUNTS_FIELD,
       ADMISSION_REQUIREMENTS_FIELD, MOUSAD9A_FIELD, TRANSLATION_FIELD, TEST_FIELDS.type, TEST_FIELDS.done,
       DV_FIELDS.status, DEPOSIT_FIELDS.done, MEETING_FIELDS.done,
     ];
@@ -57,13 +58,21 @@ export default async function handler(req, res, env = process.env) {
       });
     }
     const filtered = records.filter(record => matchesSchoolYear(record.fields, year));
+    const accounts = new Map();
+    for (const query of accountQueries(filtered)) {
+      const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.accounts}?${query}`, {
+        headers: { Authorization: `Bearer ${env.AIRTABLE_API_KEY}` }, cache: 'no-store', signal: AbortSignal.timeout(20000),
+      });
+      if (!response.ok) throw authError(503, 'Impossible de vérifier les identifiants de candidature.');
+      for (const account of (await response.json()).records || []) accounts.set(account.id, account);
+    }
     return res.json({
       year,
       students: filtered.map(({ id, fields }) => ({
         id, fullName: fields[PF.fullName] || fields[PF.prospectId] || 'Candidat sans nom',
         email: fields[PF.email] || '', phone: fields[PF.phone] || '', prospectId: fields[PF.prospectId] || '',
       })).sort((a, b) => a.fullName.localeCompare(b.fullName)),
-      stats: preparationStats(filtered),
+      stats: preparationStats(filtered, accounts),
     });
   } catch (error) { sendAuthError(res, error); }
 }

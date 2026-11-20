@@ -14,7 +14,7 @@ import SituationFilter from '../components/prospects/SituationFilter.jsx';
 import Toast from '../components/Toast.jsx';
 import { fetchProspectCompleteness, normalizeIntake, updateInterestLevel } from '../lib/airtable.js';
 import { ErrorState } from '../components/states.jsx';
-import { SITUATION_CHOICES, ADMITTED_SITUATION } from '../lib/config.js';
+import { LOST_REASONS, SITUATION_CHOICES, ADMITTED_SITUATION } from '../lib/config.js';
 import { chipStyle } from '../lib/colors.js';
 import { formatEUR, formatTND } from '../lib/format.js';
 import { RefreshIcon, SearchIcon } from '../components/icons.jsx';
@@ -85,6 +85,8 @@ export default function ProspectsPage() {
   const refreshedOpenId = useRef(null);
   // Active situation tab — 'all' shows everyone; otherwise filter by that situation.
   const [activeTab, setActiveTab] = useState('all');
+  const [lostReasonFilter, setLostReasonFilter] = useState('');
+  const isLostTab = activeTab === LAST_SITUATION_TAB;
   const [proposalFor, setProposalFor] = useState(null);
   const [ficheFor, setFicheFor] = useState(null);
   const [contactFor, setContactFor] = useState(null);
@@ -332,6 +334,7 @@ export default function ProspectsPage() {
   // so it never filters another tab silently.
   useEffect(() => {
     if (activeTab !== ADMISSION_TAB) setAdmissionFilter('all');
+    if (activeTab !== LAST_SITUATION_TAB) setLostReasonFilter('');
     if (activeTab !== 'all') setSituationFilter([]);
   }, [activeTab]);
 
@@ -345,6 +348,7 @@ export default function ProspectsPage() {
     const q = query.trim().toLowerCase();
     return prospects.filter((p) => {
       if (!inTab(p, activeTab)) return false;
+      if (isLostTab && lostReasonFilter && (p.lostReason || '__missing__') !== lostReasonFilter) return false;
       if (activeTab === 'all' && situationFilter.length) {
         if (!situationFilter.some((s) => inTab(p, s))) return false;
       }
@@ -367,7 +371,12 @@ export default function ProspectsPage() {
         p.prospectId.toLowerCase().includes(q)
       );
     });
-  }, [prospects, activeTab, situationFilter, intakeFilter, admissionFilter, query]);
+  }, [prospects, activeTab, isLostTab, lostReasonFilter, situationFilter, intakeFilter, admissionFilter, query]);
+
+  const lostReasons = useMemo(() => [...new Set([
+    ...LOST_REASONS,
+    ...prospects.filter((p) => inTab(p, LAST_SITUATION_TAB) && p.lostReason).map((p) => p.lostReason),
+  ])], [prospects]);
 
   // Payé / Restant follow the current filters + search, not the whole dataset.
   const moneyKpis = useMemo(() => {
@@ -526,12 +535,27 @@ export default function ProspectsPage() {
               </select>
             </label>
           )}
-          {(intakeFilter !== 'all' || admissionFilter !== 'all' || situationFilter.length > 0) && (
+          {isLostTab && (
+            <label className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-1 text-sm">
+              <span className="whitespace-nowrap text-text-muted">Motif Lost</span>
+              <select
+                value={lostReasonFilter}
+                onChange={(e) => setLostReasonFilter(e.target.value)}
+                className="rounded-lg bg-transparent py-1.5 text-sm font-medium text-text-strong"
+              >
+                <option value="">Tous les motifs</option>
+                <option value="__missing__">Sans motif</option>
+                {lostReasons.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+              </select>
+            </label>
+          )}
+          {(intakeFilter !== 'all' || admissionFilter !== 'all' || lostReasonFilter || situationFilter.length > 0) && (
             <button
               type="button"
               onClick={() => {
                 setIntakeFilter('all');
                 setAdmissionFilter('all');
+                setLostReasonFilter('');
                 setSituationFilter([]);
               }}
               className="text-xs font-medium text-text-muted underline-offset-2 transition hover:text-text-strong hover:underline"
@@ -576,6 +600,7 @@ export default function ProspectsPage() {
               rows={filtered}
               loading={loading}
               showSituation={activeTab === 'all'}
+              showLostDetails={isLostTab}
               proposalMode={isProposalTab}
               colors={{
                 situation: schema?.situation?.colors,

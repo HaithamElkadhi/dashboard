@@ -5,6 +5,7 @@ import { ADMISSION_REQUIREMENTS_FIELD } from './admissionRequirements.js';
 import { readPreparationTest } from './preparationTest.js';
 import { readPreparationDv } from './preparationDv.js';
 import { readPreparationDeposit } from './preparationDeposit.js';
+import { candidatureEmail } from './preparationIdentity.js';
 
 export const INTAKE_FIELD = 'fldWgAo9MCS0PQ0Qb';
 export const MOUSAD9A_FIELD = 'fld2YHuug3Idlz1zb';
@@ -36,11 +37,11 @@ export function matchesSchoolYear(fields, year) {
   return year === 'all' || (year === NO_YEAR ? years.length === 0 : years.includes(year));
 }
 
-export function preparationStats(records) {
+export function preparationStats(records, accountsById) {
   const stats = preparationStages.map(stage => ({ ...stage, done: 0, total: records.length, hidden: 0, unknown: 0 }));
-  for (const { fields } of records) {
-    const email = String(fields[PF.applicationEmail] || '').trim();
-    if (/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email)) stats[0].done++;
+  for (const record of records) {
+    const { fields } = record;
+    if (candidatureEmail(record, accountsById)) stats[0].done++;
     if (readPreparationMeeting(fields).done) stats[1].done++;
     if (fields[ADMISSION_REQUIREMENTS_FIELD]) {
       try {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import Modal from '../Modal.jsx';
-import { SITUATION_CHOICES } from '../../lib/config.js';
+import { LOST_REASONS, SITUATION_CHOICES } from '../../lib/config.js';
 import { normalizeIntake } from '../../lib/airtable.js';
 
 // First date each stage was reached ("📅 Date …" fields) — set once, but
@@ -55,10 +55,13 @@ function ChipPicker({ choices, value, onToggle }) {
 
 export default function ProspectEditModal({ prospect, choices, onClose, onSubmit }) {
   const { readOnly } = useAuth();
+  const wasLost = prospect.situations?.includes('Lost');
   const [form, setForm] = useState(() => ({
     name: prospect.firstName || '',
     surname: prospect.lastName || '',
     situations: prospect.situations || [],
+    lostReason: wasLost ? prospect.lostReason || '' : '',
+    lostNote: wasLost ? prospect.lostNote || '' : '',
     admissionStatus: prospect.admissionStatus || [],
     approvedUniversity: prospect.university || '',
     scholarshipStatus: prospect.scholarshipStatus || '',
@@ -70,6 +73,10 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const isLost = form.situations.includes('Lost');
+  const situationsChanged = form.situations.length !== (prospect.situations || []).length
+    || form.situations.some((situation) => !prospect.situations?.includes(situation));
+  const needsLostReason = isLost && (!wasLost || situationsChanged || Boolean(prospect.lostReason));
 
   const situationChoices = choices?.situation?.length ? choices.situation : SITUATION_CHOICES;
   const admissionChoices = choices?.admission || [];
@@ -108,13 +115,19 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (readOnly || saving) return;
+    if (needsLostReason && !form.lostReason) {
+      setError('Sélectionnez un motif pour le statut Lost.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
       await onSubmit({
         name: form.name.trim(),
         surname: form.surname.trim(),
-        situations: form.situations,
+        ...(situationsChanged ? { situations: form.situations } : {}),
+        ...(isLost ? { lostReason: form.lostReason, lostNote: form.lostNote } : {}),
         admissionStatus: form.admissionStatus,
         approvedUniversity: form.approvedUniversity.trim(),
         scholarshipStatus: form.scholarshipStatus,
@@ -187,6 +200,23 @@ export default function ProspectEditModal({ prospect, choices, onClose, onSubmit
             onToggle={toggleIn('situations')}
           />
         </Field>
+
+        {isLost && (
+          <div className="space-y-3">
+            <Field label={needsLostReason ? 'Motif Lost (obligatoire)' : 'Motif Lost'}>
+              <select data-write="" className={inputClass} value={form.lostReason} onChange={set('lostReason')} required={needsLostReason} disabled={readOnly || saving}>
+                <option value="">Sélectionner un motif</option>
+                {form.lostReason && !LOST_REASONS.includes(form.lostReason) && (
+                  <option value={form.lostReason}>{form.lostReason}</option>
+                )}
+                {LOST_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+              </select>
+            </Field>
+            <Field label="Note Lost (facultative)">
+              <textarea data-write="" className={inputClass} value={form.lostNote} onChange={set('lostNote')} rows={3} disabled={readOnly || saving} />
+            </Field>
+          </div>
+        )}
 
         <Field label="Université (validée)">
           <input data-write=""

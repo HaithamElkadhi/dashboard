@@ -312,7 +312,18 @@ function PreparationButton({ prospect, onPreparation }) {
   );
 }
 
-function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
+function LostDetails({ prospect }) {
+  return (
+    <div className="space-y-1 text-sm">
+      <p className="font-medium text-text-strong">{prospect.lostReason || 'Sans motif'}</p>
+      {prospect.lostNote && (
+        <p className="whitespace-pre-wrap break-words text-text-muted">{prospect.lostNote}</p>
+      )}
+    </div>
+  );
+}
+
+function ProspectCard({ p, colors, showSituation, showLostDetails, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
   const { readOnly } = useAuth();
   return (
     <div className="p-4">
@@ -403,6 +414,11 @@ function ProspectCard({ p, colors, showSituation, onEdit, onDelete, onBourse, on
         <a href={`/operations/documents?studentId=${encodeURIComponent(p.id)}`} target="_blank" rel="noopener noreferrer" title="Documents" aria-label={`Documents for ${p.fullName}`} className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-text-muted transition hover:border-border-strong hover:text-text-strong"><FileTextIcon size={14} /></a>
         {onPreparation && <PreparationButton prospect={p} onPreparation={onPreparation} />}
       </div>
+      {showLostDetails && (
+        <dl className="mt-3">
+          <Field label="Motif et note Lost"><LostDetails prospect={p} /></Field>
+        </dl>
+      )}
       {proposalMode ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
           <div className="col-span-2">
@@ -496,7 +512,7 @@ function SkeletonCards({ count = 6 }) {
   ));
 }
 
-function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
+function ProspectRow({ p, colors, showSituation, showLostDetails, onEdit, onDelete, onBourse, onProposal, onFiche, onContact, onInterest, onWhatsApp, onIntakeChange, onDateChange, intakeYears = [], proposalMode, onPreparation }) {
   const { readOnly } = useAuth();
   return (
     <tr className="border-b border-border transition hover:bg-canvas/60">
@@ -516,6 +532,7 @@ function ProspectRow({ p, colors, showSituation, onEdit, onDelete, onBourse, onP
           </div>
         </div>
       </td>
+      {showLostDetails && <td className="w-64 min-w-48 px-4 py-3"><LostDetails prospect={p} /></td>}
       {showSituation && (
         <td className="px-4 py-3">
           <SituationBadges values={p.situations} colorMap={colors.situation} />
@@ -672,6 +689,7 @@ export default function ProspectsTable({
   loading,
   colors,
   showSituation = true,
+  showLostDetails = false,
   onEdit,
   onDelete,
   onBourse,
@@ -694,7 +712,8 @@ export default function ProspectsTable({
     universitaly: colors?.universitaly || EMPTY,
   };
 
-  const columns = proposalMode ? PROPOSAL_COLUMNS : showSituation ? ALL_TAB_COLUMNS : BASE_COLUMNS;
+  const baseColumns = proposalMode ? PROPOSAL_COLUMNS : showSituation ? ALL_TAB_COLUMNS : BASE_COLUMNS;
+  const columns = showLostDetails ? [baseColumns[0], 'Motif et note Lost', ...baseColumns.slice(1)] : baseColumns;
 
   const resetKey = useMemo(
     () => `${rows.length}:${rows[0]?.id ?? ''}:${rows[rows.length - 1]?.id ?? ''}:${showSituation}:${proposalMode}`,
@@ -738,6 +757,7 @@ export default function ProspectsTable({
                   p={p}
                   colors={palette}
                   showSituation={showSituation}
+                  showLostDetails={showLostDetails}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onBourse={onBourse}
@@ -771,6 +791,7 @@ export default function ProspectsTable({
               p={p}
               colors={palette}
               showSituation={showSituation}
+              showLostDetails={showLostDetails}
               onEdit={onEdit}
               onDelete={onDelete}
               onBourse={onBourse}

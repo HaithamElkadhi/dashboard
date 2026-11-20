@@ -60,6 +60,8 @@ export function useDashboardData() {
                 firstName: patch.firstName,
                 lastName: patch.lastName,
                 situations: patch.situations,
+                lostReason: patch.lostReason,
+                lostNote: patch.lostNote,
                 admissionStatus: patch.admissionStatus,
                 university: patch.approvedUniversity || p.university,
                 scholarshipStatus: patch.scholarshipStatus,

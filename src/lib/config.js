@@ -36,6 +36,8 @@ export const PF = {
   surname: 'fldrlBOVl9Rd2wIff',
   prospectId: 'fldy26xuJG1jxUrxL',
   situation: 'fldLY8mOVCDsJhw23',
+  lostReason: 'fldzZ7UTYSLcVJhzU',
+  lostNote: 'fldxSB0dK7YvlbLQC',
   nbrApplications: 'fldWY2F7bmqqzRT7Q',
   admissionStatus: 'fldmuVhiN3wJyNNtF',
   applicationUniversity: 'fldvd6oYJD9xgpSD8',
@@ -231,6 +233,14 @@ export const PAYMENT_STATUS_COLORS = {
 // Prospect Situation choices (fallback only — ProspectsPage reads the live
 // list from the Airtable schema). Ordered along the funnel.
 export const SITUATION_CHOICES = ['Lead', 'Prospect', 'Candidate', 'Student', 'Lost'];
+export const LOST_REASONS = [
+  'Injoignable',
+  'Budget',
+  'Projet reporté',
+  'A choisi une autre agence',
+  'A abandonné son projet',
+  'Autre',
+];
 
 // Situation values the app keys behavior on. "Candidate" = engaged/signed
 // client, "Student" = admitted. Update here if they're renamed in Airtable.

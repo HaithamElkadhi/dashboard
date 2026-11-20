@@ -4,7 +4,7 @@ import PreparationDv from './PreparationDv.jsx';
 import PreparationTest from './PreparationTest.jsx';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { useEffect, useState } from 'react';
-import { fetchClientFiche } from '../../lib/airtable.js';
+import { fetchCandidatureEmail } from '../../lib/airtable.js';
 
 const steps = [
   { title: 'Identifiants', description: 'Vérifier les comptes et les accès créés pour le candidat.' },
@@ -57,13 +57,9 @@ export default function PreparationTimeline({ prospect, onOpenRequired, onUpdate
     let active = true;
     setIdentity(null);
     setIdentityError(false);
-    fetchClientFiche(prospect.id)
-      .then(fiche => {
-        if (active) {
-          const email = String(fiche.applicationEmail || '').trim();
-          const validEmail = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email);
-          setIdentity({ id: prospect.id, email: validEmail ? email : '' });
-        }
+    fetchCandidatureEmail(prospect.id)
+      .then(email => {
+        if (active) setIdentity({ id: prospect.id, email });
       })
       .catch(() => { if (active) setIdentityError(true); });
     return () => { active = false; };

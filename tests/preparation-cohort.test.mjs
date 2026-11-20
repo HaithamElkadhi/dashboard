@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/_lib/preparation-list.js';
-import { PF } from '../src/lib/config.js';
+import { ACC, PF } from '../src/lib/config.js';
+import { LINKED_ACCOUNTS_FIELD } from '../src/lib/preparationIdentity.js';
 import { INTAKE_FIELD, schoolYears, matchesSchoolYear, preparationStats, isCandidate } from '../src/lib/preparationCohort.js';
 
 test('school years group legacy spellings and keep missing years separate', () => {
@@ -16,19 +17,28 @@ test('school years group legacy spellings and keep missing years separate', () =
 
 test('statistics use saved stage criteria and exclude hidden tests from their denominator', () => {
   const records = [
-    { fields: {
-      [PF.applicationEmail]: 'student@example.com',
+    { id: 'recFirst', fields: {
+      [LINKED_ACCOUNTS_FIELD]: ['recWrongOwner', 'recWrongLabel', 'recApplication'],
       fldsMJ7gvO2Qz9UzT: JSON.stringify({ version: 1, profile: {}, documents: [{ id: 'passport', name: 'Passeport' }] }),
       fldmzKbBTH2hcZGiO: true, fld2YHuug3Idlz1zb: true, fldc3wGaASfUESuQP: true,
       fldJs1RQZowDj3XDT: 'Cacher', flddPj5ksWs0wLcCF: true,
       fldZMP2nd2ziXdLHp: 'Rendez-vous pris', fldVsPZX5T0OO0VhS: true,
     } },
-    { fields: {
-      [PF.applicationEmail]: 'Not Created', fldsMJ7gvO2Qz9UzT: '{bad',
+    { id: 'recSecond', fields: {
+      [PF.applicationEmail]: 'legacy@example.com', fldsMJ7gvO2Qz9UzT: '{bad',
+      [LINKED_ACCOUNTS_FIELD]: ['recWrongLabel'],
       fldJs1RQZowDj3XDT: 'EF Test', flddPj5ksWs0wLcCF: true,
     } },
   ];
-  const stats = Object.fromEntries(preparationStats(records).map(stat => [stat.key, stat]));
+  const account = (owner, label) => ({ fields: {
+    [ACC.prospectLink]: [owner], [ACC.label]: [label], [ACC.mailUser]: 'student@example.com',
+  } });
+  const accounts = new Map([
+    ['recWrongOwner', account('recOther', 'Email Candidature')],
+    ['recApplication', account('recFirst', 'Email Candidature')],
+    ['recWrongLabel', account('recSecond', 'Universitaly')],
+  ]);
+  const stats = Object.fromEntries(preparationStats(records, accounts).map(stat => [stat.key, stat]));
   assert.equal(stats.identity.done, 1);
   assert.equal(stats.meeting.done, 1);
   assert.equal(stats.meeting.percent, 50);

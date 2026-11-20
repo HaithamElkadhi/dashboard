@@ -1,4 +1,5 @@
 import { normalizeIntake } from './schoolYears.js';
+import { accountQueries, candidatureEmail } from './preparationIdentity.js';
 import { ACADEMIC_LEVEL_LABELS, normalizeAcademicLevel, previousStudies } from './proposalItaly/academicProfile.js';
 import {
   BASE_ID,
@@ -95,6 +96,19 @@ async function airtableWrite(method, path, body, { contentHost = false } = {}) {
   if (!res.ok) await parseError(res);
   if (res.status === 204) return null;
   return res.json();
+}
+
+export async function fetchCandidatureEmail(studentId) {
+  const response = await fetch(`${PROXY_BASE}/${BASE_ID}/${TABLES.prospects}/${encodeURIComponent(studentId)}?returnFieldsByFieldId=true`);
+  if (!response.ok) await parseError(response);
+  const student = await response.json();
+  const accounts = new Map();
+  for (const query of accountQueries([student])) {
+    const page = await fetch(`${PROXY_BASE}/${BASE_ID}/${TABLES.accounts}?${query}`);
+    if (!page.ok) await parseError(page);
+    for (const account of (await page.json()).records || []) accounts.set(account.id, account);
+  }
+  return candidatureEmail(student, accounts);
 }
 
 function toNumber(v) {
@@ -226,6 +240,8 @@ function normalizeProspect(record, payMap) {
     lastName: f[PF.surname] || '',
     prospectId,
     situations: asArray(f[PF.situation]),
+    lostReason: f[PF.lostReason] || '',
+    lostNote: f[PF.lostNote] || '',
     nbrApplications: f[PF.nbrApplications] ?? 0,
     admissionStatus: asArray(f[PF.admissionStatus]),
     university,
@@ -298,9 +314,14 @@ async function fetchSchema() {
  * the popup — it's derived from the linked Applications, not a manual count. */
 function toProspectFields(input) {
   const fields = {};
+  if (input.situations?.includes('Lost') && !input.lostReason?.trim()) {
+    throw new Error('Sélectionnez un motif pour passer au statut Lost.');
+  }
   if (input.name !== undefined) fields[PF.name] = input.name || '';
   if (input.surname !== undefined) fields[PF.surname] = input.surname || '';
   if (input.situations !== undefined) fields[PF.situation] = input.situations || [];
+  if (input.lostReason !== undefined) fields[PF.lostReason] = input.lostReason || null;
+  if (input.lostNote !== undefined) fields[PF.lostNote] = input.lostNote.trim();
   if (input.admissionStatus !== undefined) {
     fields[PF.admissionStatus] = input.admissionStatus || [];
   }
@@ -364,6 +385,8 @@ export async function updateProspect(recordId, input) {
     firstName: f[PF.name] || '',
     lastName: f[PF.surname] || '',
     situations: asArray(f[PF.situation]),
+    lostReason: f[PF.lostReason] || '',
+    lostNote: f[PF.lostNote] || '',
     admissionStatus: asArray(f[PF.admissionStatus]),
     approvedUniversity: f[PF.approvedUniversity] || '',
     scholarshipStatus: f[PF.scholarshipStatus] || '',
@@ -395,6 +418,8 @@ export async function fetchDashboardData() {
     PF.surname,
     PF.prospectId,
     PF.situation,
+    PF.lostReason,
+    PF.lostNote,
     PF.nbrApplications,
     PF.admissionStatus,
     PF.applicationUniversity,
